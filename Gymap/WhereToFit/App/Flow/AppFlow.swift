@@ -28,10 +28,11 @@ final class AppFlow: Flow {
         switch step {
             //TODO: 추후 수정 필요
         case .splash:
+            let vc = TempViewController(reactor: TempReactor())
             return .one(
                 flowContributor: .contribute(
-                    withNextPresentable: BaseViewController,
-                    withNextStepper: BaseViewController
+                    withNextPresentable: vc,
+                    withNextStepper: vc
                 ))
 
         case .main:

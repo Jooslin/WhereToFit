@@ -19,26 +19,26 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		F9B36CFB2FBC13FB006BCED0 /* Gymap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gymap.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F9B36CFB2FBC13FB006BCED0 /* WhereToFit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhereToFit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		F9B36D112FBC13FD006BCED0 /* Exceptions for "Gymap" folder in "Gymap" target */ = {
+		F9B36D112FBC13FD006BCED0 /* Exceptions for "WhereToFit" folder in "WhereToFit" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = F9B36CFA2FBC13FB006BCED0 /* Gymap */;
+			target = F9B36CFA2FBC13FB006BCED0 /* WhereToFit */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		F9B36CFD2FBC13FB006BCED0 /* Gymap */ = {
+		F9B36CFD2FBC13FB006BCED0 /* WhereToFit */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				F9B36D112FBC13FD006BCED0 /* Exceptions for "Gymap" folder in "Gymap" target */,
+				F9B36D112FBC13FD006BCED0 /* Exceptions for "WhereToFit" folder in "WhereToFit" target */,
 			);
-			path = Gymap;
+			path = WhereToFit;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -66,7 +66,7 @@
 		F9B36CF22FBC13FB006BCED0 = {
 			isa = PBXGroup;
 			children = (
-				F9B36CFD2FBC13FB006BCED0 /* Gymap */,
+				F9B36CFD2FBC13FB006BCED0 /* WhereToFit */,
 				F9B36CFC2FBC13FB006BCED0 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -74,7 +74,7 @@
 		F9B36CFC2FBC13FB006BCED0 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F9B36CFB2FBC13FB006BCED0 /* Gymap.app */,
+				F9B36CFB2FBC13FB006BCED0 /* WhereToFit.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -82,9 +82,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		F9B36CFA2FBC13FB006BCED0 /* Gymap */ = {
+		F9B36CFA2FBC13FB006BCED0 /* WhereToFit */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F9B36D122FBC13FD006BCED0 /* Build configuration list for PBXNativeTarget "Gymap" */;
+			buildConfigurationList = F9B36D122FBC13FD006BCED0 /* Build configuration list for PBXNativeTarget "WhereToFit" */;
 			buildPhases = (
 				F9B36CF72FBC13FB006BCED0 /* Sources */,
 				F9B36CF82FBC13FB006BCED0 /* Frameworks */,
@@ -95,9 +95,9 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				F9B36CFD2FBC13FB006BCED0 /* Gymap */,
+				F9B36CFD2FBC13FB006BCED0 /* WhereToFit */,
 			);
-			name = Gymap;
+			name = WhereToFit;
 			packageProductDependencies = (
 				F9B36D182FBC47C0006BCED0 /* SnapKit */,
 				F9B36D1B2FBC47E8006BCED0 /* Then */,
@@ -110,7 +110,7 @@
 				F9B36D2E2FBC4C6E006BCED0 /* Kingfisher */,
 			);
 			productName = Gymap;
-			productReference = F9B36CFB2FBC13FB006BCED0 /* Gymap.app */;
+			productReference = F9B36CFB2FBC13FB006BCED0 /* WhereToFit.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -128,7 +128,7 @@
 					};
 				};
 			};
-			buildConfigurationList = F9B36CF62FBC13FB006BCED0 /* Build configuration list for PBXProject "Gymap" */;
+			buildConfigurationList = F9B36CF62FBC13FB006BCED0 /* Build configuration list for PBXProject "WhereToFit" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -151,7 +151,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				F9B36CFA2FBC13FB006BCED0 /* Gymap */,
+				F9B36CFA2FBC13FB006BCED0 /* WhereToFit */,
 			);
 		};
 /* End PBXProject section */
@@ -182,11 +182,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Gymap/Gymap.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = WhereToFit/WhereToFit.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = Q7HGK38S83;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Gymap/Info.plist;
+				INFOPLIST_FILE = WhereToFit/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -198,8 +201,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Jooslin.com.Gymap;
+				PRODUCT_BUNDLE_IDENTIFIER = Jooslin.com.WhereToFit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = jooslin;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -219,11 +224,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Gymap/Gymap.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = WhereToFit/WhereToFit.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = Q7HGK38S83;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Gymap/Info.plist;
+				INFOPLIST_FILE = WhereToFit/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -235,8 +243,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Jooslin.com.Gymap;
+				PRODUCT_BUNDLE_IDENTIFIER = Jooslin.com.WhereToFit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = jooslin;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -373,7 +383,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		F9B36CF62FBC13FB006BCED0 /* Build configuration list for PBXProject "Gymap" */ = {
+		F9B36CF62FBC13FB006BCED0 /* Build configuration list for PBXProject "WhereToFit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F9B36D152FBC13FD006BCED0 /* Debug */,
@@ -382,7 +392,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F9B36D122FBC13FD006BCED0 /* Build configuration list for PBXNativeTarget "Gymap" */ = {
+		F9B36D122FBC13FD006BCED0 /* Build configuration list for PBXNativeTarget "WhereToFit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F9B36D132FBC13FD006BCED0 /* Debug */,
