@@ -64,3 +64,5 @@ fastlane/test_output
 
 # Configuration Files
 *.xcconfig
+AGENTS.md
+.codex/
