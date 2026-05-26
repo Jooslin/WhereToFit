@@ -30,7 +30,7 @@ extension UILabel {
         self.init()
         self.text = text
         self.font = config.font
-        self.textColor = config.color
-        self.numberOfLines = config.lines
+        self.textColor = color ?? config.color
+        self.numberOfLines = lines ?? config.lines
     }
 }
