@@ -7,12 +7,11 @@
 
 import UIKit
 import RxFlow
-import RxSwift
 import ReactorKit
 
 final class MapFlow: Flow {
-    var root: any RxFlow.Presentable { window }
-
+    private let navigationController = UINavigationController()
+    var root: any RxFlow.Presentable { navigationController }
     
     func navigate(to step: any RxFlow.Step) -> RxFlow.FlowContributors {
         // 정의한 AppStep일 때만 동작
@@ -21,24 +20,14 @@ final class MapFlow: Flow {
         }
         
         switch step {
-            //TODO: 추후 수정 필요
-        case .splash:
+            //TODO: 추후 VC 수정 필요
+        case .mapTab:
             let vc = TempViewController(reactor: TempReactor())
-            window.rootViewController = vc
-            return .one(
-                flowContributor: .contribute(
-                    withNextPresentable: vc,
-                    withNextStepper: vc
-                ))
-
-        case .main:
-            return .none
-
-        case let .updateRequired(message, storeURL):
-            return .none
+            navigationController.pushViewController(vc, animated: true)
+            return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
             
         default:
-            return .none
+            return .one(flowContributor: .forwardToParentFlow(withStep: step))
         }
     }
 }
