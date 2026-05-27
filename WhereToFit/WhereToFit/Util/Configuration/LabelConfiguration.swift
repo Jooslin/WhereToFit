@@ -54,6 +54,7 @@ extension LabelConfiguration {
     //MARK: Body
     static let body15 = make(size: 15, weight: .semibold)
     static let body14Semibold = make(size: 14, weight: .semibold)
+    static let body16Medium = make(size: 16, weight: .medium)
     static let body14Medium = make(size: 14, weight: .medium)
     static let body13Medium = make(size: 13, weight: .medium)
     static let body12Medium = make(size: 12, weight: .medium)
