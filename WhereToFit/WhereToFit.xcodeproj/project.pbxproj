@@ -16,6 +16,7 @@
 		F9B36D292FBC4C09006BCED0 /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = F9B36D282FBC4C09006BCED0 /* RxSwift */; };
 		F9B36D2C2FBC4C4B006BCED0 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = F9B36D2B2FBC4C4B006BCED0 /* Alamofire */; };
 		F9B36D2F2FBC4C6E006BCED0 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = F9B36D2E2FBC4C6E006BCED0 /* Kingfisher */; };
+		F9B36D322FBD0000006BCED0 /* NMapsMap in Frameworks */ = {isa = PBXBuildFile; productRef = F9B36D312FBD0000006BCED0 /* NMapsMap */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +57,7 @@
 				F9B36D252FBC4C09006BCED0 /* RxCocoa in Frameworks */,
 				F9B36D1F2FBC4848006BCED0 /* ReactorKit in Frameworks */,
 				F9B36D1C2FBC47E8006BCED0 /* Then in Frameworks */,
+				F9B36D322FBD0000006BCED0 /* NMapsMap in Frameworks */,
 				F9B36D292FBC4C09006BCED0 /* RxSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -108,6 +110,7 @@
 				F9B36D282FBC4C09006BCED0 /* RxSwift */,
 				F9B36D2B2FBC4C4B006BCED0 /* Alamofire */,
 				F9B36D2E2FBC4C6E006BCED0 /* Kingfisher */,
+				F9B36D312FBD0000006BCED0 /* NMapsMap */,
 			);
 			productName = Gymap;
 			productReference = F9B36CFB2FBC13FB006BCED0 /* WhereToFit.app */;
@@ -145,6 +148,7 @@
 				F9B36D232FBC4C09006BCED0 /* XCRemoteSwiftPackageReference "rxswift" */,
 				F9B36D2A2FBC4C4B006BCED0 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				F9B36D2D2FBC4C6E006BCED0 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				F9B36D302FBD0000006BCED0 /* XCRemoteSwiftPackageReference "SPM-NMapsMap" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F9B36CFC2FBC13FB006BCED0 /* Products */;
@@ -201,6 +205,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				NAVER_MAP_CLIENT_ID = efs7w12i0g;
 				PRODUCT_BUNDLE_IDENTIFIER = Jooslin.com.WhereToFit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -243,6 +248,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				NAVER_MAP_CLIENT_ID = efs7w12i0g;
 				PRODUCT_BUNDLE_IDENTIFIER = Jooslin.com.WhereToFit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -460,6 +466,14 @@
 				minimumVersion = 8.9.0;
 			};
 		};
+		F9B36D302FBD0000006BCED0 /* XCRemoteSwiftPackageReference "SPM-NMapsMap" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/navermaps/SPM-NMapsMap";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.23.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -507,6 +521,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = F9B36D2D2FBC4C6E006BCED0 /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
+		};
+		F9B36D312FBD0000006BCED0 /* NMapsMap */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F9B36D302FBD0000006BCED0 /* XCRemoteSwiftPackageReference "SPM-NMapsMap" */;
+			productName = NMapsMap;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
