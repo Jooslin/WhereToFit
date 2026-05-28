@@ -24,6 +24,15 @@ import UIKit
  class RoundImageView: UIImageView {
     private let type: RadiusType
     
+     override var intrinsicContentSize: CGSize {
+         let size = switch type {
+         case .circle: CGSize(width: 100, height: 100)
+         case .roundSquare: CGSize(width: 130, height: 130)
+         }
+         
+         return size
+     }
+     
     init(image: UIImage?, type: RadiusType) {
         self.type = type
         super.init(image: image)

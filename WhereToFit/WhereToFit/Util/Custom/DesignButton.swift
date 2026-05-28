@@ -88,10 +88,9 @@ extension DesignButton {
     private class ButtonBackgroundView: UIView {
         init(config: ButtonConfiguration) {
             super.init(frame: .zero)
+            isUserInteractionEnabled = false
             
-            self.backgroundColor = config.color
-            self.layer.cornerRadius = config.size.size.height / 2
-            
+            backgroundColor = config.color
             if config.style.borderWidth > 0 {
                 layer.borderWidth = config.style.borderWidth
                 layer.borderColor = config.titleColor.cgColor
@@ -103,10 +102,9 @@ extension DesignButton {
             fatalError("init(coder:) has not been implemented")
         }
         
-        // addsubview가 되기 직전 호출되는 함수
-        override func willMove(toSuperview newSuperview: UIView?) {
-            super.willMove(toSuperview: newSuperview)
-            isUserInteractionEnabled = false
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            layer.cornerRadius = bounds.height / 2
         }
     }
 }

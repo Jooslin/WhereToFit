@@ -24,6 +24,10 @@ final class TempViewController: BaseViewController<TempReactor> {
         $0.title = "light gray"
     }
     
+    let circleImageView = RoundImageView(image: .dateFilled, type: .circle).then { $0.backgroundColor = .red }
+    
+    let roundedImageView = RoundImageView(image: .dateFilled, type: .roundSquare).then { $0.backgroundColor = .red }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -39,8 +43,15 @@ final class TempViewController: BaseViewController<TempReactor> {
             $0.alignment = .center
         }
 
+        let imageViews = UIStackView(arrangedSubviews: [circleImageView, roundedImageView]).then {
+            $0.axis = .horizontal
+            $0.spacing = 8
+            $0.alignment = .center
+        }
+        
         view.addSubview(titleView)
         view.addSubview(buttons)
+        view.addSubview(imageViews)
         
         titleView.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide)
@@ -49,6 +60,11 @@ final class TempViewController: BaseViewController<TempReactor> {
         
         buttons.snp.makeConstraints {
             $0.top.equalTo(titleView.snp.bottom).offset(16)
+            $0.centerX.equalToSuperview()
+        }
+        
+        imageViews.snp.makeConstraints {
+            $0.top.equalTo(buttons.snp.bottom).offset(16)
             $0.centerX.equalToSuperview()
         }
     }
