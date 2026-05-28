@@ -31,9 +31,9 @@ import RxCocoa
  ```
 
  - Parameters:
-    - text: 타이틀 레이블에 사용될 텍스트
-    - leftButtonImage: 왼쪽 버튼에 사용할 이미지(nil값일 경우 버튼 미표시. 기본값은 nil)
-    - rightButtonImage: 오른쪽 버튼에 사용할 이미지(nil값일 경우 버튼 미표시. 기본값은 nil)
+    - text: 타이틀 레이블에 사용될 텍스트 (nil 값일 경우 미표시. 기본값은 nil)
+    - leftButtonImage: 왼쪽 버튼에 사용할 이미지 (nil 값일 경우 미표시. 기본값은 nil)
+    - rightButtonImage: 오른쪽 버튼에 사용할 이미지 (nil 값일 경우 미표시. 기본값은 nil)
  */
 class TitleView: UIView {
     private let titleLabel = UILabel(text: "", config: .title16, color: .gray900).then {
@@ -42,6 +42,10 @@ class TitleView: UIView {
     
     fileprivate let leftButton = UIButton(configuration: .plain())
     fileprivate let rightButton = UIButton(configuration: .plain())
+    
+    override var intrinsicContentSize: CGSize {
+        return CGSize(width: UIView.noIntrinsicMetric, height: 48) // 세로 크기만 부여
+    }
     
     init(text: String? = nil, leftButtonImage: UIImage? = nil, rightButtonImage: UIImage? = nil) {
         super.init(frame: .zero)
