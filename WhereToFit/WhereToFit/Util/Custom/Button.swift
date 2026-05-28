@@ -28,7 +28,12 @@ class Button: UIControl {
             ButtonBackgroundView(color: config.color, radius: config.size.radius, borderWidth: config.style.borderWidth)
         }
         
+        titleLabel = UILabel(config: config.size.labelConfig)
+        padding = config.size.padding
         super.init(frame: .zero)
+        
+        addSubview(background)
+        addSubview(titleLabel)
     }
     
     @available(*, unavailable)
@@ -55,6 +60,7 @@ extension Button {
             fatalError("init(coder:) has not been implemented")
         }
         
+        // addsubview가 되기 직전 호출되는 함수
         override func willMove(toSuperview newSuperview: UIView?) {
             super.willMove(toSuperview: newSuperview)
             isUserInteractionEnabled = false
