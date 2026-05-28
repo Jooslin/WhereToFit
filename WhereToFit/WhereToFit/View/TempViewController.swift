@@ -12,16 +12,16 @@ import Then
 
 final class TempViewController: BaseViewController<TempReactor> {
     let titleView = TitleView(text: "위치 지정", leftButtonImage: .close)
-    let largeBorderButton = Button(config: .largeBorderBlue).then {
+    let largeBorderButton = DesignButton(config: .largeBorderBlue).then {
         $0.title = "large border blue"
     }
-    let mediumBlueButton = Button(config: .mediumFilledBlue).then {
+    let mediumBlueButton = DesignButton(config: .mediumFilledBlue).then {
         $0.title = "medium blue"
     }
-    let smallGrayButton = Button(config: .smallFilledGray).then {
+    let smallGrayButton = DesignButton(config: .smallFilledGray).then {
         $0.title = "gray"
     }
-    let smallLightGrayButton = Button(config: .smallFilledLightGray).then {
+    let smallLightGrayButton = DesignButton(config: .smallFilledLightGray).then {
         $0.title = "light gray"
     }
     
@@ -59,6 +59,11 @@ final class TempViewController: BaseViewController<TempReactor> {
             })
             .disposed(by: disposeBag)
         
+        largeBorderButton.rx.tap
+            .subscribe(onNext: {
+                print("largeBorderButtonTapped")
+            })
+            .disposed(by: disposeBag)
     }
 }
 

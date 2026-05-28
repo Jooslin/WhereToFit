@@ -7,8 +7,10 @@
 
 import UIKit
 import Then
+import RxSwift
+import RxCocoa
 
-class Button: UIControl {
+class DesignButton: UIControl {
     private let background: UIView
     private let titleLabel: UILabel
     private let padding: UIEdgeInsets
@@ -62,7 +64,7 @@ class Button: UIControl {
     }
 }
 
-extension Button {
+extension DesignButton {
     private class ButtonBackgroundView: UIView {
         let color: UIColor
         let radius: CGFloat
@@ -95,5 +97,11 @@ extension Button {
                 layer.borderColor = borderColor.cgColor
             }
         }
+    }
+}
+
+extension Reactive where Base: DesignButton {
+    var tap: ControlEvent<Void> {
+        controlEvent(.touchUpInside)
     }
 }
