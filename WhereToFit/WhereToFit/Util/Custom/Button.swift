@@ -35,12 +35,14 @@ class Button: UIControl {
     init(config: ButtonConfiguration) {
         background = switch config.style {
         case .fill:
-            ButtonBackgroundView(color: config.color, radius: config.size.radius)
+            ButtonBackgroundView(config: config)
         case .border:
-            ButtonBackgroundView(color: .white, radius: config.size.radius, borderWidth: config.style.borderWidth)
+            ButtonBackgroundView(config: config)
         }
         
-        titleLabel = UILabel(config: config.size.labelConfig, color: config.textColor)
+        titleLabel = UILabel(config: config.size.labelConfig, color: config.titleColor).then {
+            $0.textAlignment = .center
+        }
         padding = config.size.padding
         super.init(frame: .zero)
         
@@ -64,12 +66,14 @@ extension Button {
     private class ButtonBackgroundView: UIView {
         let color: UIColor
         let radius: CGFloat
-        let borderWidth: CGFloat?
+        let borderWidth: CGFloat
+        let borderColor: UIColor
         
-        init(color: UIColor, radius: CGFloat, borderWidth: CGFloat? = nil) {
-            self.color = color
-            self.radius = radius
-            self.borderWidth = borderWidth
+        init(config: ButtonConfiguration) {
+            self.color = config.color
+            self.radius = config.size.radius
+            self.borderWidth = config.style.borderWidth
+            self.borderColor = config.titleColor
             super.init(frame: .zero)
         }
         
@@ -85,9 +89,9 @@ extension Button {
             backgroundColor = color
             layer.cornerRadius = radius
             
-            if let borderWidth {
+            if borderWidth > 0 {
                 layer.borderWidth = borderWidth
-                layer.borderColor = color.cgColor
+                layer.borderColor = borderColor.cgColor
             }
         }
     }

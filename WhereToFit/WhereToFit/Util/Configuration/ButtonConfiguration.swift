@@ -11,7 +11,7 @@ struct ButtonConfiguration {
     let size: ButtonSize
     let style: ButtonStyle
     let color: UIColor
-    let textColor: UIColor
+    let titleColor: UIColor
     
     enum ButtonStyle {
         case fill
@@ -61,32 +61,32 @@ extension ButtonConfiguration {
         size: ButtonSize,
         style: ButtonStyle,
         color: UIColor,
-        textColor: UIColor? = nil
+        titleColor: UIColor? = nil
     ) -> ButtonConfiguration {
         ButtonConfiguration(
             size: size,
             style: style,
             color: color,
-            textColor: textColor ?? size.labelConfig.color
+            titleColor: titleColor ?? size.labelConfig.color
         )
     }
     
     //TODO: 색상 수정 필요
     //MARK: Filled
-    static let smallFilledBlue = make(size: .small, style: .fill, color: .systemBlue, textColor: .white)
-    static let mediumFilledBlue = make(size: .medium, style: .fill, color: .systemBlue, textColor: .white)
-    static let largeFilledBlue = make(size: .large, style: .fill, color: .systemBlue, textColor: .white)
+    static let smallFilledBlue = make(size: .small, style: .fill, color: .systemBlue, titleColor: .white)
+    static let mediumFilledBlue = make(size: .medium, style: .fill, color: .systemBlue, titleColor: .white)
+    static let largeFilledBlue = make(size: .large, style: .fill, color: .systemBlue, titleColor: .white)
     
-    static let smallFilledGray = make(size: .small, style: .fill, color: .gray200, textColor: .white)
-    static let mediumFilledGray = make(size: .medium, style: .fill, color: .gray200, textColor: .white)
-    static let largeFilledGray = make(size: .large, style: .fill, color: .gray200, textColor: .white)
+    static let smallFilledGray = make(size: .small, style: .fill, color: .gray200, titleColor: .white)
+    static let mediumFilledGray = make(size: .medium, style: .fill, color: .gray200, titleColor: .white)
+    static let largeFilledGray = make(size: .large, style: .fill, color: .gray200, titleColor: .white)
     
-    static let smallFilledLightGray = make(size: .small, style: .fill, color: .gray50, textColor: .gray500)
-    static let mediumFilledLightGray = make(size: .medium, style: .fill, color: .gray50, textColor: .gray500)
-    static let largeFilledLightGray = make(size: .large, style: .fill, color: .gray50, textColor: .gray500)
+    static let smallFilledLightGray = make(size: .small, style: .fill, color: .gray50, titleColor: .gray500)
+    static let mediumFilledLightGray = make(size: .medium, style: .fill, color: .gray50, titleColor: .gray500)
+    static let largeFilledLightGray = make(size: .large, style: .fill, color: .gray50, titleColor: .gray500)
     
     //MARK: Border
-    static let smallBorderBlue = make(size: .small, style: .border, color: .white, textColor: .systemBlue)
-    static let mediumBorderBlue = make(size: .medium, style: .border, color: .white, textColor: .systemBlue)
-    static let largeBorderBlue = make(size: .large, style: .border, color: .white, textColor: .systemBlue)
+    static let smallBorderBlue = make(size: .small, style: .border, color: .white, titleColor: .systemBlue)
+    static let mediumBorderBlue = make(size: .medium, style: .border, color: .white, titleColor: .systemBlue)
+    static let largeBorderBlue = make(size: .large, style: .border, color: .white, titleColor: .systemBlue)
 }
