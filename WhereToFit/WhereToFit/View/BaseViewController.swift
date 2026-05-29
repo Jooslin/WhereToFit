@@ -31,6 +31,8 @@ class BaseViewController<R: Reactor>: UIViewController, Stepper, ReactorKit.View
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
+        navigationController?.navigationBar.isHidden = true
+        
         // 네비게이션 바가 숨겨져도 스와이프로 뒤로 가기가 가능하도록 설정
         navigationController?.interactivePopGestureRecognizer?.delegate = nil
     }

@@ -32,7 +32,7 @@ extension LabelConfiguration {
         size: CGFloat,
         weight: UIFont.Weight,
 //        textStyle: UIFont.TextStyle,
-        color: UIColor = .label,
+        color: UIColor = .gray900,
         lines: Int = 0
     ) -> LabelConfiguration {
         LabelConfiguration(
