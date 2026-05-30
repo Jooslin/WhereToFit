@@ -37,7 +37,7 @@ final class HomeView: UIView {
 //MARK: CollectionView - Datasource
 extension HomeView {
     private func makeCollectionViewDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<HomeCollectionView.Section, HomeCollectionView.Item> {
-        let headerViewRegistration = UICollectionView.SupplementaryRegistration<HomeHeaderView>(elementKind: "headerKind") { supplementaryView, elementKind, indexPath in
+        let headerViewRegistration = UICollectionView.SupplementaryRegistration<HomeHeaderView>(elementKind: "headerKind") { [weak self] supplementaryView, elementKind, indexPath in
             guard let section = self?.dataSource.sectionIdentifier(for: indexPath.section) else { return }
             
             switch section {
