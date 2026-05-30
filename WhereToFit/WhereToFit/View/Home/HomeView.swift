@@ -23,6 +23,11 @@ final class HomeView: UIView {
     }
     
     private func setLayout() {
+        addSubview(titleView)
         
+        titleView.snp.makeConstraints {
+            $0.top.equalTo(safeAreaLayoutGuide)
+            $0.horizontalEdges.equalToSuperview()
+        }
     }
 }
