@@ -23,8 +23,8 @@ final class HomeCollectionView: UICollectionView {
 
 extension HomeCollectionView {
     nonisolated
-    enum Section {
-        case weather
+    enum Section: Int {
+        case weather = 0
     }
     
     nonisolated
