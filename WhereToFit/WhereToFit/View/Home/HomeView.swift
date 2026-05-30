@@ -11,12 +11,8 @@ import Then
 
 final class HomeView: UIView {
     let titleView = TitleView(rightButtonImage: .alarm)
-    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout()).then {
-        $0.layoutMargins = .init(top: 0, left: 16, bottom: 0, right: 16)
-        $0.contentInset = .init(top: 0, left: 0, bottom: 50, right: 0)
-        $0.showsVerticalScrollIndicator = false
-    }
-    private var dataSource = makeCollectionViewDiffableDataSource(collectionView)
+    private lazy var collectionView = HomeCollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout())
+    private lazy var dataSource = makeCollectionViewDiffableDataSource(collectionView)
     
     init() {
         super.init(frame: .zero)
@@ -40,7 +36,7 @@ final class HomeView: UIView {
 
 //MARK: CollectionView - Layout
 extension HomeView {
-    private func makeCompositionalLayout() -> UICollectionView {
+    private func makeCompositionalLayout() -> UICollectionViewLayout {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
         configuration.contentInsetsReference = .layoutMargins
         
