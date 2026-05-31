@@ -13,4 +13,10 @@ enum AppStep: Step {
     case splash
     case main
     case updateRequired(message: String, storeURL: URL)
+    
+    // Tab
+    case homeTab
+    case mapTab
+    case calendarTab
+    case myTab
 }
