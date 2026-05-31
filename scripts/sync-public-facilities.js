@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import fs from "node:fs";
 import admin from "firebase-admin";
 
 const API_URL =
@@ -8,9 +9,12 @@ const METADATA_COLLECTION_NAME = "syncMetadata";
 const METADATA_DOCUMENT_ID = "publicFacilities";
 const PAGE_SIZE = 1000;
 const MAX_BATCH_WRITES = 450;
+const REQUEST_TIMEOUT_MS = 30000;
 
 const serviceKey = process.env.DATA_GO_KR_SERVICE_KEY;
-const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+const serviceAccountJson =
+  process.env.FIREBASE_SERVICE_ACCOUNT ??
+  readServiceAccountFile(process.env.FIREBASE_SERVICE_ACCOUNT_PATH);
 
 if (!serviceKey) {
   throw new Error("DATA_GO_KR_SERVICE_KEY is required.");
@@ -36,8 +40,13 @@ main().catch((error) => {
 async function main() {
   const startedAt = new Date();
   const rows = await fetchAllRows();
+  console.log(`Fetched ${rows.length} rows from data.go.kr.`);
+
   const nextDocuments = new Map(rows.map((row) => toDocumentEntry(row)));
+  console.log(`Prepared ${nextDocuments.size} Firestore documents.`);
+
   const existingDocuments = await fetchExistingDocuments();
+  console.log(`Loaded ${existingDocuments.size} existing Firestore documents.`);
 
   let created = 0;
   let updated = 0;
@@ -110,9 +119,14 @@ async function fetchAllRows() {
   const rows = [...firstPage.items];
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
+  console.log(
+    `Fetched page 1/${totalPages || 1}. totalCount=${totalCount}, rows=${rows.length}.`,
+  );
+
   for (let pageNo = 2; pageNo <= totalPages; pageNo += 1) {
     const page = await fetchPage(pageNo);
     rows.push(...page.items);
+    console.log(`Fetched page ${pageNo}/${totalPages}. rows=${rows.length}.`);
   }
 
   return rows;
@@ -124,7 +138,16 @@ async function fetchPage(pageNo) {
   url.searchParams.set("numOfRows", String(PAGE_SIZE));
   url.searchParams.set("type", "json");
 
-  const response = await fetch(withServiceKey(url));
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  let response;
+  try {
+    response = await fetch(withServiceKey(url), { signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+
   const text = await response.text();
 
   if (!response.ok) {
@@ -272,6 +295,14 @@ function pickFirst(object, keys) {
 
 function hash(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+function readServiceAccountFile(path) {
+  if (!path) {
+    return undefined;
+  }
+
+  return fs.readFileSync(path, "utf8");
 }
 
 class BatchWriter {
