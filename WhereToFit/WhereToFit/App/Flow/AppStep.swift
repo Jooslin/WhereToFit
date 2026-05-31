@@ -19,4 +19,9 @@ enum AppStep: Step {
     case mapTab
     case calendarTab
     case myTab
+    
+    
+    // Map
+    case mapFilter(FacilityFilter)
+    case mapFacilityDetail(FitnessFacility)
 }
