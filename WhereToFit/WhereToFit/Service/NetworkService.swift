@@ -7,43 +7,59 @@
 
 import Foundation
 import Alamofire
-import FirebaseCore
-import FirebaseFirestore
 
 final class NetworkService {
-    private let firestore: Firestore?
+    private let supabaseBaseURL: String
+    private let supabasePublishableKey: String
     
-    init(firestore: Firestore? = nil) {
-        self.firestore = firestore
+    init(
+        supabaseBaseURL: String = Bundle.main.supabaseBaseURL,
+        supabasePublishableKey: String = Bundle.main.supabasePublishableKey
+    ) {
+        self.supabaseBaseURL = supabaseBaseURL
+        self.supabasePublishableKey = supabasePublishableKey
     }
     
-    func fetchFirebaseData<T: Decodable>(api: API) async throws -> [T] {
-        guard FirebaseApp.app() != nil else {
-            throw NetworkServiceError.firebaseNotConfigured
+    func fetchSupabaseData<T: Decodable>(api: API) async throws -> [T] {
+        guard !supabaseBaseURL.isEmpty,
+              !supabaseBaseURL.contains("$("),
+              !supabasePublishableKey.isEmpty,
+              !supabasePublishableKey.contains("$(") else {
+            throw NetworkServiceError.missingSupabaseConfiguration
         }
-        
-        guard let collectionPath = api.collectionPath else {
+
+        guard let endpoint = api.endpoint else {
             throw NetworkServiceError.invalidEndpoint
         }
 
-        let firestore = firestore ?? Firestore.firestore()
-        let snapshot = try await firestore.collection(collectionPath).getDocuments()
-        
-        return try snapshot.documents.map {
-            try $0.data(as: T.self)
-        }
+        let baseURL = supabaseBaseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let url = "\(baseURL)/rest/v1/\(endpoint)"
+        let headers: HTTPHeaders = [
+            "apikey": supabasePublishableKey,
+            "Authorization": "Bearer \(supabasePublishableKey)",
+            "Accept": "application/json"
+        ]
+
+        return try await AF.request(url, method: .get, headers: headers)
+            .validate()
+            .serializingDecodable([T].self)
+            .value
+    }
+
+    func fetchPublicFacilities() async throws -> [PublicFacilityDTO] {
+        try await fetchSupabaseData(api: .facility)
     }
 }
 
 extension NetworkService {
     enum NetworkServiceError: LocalizedError {
-        case firebaseNotConfigured
+        case missingSupabaseConfiguration
         case invalidEndpoint
 
         var errorDescription: String? {
             switch self {
-            case .firebaseNotConfigured:
-                return "Firebase is not configured. Call FirebaseApp.configure() before fetching Firestore data."
+            case .missingSupabaseConfiguration:
+                return "Supabase configuration is missing. Add SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY to Info.plist or build settings."
             case .invalidEndpoint:
                 return "The selected API endpoint is not configured."
             }
@@ -63,13 +79,23 @@ extension NetworkService {
             }
         }
         
-        var collectionPath: String? {
+        var endpoint: String? {
             switch self {
             case .weather:
                 return nil
             case .facility:
-                return "publicFacilities"
+                return "public_facilities?select=*&order=facility_name.asc"
             }
         }
+    }
+}
+
+private extension Bundle {
+    var supabaseBaseURL: String {
+        object(forInfoDictionaryKey: "SUPABASE_URL") as? String ?? ""
+    }
+
+    var supabasePublishableKey: String {
+        object(forInfoDictionaryKey: "SUPABASE_PUBLISHABLE_KEY") as? String ?? ""
     }
 }

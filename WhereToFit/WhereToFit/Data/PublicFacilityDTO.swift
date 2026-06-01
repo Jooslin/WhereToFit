@@ -6,10 +6,9 @@
 //
 
 import Foundation
-import FirebaseFirestore
 
 struct PublicFacilityDTO: Decodable {
-    @DocumentID var id: String? // 파이어베이스에서 데이터가 담겨있는 문서의 ID
+    let id: String? // Supabase public_facilities 테이블의 기본 키
     let facilityName: String? // 개방시설 이름
     let locationName: String? // 개방장소 이름
     let facilityType: String? // 개방시설 유형
@@ -47,40 +46,41 @@ struct PublicFacilityDTO: Decodable {
     let providerInstitution: String? // 제공기관 이름
 
     enum CodingKeys: String, CodingKey {
-        case facilityName = "openFcltyNm"
-        case locationName = "openLcNm"
-        case facilityType = "openFcltyType"
+        case id
+        case facilityName = "facility_name"
+        case locationName = "location_name"
+        case facilityType = "facility_type"
         
-        case closeDays = "rstde"
-        case weekdayOpenTime = "weekdayOperOpenHhmm"
-        case weekdayCloseTime = "weekdayOperColseHhmm"
-        case weekendOpenTime = "wkendOperOpenHhmm"
-        case weekendCloseTime = "wkendOperCloseHhmm"
+        case closeDays = "closed_days"
+        case weekdayOpenTime = "weekday_open_time"
+        case weekdayCloseTime = "weekday_close_time"
+        case weekendOpenTime = "weekend_open_time"
+        case weekendCloseTime = "weekend_close_time"
         
-        case isPaid = "pchrgUseYn"
-        case usageStandardTime = "useStdrTime"
-        case rentalFee = "rntfee"
-        case excessUseUnitTime
-        case excessRentalFee = "excessRntfee"
+        case isPaid = "is_paid"
+        case usageStandardTime = "usage_standard_time"
+        case rentalFee = "rental_fee"
+        case excessUseUnitTime = "excess_use_unit_time"
+        case excessRentalFee = "excess_rental_fee"
         
-        case capacity = "aceptncPosblCo"
-        case area = "ar"
-        case extraFacilityInfo = "etcFclty"
+        case capacity
+        case area
+        case extraFacilityInfo = "extra_facility_info"
         
-        case applicationMethodType = "sbscrptnMthSe"
-        case facilityImage = "fcltyPicInfo"
+        case applicationMethodType = "application_method_type"
+        case facilityImage = "facility_image"
         
-        case roadAddress = "rdnmadr"
-        case lotNumberAddress = "lnmadr"
+        case roadAddress = "road_address"
+        case lotNumberAddress = "lot_number_address"
         case latitude
         case longitude
         
-        case institution = "institutionNm"
-        case chargeDepartment = "chrgDeptNm"
-        case phoneNumber
-        case homepageUrl
-        case referenceDate
-        case institutionCode = "insttCode"
-        case providerInstitution = "insttNm"
+        case institution
+        case chargeDepartment = "charge_department"
+        case phoneNumber = "phone_number"
+        case homepageUrl = "homepage_url"
+        case referenceDate = "reference_date"
+        case institutionCode = "institution_code"
+        case providerInstitution = "provider_institution"
     }
 }
