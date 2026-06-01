@@ -258,16 +258,6 @@ function normalizeRow(row) {
   setNumber(normalized, "aceptncPosblCo");
   setNumber(normalized, "ar");
 
-  if (
-    typeof normalized.latitude === "number" &&
-    typeof normalized.longitude === "number"
-  ) {
-    normalized.location = new admin.firestore.GeoPoint(
-      normalized.latitude,
-      normalized.longitude,
-    );
-  }
-
   return normalized;
 }
 
