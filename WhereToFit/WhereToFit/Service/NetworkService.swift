@@ -17,12 +17,12 @@ final class NetworkService {
         self.firestore = firestore
     }
     
-    func fetchPublicFacilities<T: Decodable>(as type: T.Type) async throws -> [T] {
+    func fetchFirebaseData<T: Decodable>(api: API) async throws -> [T] {
         guard FirebaseApp.app() != nil else {
             throw NetworkServiceError.firebaseNotConfigured
         }
         
-        guard let collectionPath = API.facility.collectionPath else {
+        guard let collectionPath = api.collectionPath else {
             throw NetworkServiceError.invalidEndpoint
         }
 
