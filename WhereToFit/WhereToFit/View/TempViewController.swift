@@ -11,6 +11,8 @@ import SnapKit
 import Then
 
 final class TempViewController: BaseViewController<TempReactor> {
+    private let networkService = NetworkService()
+    
     let titleView = TitleView(text: "위치 지정", leftButtonImage: .close)
     let largeBorderButton = DesignButton(config: .largeBorderBlue).then {
         $0.title = "large border blue"
@@ -30,6 +32,8 @@ final class TempViewController: BaseViewController<TempReactor> {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        fetchSupabaseSmokeTest()
 
         let smallButtons = UIStackView(arrangedSubviews: [smallGrayButton, smallLightGrayButton]).then {
             $0.axis = .horizontal
@@ -81,6 +85,41 @@ final class TempViewController: BaseViewController<TempReactor> {
                 print("largeBorderButtonTapped")
             })
             .disposed(by: disposeBag)
+    }
+    
+    private func fetchSupabaseSmokeTest() {
+        Task {
+            do {
+                let publicFacilityPage: NetworkService.SupabasePage<PublicFacilityDTO> = try await networkService.fetchSupabaseData(
+                    api: .facility,
+                    limit: 5
+                )
+                print("공공시설 조회 성공:", publicFacilityPage.items.count)
+                print("공공시설 다음 페이지 여부:", publicFacilityPage.hasNextPage)
+                print("공공시설 첫 데이터:", publicFacilityPage.items.first ?? "없음")
+                
+                let classInformationPage: NetworkService.SupabasePage<ClassInformationDTO> = try await networkService.fetchSupabaseData(
+                    api: .classInfo,
+                    limit: 5
+                )
+                print("프로그램 목록 조회 성공:", classInformationPage.items.count)
+                print("프로그램 목록 다음 페이지 여부:", classInformationPage.hasNextPage)
+                print("프로그램 목록 첫 데이터:", classInformationPage.items.first ?? "없음")
+                
+                let filteredPublicFacilityPage: NetworkService.SupabasePage<PublicFacilityDTO> = try await networkService.fetchFilteredSupabaseData(api: .facility, keyword: "경주", searchType: .facilityName, order: .ascending)
+                print("공공시설 조회 성공:", filteredPublicFacilityPage.items.count)
+                print("공공시설 다음 페이지 여부:", filteredPublicFacilityPage.hasNextPage)
+                print("공공시설 첫 데이터:", filteredPublicFacilityPage.items.first ?? "없음")
+                
+                let filteredClassInformationPage: NetworkService.SupabasePage<ClassInformationDTO> = try await networkService.fetchFilteredSupabaseData(api: .classInfo, keyword: "탁구", searchType: .facilityName, order: .ascending)
+                
+                print("프로그램 목록 조회 성공:", filteredClassInformationPage.items.count)
+                print("프로그램 목록 다음 페이지 여부:", filteredClassInformationPage.hasNextPage)
+                print("프로그램 목록 첫 데이터:", filteredClassInformationPage.items.first ?? "없음")
+            } catch {
+                print("Supabase 조회 실패:", error.localizedDescription)
+            }
+        }
     }
 }
 
