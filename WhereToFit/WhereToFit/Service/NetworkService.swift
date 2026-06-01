@@ -17,7 +17,7 @@ final class NetworkService {
         self.firestore = firestore
     }
     
-    func fetchPublicFacilities() async throws -> [PublicFacilityDocument] {
+    func fetchPublicFacilities<T: Decodable>(as type: T.Type) async throws -> [T] {
         guard FirebaseApp.app() != nil else {
             throw NetworkServiceError.firebaseNotConfigured
         }
@@ -29,18 +29,13 @@ final class NetworkService {
         let firestore = firestore ?? Firestore.firestore()
         let snapshot = try await firestore.collection(collectionPath).getDocuments()
         
-        return snapshot.documents.map {
-            PublicFacilityDocument(id: $0.documentID, data: $0.data())
+        return try snapshot.documents.map {
+            try $0.data(as: T.self)
         }
     }
 }
 
 extension NetworkService {
-    struct PublicFacilityDocument {
-        let id: String
-        let data: [String: Any]
-    }
-
     enum NetworkServiceError: LocalizedError {
         case firebaseNotConfigured
         case invalidEndpoint
