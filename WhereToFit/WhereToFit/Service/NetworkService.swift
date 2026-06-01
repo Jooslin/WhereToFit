@@ -20,8 +20,63 @@ final class NetworkService {
         self.supabasePublishableKey = supabasePublishableKey
     }
     
-    // supabase에 적재된 테이블의 전체 데이터 조회 메서드 - 강좌 정보는 원본 데이터 양이 많으므로 조회 제한이 걸릴 수 있음
-    func fetchAllSupabaseData<T: Decodable>(api: API) async throws -> [T] {
+    // supabase 전체 데이터 가져오기 메서드
+    func fetchSupabaseData<T: Decodable>(
+        api: API,
+        limit: Int = 50,
+        offset: Int = 0,
+        order: SearchOrder = .ascending
+    ) async throws -> SupabasePage<T> {
+        guard let tableName = api.tableName else {
+            throw NetworkServiceError.invalidEndpoint
+        }
+
+        let parameters: Parameters = [
+            "select": "*",
+            "order": "id.\(order.rawValue)"
+        ]
+
+        return try await requestSupabasePage(
+            tableName: tableName,
+            parameters: parameters,
+            limit: limit,
+            offset: offset
+        )
+    }
+
+    // supabase 데이터 검색 메서드
+    func fetchFilteredSupabaseData<T: Decodable>(
+        api: API,
+        keyword: String,
+        searchType: SearchType,
+        order: SearchOrder,
+        limit: Int = 50,
+        offset: Int = 0
+    ) async throws -> SupabasePage<T> {
+        guard let tableName = api.tableName else {
+            throw NetworkServiceError.invalidEndpoint
+        }
+
+        let parameters: Parameters = [
+            "select": "*",
+            searchType.rawValue: "ilike.*\(keyword)*",
+            "order": "id.\(order.rawValue)"
+        ]
+
+        return try await requestSupabasePage(
+            tableName: tableName,
+            parameters: parameters,
+            limit: limit,
+            offset: offset
+        )
+    }
+
+    private func requestSupabasePage<T: Decodable>(
+        tableName: String,
+        parameters: Parameters,
+        limit: Int,
+        offset: Int
+    ) async throws -> SupabasePage<T> {
         guard !supabaseBaseURL.isEmpty,
               !supabaseBaseURL.contains("$("),
               !supabasePublishableKey.isEmpty,
@@ -29,30 +84,56 @@ final class NetworkService {
             throw NetworkServiceError.missingSupabaseConfiguration
         }
 
-        guard let endpoint = api.endpoint else {
-            throw NetworkServiceError.invalidEndpoint
+        guard limit > 0, offset >= 0 else {
+            throw NetworkServiceError.invalidPaginationParameter
         }
 
         let baseURL = supabaseBaseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        let url = "\(baseURL)/rest/v1/\(endpoint)"
+        let url = "\(baseURL)/rest/v1/\(tableName)"
         let headers: HTTPHeaders = [
             "apikey": supabasePublishableKey,
-            "Authorization": "Bearer \(supabasePublishableKey)",
             "Accept": "application/json"
         ]
+        var parameters = parameters
+        parameters["limit"] = limit + 1
+        parameters["offset"] = offset
 
-        return try await AF.request(url, method: .get, headers: headers)
+        let rows = try await AF.request(
+            url,
+            method: .get,
+            parameters: parameters,
+            encoding: URLEncoding.queryString,
+            headers: headers
+        )
             .validate()
             .serializingDecodable([T].self)
             .value
-    }
 
+        let hasNextPage = rows.count > limit
+        let items = hasNextPage ? Array(rows.prefix(limit)) : rows
+        let nextOffset = hasNextPage ? offset + limit : nil
+
+        return SupabasePage(
+            items: items,
+            nextOffset: nextOffset
+        )
+    }
 }
 
 extension NetworkService {
+    struct SupabasePage<T> {
+        let items: [T]
+        let nextOffset: Int?
+
+        var hasNextPage: Bool {
+            nextOffset != nil
+        }
+    }
+
     enum NetworkServiceError: LocalizedError {
         case missingSupabaseConfiguration
         case invalidEndpoint
+        case invalidPaginationParameter
 
         var errorDescription: String? {
             switch self {
@@ -60,6 +141,8 @@ extension NetworkService {
                 return "Supabase configuration is missing. Add SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY to Info.plist or build settings."
             case .invalidEndpoint:
                 return "The selected API endpoint is not configured."
+            case .invalidPaginationParameter:
+                return "Pagination limit must be greater than 0 and offset must be 0 or greater."
             }
         }
     }
@@ -78,16 +161,25 @@ extension NetworkService {
             }
         }
         
-        var endpoint: String? {
+        var tableName: String? {
             switch self {
             case .weather:
                 return nil
             case .facility:
-                return "public_facilities?select=*&order=facility_name.asc"
+                return "public_facilities"
             case .classInfo:
-                return "class_information?select=*&order=id.asc"
+                return "class_information"
             }
         }
+    }
+    
+    enum SearchType: String {
+        case facilityName = "facility_name"
+    }
+    
+    enum SearchOrder: String {
+        case ascending = "asc"
+        case descending = "desc"
     }
 }
 

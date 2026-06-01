@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct PublicFacilityDTO: Decodable {
+struct PublicFacilityDTO: Decodable, SearchProtocol {
     let id: String? // Supabase public_facilities 테이블의 기본 키
     let facilityName: String? // 개방시설 이름
     let locationName: String? // 개방장소 이름
