@@ -75,3 +75,7 @@ firebase-debug.log
 
 # Node
 node_modules/
+
+# Supabase
+supabase/
+export-class-information-sql.py
