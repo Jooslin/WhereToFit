@@ -20,7 +20,8 @@ final class NetworkService {
         self.supabasePublishableKey = supabasePublishableKey
     }
     
-    func fetchSupabaseData<T: Decodable>(api: API) async throws -> [T] {
+    // supabase에 적재된 테이블의 전체 데이터 조회 메서드 - 강좌 정보는 원본 데이터 양이 많으므로 조회 제한이 걸릴 수 있음
+    func fetchAllSupabaseData<T: Decodable>(api: API) async throws -> [T] {
         guard !supabaseBaseURL.isEmpty,
               !supabaseBaseURL.contains("$("),
               !supabasePublishableKey.isEmpty,
@@ -46,9 +47,6 @@ final class NetworkService {
             .value
     }
 
-    func fetchPublicFacilities() async throws -> [PublicFacilityDTO] {
-        try await fetchSupabaseData(api: .facility)
-    }
 }
 
 extension NetworkService {
@@ -69,12 +67,13 @@ extension NetworkService {
     enum API {
         case weather
         case facility
+        case classInfo
         
         var baseUrl: String? {
             switch self {
             case .weather:
                 return "https://api.openweathermap.org/data/2.5/weather"
-            case .facility:
+            case .facility, .classInfo:
                 return nil
             }
         }
@@ -85,6 +84,8 @@ extension NetworkService {
                 return nil
             case .facility:
                 return "public_facilities?select=*&order=facility_name.asc"
+            case .classInfo:
+                return "class_information?select=*&order=id.asc"
             }
         }
     }
