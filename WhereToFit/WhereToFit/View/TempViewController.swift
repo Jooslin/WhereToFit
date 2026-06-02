@@ -98,24 +98,14 @@ final class TempViewController: BaseViewController<TempReactor> {
                 print("공공시설 다음 페이지 여부:", publicFacilityPage.hasNextPage)
                 print("공공시설 첫 데이터:", publicFacilityPage.items.first ?? "없음")
                 
-                let classInformationPage: NetworkService.SupabasePage<ClassInformationDTO> = try await networkService.fetchSupabaseData(
-                    api: .classInfo,
-                    limit: 5
-                )
-                print("프로그램 목록 조회 성공:", classInformationPage.items.count)
-                print("프로그램 목록 다음 페이지 여부:", classInformationPage.hasNextPage)
-                print("프로그램 목록 첫 데이터:", classInformationPage.items.first ?? "없음")
-                
-                let filteredPublicFacilityPage: NetworkService.SupabasePage<PublicFacilityDTO> = try await networkService.fetchFilteredSupabaseData(api: .facility, keyword: "경주", searchType: .facilityName, order: .ascending)
-                print("공공시설 조회 성공:", filteredPublicFacilityPage.items.count)
-                print("공공시설 다음 페이지 여부:", filteredPublicFacilityPage.hasNextPage)
-                print("공공시설 첫 데이터:", filteredPublicFacilityPage.items.first ?? "없음")
-                
-                let filteredClassInformationPage: NetworkService.SupabasePage<ClassInformationDTO> = try await networkService.fetchFilteredSupabaseData(api: .classInfo, keyword: "탁구", searchType: .facilityName, order: .ascending)
+                let filteredClassInformationPage: NetworkService.SupabasePage<ClassInformationDTO> = try await networkService.fetchFilteredSupabaseData(api: .classInfo, keyword: "탁구", searchType: .className, order: .ascending)
                 
                 print("프로그램 목록 조회 성공:", filteredClassInformationPage.items.count)
                 print("프로그램 목록 다음 페이지 여부:", filteredClassInformationPage.hasNextPage)
                 print("프로그램 목록 첫 데이터:", filteredClassInformationPage.items.first ?? "없음")
+                
+                let weather = try await networkService.fetchWeatherData(latitude: 37.5710, longitude: 126.9770)
+                print("광화문 날씨:", weather.main)
             } catch {
                 print("Supabase 조회 실패:", error.localizedDescription)
             }

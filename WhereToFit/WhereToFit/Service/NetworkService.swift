@@ -15,10 +15,12 @@ final class NetworkService {
     
     init(
         supabaseBaseURL: String = Bundle.main.supabaseBaseURL,
-        supabasePublishableKey: String = Bundle.main.supabasePublishableKey
+        supabasePublishableKey: String = Bundle.main.supabasePublishableKey,
+        weatherKey: String = Bundle.main.openweatherKey
     ) {
         self.supabaseBaseURL = supabaseBaseURL
         self.supabasePublishableKey = supabasePublishableKey
+        self.weatherKey = weatherKey
     }
 
 }
@@ -26,7 +28,7 @@ final class NetworkService {
 //MARK: Supabase
 extension NetworkService {
     // supabase 전체 데이터 가져오기 메서드
-    func fetchSupabaseData<T: Decodable>(
+    func fetchSupabaseData<T: Decodable & Sendable>(
         api: API,
         limit: Int = 50,
         offset: Int = 0,
@@ -50,7 +52,7 @@ extension NetworkService {
     }
 
     // supabase 데이터 검색 메서드
-    func fetchFilteredSupabaseData<T: Decodable>(
+    func fetchFilteredSupabaseData<T: Decodable & Sendable>(
         api: API,
         keyword: String,
         searchType: SearchType,
@@ -77,7 +79,7 @@ extension NetworkService {
     }
 
     // page 요청 메서드
-    private func requestSupabasePage<T: Decodable>(
+    private func requestSupabasePage<T: Decodable & Sendable>(
         tableName: String,
         parameters: Parameters,
         limit: Int,
@@ -128,13 +130,33 @@ extension NetworkService {
 
 //MARK: API Networking
 extension NetworkService {
-    func fetchAPIData<T: Decodable>(api: API, latitude: Double, longitude: Double) async throws -> [T] {
-        let baseUrl = api.baseUrl
+    func fetchWeatherData(latitude: Double, longitude: Double) async throws -> CurrentWeatherDTO {
+        guard !weatherKey.isEmpty,
+              !weatherKey.contains("$(") else {
+            throw NetworkServiceError.missingOpenWeatherConfiguration
+        }
+
+        guard let baseUrl = API.weather.baseUrl else {
+            throw NetworkServiceError.invalidEndpoint
+        }
+
         let params: Parameters = [
             "lat": latitude,
             "lon": longitude,
-            "appid": weatherKey
+            "appid": weatherKey,
+            "units": "metric",
+            "lang": "kr"
         ]
+        
+        return try await AF.request(
+            baseUrl,
+            method: .get,
+            parameters: params,
+            encoding: URLEncoding.queryString
+        )
+            .validate()
+            .serializingDecodable(CurrentWeatherDTO.self)
+            .value
     }
 }
 
@@ -142,6 +164,7 @@ extension NetworkService {
 extension NetworkService {
     enum NetworkServiceError: LocalizedError {
         case missingSupabaseConfiguration
+        case missingOpenWeatherConfiguration
         case invalidEndpoint
         case invalidPaginationParameter
 
@@ -149,6 +172,8 @@ extension NetworkService {
             switch self {
             case .missingSupabaseConfiguration:
                 return "Supabase configuration is missing. Add SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY to Info.plist or build settings."
+            case .missingOpenWeatherConfiguration:
+                return "OpenWeather configuration is missing. Add OPENWEATHER_KEY to Info.plist or build settings."
             case .invalidEndpoint:
                 return "The selected API endpoint is not configured."
             case .invalidPaginationParameter:

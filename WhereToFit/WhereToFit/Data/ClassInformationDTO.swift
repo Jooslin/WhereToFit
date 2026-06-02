@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ClassInformationDTO: Decodable {
+nonisolated struct ClassInformationDTO: Decodable, Sendable {
     let id: Int? // Supabase class_information 테이블의 기본 키
     let facilityName: String? // 시설명
     let facilityLocation: String? // 시설소재지
