@@ -5,6 +5,64 @@
 //  Created by 변예린 on 6/2/26.
 //
 
+/**
+ 운동 관련(시설, 프로그램 등) Repository에 적용하는 프로토콜입니다.  구현체에서 채택하여 사용합니다.
+ 
+ 구현체는 아래와 같이 사용할 수 있습니다.
+ ```swift
+ private lazy var sportsRepository = SportsRepository(networkService: networkService) // 실제 사용 시 의존성 주입 Flow에서 진행
+
+ let publicFacility: SupabasePage<Facility> = try await sportsRepository.fetchFacilities(limit: 5) // 5개의 시설이 담긴 1개의 페이지를 가져옵니다. (id 오름차순 순서)
+ let filteredClassInformationPage = try await sportsRepository.searchPrograms(keyword: "탁구") // "탁구" 키워드로 찾은 프로그램들을 가져옵니다.
+ ```
+
+대상 정보가 많을 수도 있으므로 페이지네이션을 하여 데이터를 끊어서 가져옵니다.
+ 
+ 만약 컬렉션뷰에서 전체 시설을 조회할 경우, 처음에는 첫 번째 페이지의 정보만 가져온 후 스크롤이 끝나는 지점에서 다음 페이지를 호출하여 가져오는 방식으로 무한 스크롤을 구현할 수 있습니다.
+ 
+ 무한 스크롤은 `nextOffset`을 저장해두고, 마지막 셀 근처에서 다음 페이지를 요청하는 방식으로 구현할 수 있습니다.
+ ```swift
+ private var facilities: [Facility] = []
+ private var nextOffset: Int?
+ private let pageSize = 20
+ 
+ func loadFirstPage() async throws {
+     let page = try await sportsRepository.fetchFacilities(limit: pageSize) // limit만큼 첫 번째 페이지 데이터 가져옴
+     facilities = page.items
+     nextOffset = page.nextOffset
+     
+     collectionView.reloadData() // 뷰 갱신
+ }
+ 
+ func loadNextPageIfNeeded(currentIndex: Int) async throws {
+     guard currentIndex >= facilities.count - 3, // 현재 화면에 보이는 셀이 끝에서 3번째 즈음일 때 다음 페이지 불러옴
+           let nextOffset else {
+         return
+     }
+ 
+     let page = try await sportsRepository.fetchFacilities( // 다음 페이지 가져옴
+         limit: pageSize,
+         offset: nextOffset
+     )
+     
+     facilities.append(contentsOf: page.items)
+     self.nextOffset = page.nextOffset
+     collectionView.reloadData()
+ }
+ 
+ func collectionView(
+     _ collectionView: UICollectionView,
+     willDisplay cell: UICollectionViewCell,
+     forItemAt indexPath: IndexPath
+ ) {
+     Task {
+         try await loadNextPageIfNeeded(currentIndex: indexPath.item)
+     }
+ }
+ ```
+ 
+ 한번에 불러오는 데이터의 수를 줄임으로써 불필요한 로딩 대기 시간을 감소할 수 있습니다.
+*/
 protocol SportsRepositoryProtocol {
     func fetchFacilities(
         limit: Int,

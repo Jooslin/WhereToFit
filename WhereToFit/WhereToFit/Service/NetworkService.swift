@@ -71,8 +71,8 @@ extension NetworkService {
         keyword: String,
         searchType: SearchType,
         order: SearchOrder,
-        limit: Int = 50,
-        offset: Int = 0
+        limit: Int = 50, // 한 페이지에 들어갈 데이터 수
+        offset: Int = 0 // 현재 페이지 위치
     ) async throws -> SupabasePage<T> {
         guard let tableName = api.tableName else {
             throw NetworkServiceError.invalidEndpoint
@@ -133,11 +133,11 @@ extension NetworkService {
 
         let hasNextPage = rows.count > limit
         let items = hasNextPage ? Array(rows.prefix(limit)) : rows
-        let nextOffset = hasNextPage ? offset + limit : nil
+        let nextOffset = hasNextPage ? offset + limit : nil // 다음 페이지가 존재한다면 다음 Offset을 반환, 없다면 nil 반환
 
         return SupabasePage(
-            items: items,
-            nextOffset: nextOffset
+            items: items, // 현재 페이지 데이터들
+            nextOffset: nextOffset // 다음 페이지 존재 여부 + offset
         )
     }
 }
