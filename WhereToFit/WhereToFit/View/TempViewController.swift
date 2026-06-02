@@ -27,6 +27,8 @@ final class TempViewController: BaseViewController<TempReactor> {
     let circleImageView = RoundImageView(image: .dateFilled, type: .circle).then { $0.backgroundColor = .red }
     
     let roundedImageView = RoundImageView(image: .dateFilled, type: .roundSquare).then { $0.backgroundColor = .red }
+
+    let searchBar = SearchBar(placeholder: "지도에서 동, 역 이름으로 검색하기")
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -52,6 +54,7 @@ final class TempViewController: BaseViewController<TempReactor> {
         view.addSubview(titleView)
         view.addSubview(buttons)
         view.addSubview(imageViews)
+        view.addSubview(searchBar)
         
         titleView.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide)
@@ -66,6 +69,11 @@ final class TempViewController: BaseViewController<TempReactor> {
         imageViews.snp.makeConstraints {
             $0.top.equalTo(buttons.snp.bottom).offset(16)
             $0.centerX.equalToSuperview()
+        }
+
+        searchBar.snp.makeConstraints {
+            $0.top.equalTo(imageViews.snp.bottom).offset(16)
+            $0.horizontalEdges.equalToSuperview().inset(16)
         }
     }
     
