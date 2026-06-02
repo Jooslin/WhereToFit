@@ -11,6 +11,7 @@ import Alamofire
 final class NetworkService {
     private let supabaseBaseURL: String
     private let supabasePublishableKey: String
+    private let weatherKey: String
     
     init(
         supabaseBaseURL: String = Bundle.main.supabaseBaseURL,
@@ -125,6 +126,18 @@ extension NetworkService {
     }
 }
 
+//MARK: API Networking
+extension NetworkService {
+    func fetchAPIData<T: Decodable>(api: API, latitude: Double, longitude: Double) async throws -> [T] {
+        let baseUrl = api.baseUrl
+        let params: Parameters = [
+            "lat": latitude,
+            "lon": longitude,
+            "appid": weatherKey
+        ]
+    }
+}
+
 //MARK: Util
 extension NetworkService {
     enum NetworkServiceError: LocalizedError {
@@ -197,5 +210,9 @@ private extension Bundle {
 
     var supabasePublishableKey: String {
         object(forInfoDictionaryKey: "SUPABASE_PUBLISHABLE_KEY") as? String ?? ""
+    }
+    
+    var openweatherKey: String {
+        object(forInfoDictionaryKey: "OPENWEATHER_KEY") as? String ?? ""
     }
 }
