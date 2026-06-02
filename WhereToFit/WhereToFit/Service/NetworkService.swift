@@ -8,7 +8,7 @@
 import Foundation
 import Alamofire
 
-final class NetworkService {
+final class NetworkService: Sendable {
     private let supabaseBaseURL: String
     private let supabasePublishableKey: String
     private let weatherKey: String
