@@ -90,7 +90,7 @@ final class TempViewController: BaseViewController<TempReactor> {
     private func fetchSupabaseSmokeTest() {
         Task {
             do {
-                let publicFacilityPage: NetworkService.SupabasePage<PublicFacilityDTO> = try await networkService.fetchSupabaseData(
+                let publicFacilityPage: SupabasePage<PublicFacilityDTO> = try await networkService.fetchSupabaseData(
                     api: .facility,
                     limit: 5
                 )
@@ -98,7 +98,7 @@ final class TempViewController: BaseViewController<TempReactor> {
                 print("공공시설 다음 페이지 여부:", publicFacilityPage.hasNextPage)
                 print("공공시설 첫 데이터:", publicFacilityPage.items.first ?? "없음")
                 
-                let filteredClassInformationPage: NetworkService.SupabasePage<ClassInformationDTO> = try await networkService.fetchFilteredSupabaseData(api: .classInfo, keyword: "탁구", searchType: .className, order: .ascending)
+                let filteredClassInformationPage: SupabasePage<ClassInformationDTO> = try await networkService.fetchFilteredSupabaseData(api: .classInfo, keyword: "탁구", searchType: .className, order: .ascending)
                 
                 print("프로그램 목록 조회 성공:", filteredClassInformationPage.items.count)
                 print("프로그램 목록 다음 페이지 여부:", filteredClassInformationPage.hasNextPage)

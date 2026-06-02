@@ -25,6 +25,20 @@ final class NetworkService {
 
 }
 
+struct SupabasePage<T> {
+    let items: [T]
+    let nextOffset: Int?
+    
+    var hasNextPage: Bool {
+        nextOffset != nil
+    }
+}
+
+enum SearchOrder: String {
+    case ascending = "asc"
+    case descending = "desc"
+}
+
 //MARK: Supabase
 extension NetworkService {
     // supabase 전체 데이터 가져오기 메서드
@@ -208,23 +222,9 @@ extension NetworkService {
         }
     }
     
-    struct SupabasePage<T> {
-        let items: [T]
-        let nextOffset: Int?
-
-        var hasNextPage: Bool {
-            nextOffset != nil
-        }
-    }
-    
     enum SearchType: String {
         case facilityName = "facility_name"
         case className = "class_name"
-    }
-    
-    enum SearchOrder: String {
-        case ascending = "asc"
-        case descending = "desc"
     }
 }
 
