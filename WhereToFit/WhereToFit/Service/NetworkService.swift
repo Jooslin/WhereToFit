@@ -19,7 +19,11 @@ final class NetworkService {
         self.supabaseBaseURL = supabaseBaseURL
         self.supabasePublishableKey = supabasePublishableKey
     }
-    
+
+}
+
+//MARK: Supabase
+extension NetworkService {
     // supabase 전체 데이터 가져오기 메서드
     func fetchSupabaseData<T: Decodable>(
         api: API,
@@ -71,6 +75,7 @@ final class NetworkService {
         )
     }
 
+    // page 요청 메서드
     private func requestSupabasePage<T: Decodable>(
         tableName: String,
         parameters: Parameters,
@@ -120,16 +125,8 @@ final class NetworkService {
     }
 }
 
+//MARK: Util
 extension NetworkService {
-    struct SupabasePage<T> {
-        let items: [T]
-        let nextOffset: Int?
-
-        var hasNextPage: Bool {
-            nextOffset != nil
-        }
-    }
-
     enum NetworkServiceError: LocalizedError {
         case missingSupabaseConfiguration
         case invalidEndpoint
@@ -173,8 +170,18 @@ extension NetworkService {
         }
     }
     
+    struct SupabasePage<T> {
+        let items: [T]
+        let nextOffset: Int?
+
+        var hasNextPage: Bool {
+            nextOffset != nil
+        }
+    }
+    
     enum SearchType: String {
         case facilityName = "facility_name"
+        case className = "class_name"
     }
     
     enum SearchOrder: String {
