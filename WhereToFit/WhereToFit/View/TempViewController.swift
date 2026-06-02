@@ -11,7 +11,9 @@ import SnapKit
 import Then
 
 final class TempViewController: BaseViewController<TempReactor> {
-    private let networkService = NetworkService()
+    let networkService = NetworkService()
+    private lazy var sportsRepository = SportsRepository(networkService: networkService)
+    private lazy var weatherRepository = WeatherRepository(networkService: networkService)
     
     let titleView = TitleView(text: "위치 지정", leftButtonImage: .close)
     let largeBorderButton = DesignButton(config: .largeBorderBlue).then {
@@ -90,22 +92,20 @@ final class TempViewController: BaseViewController<TempReactor> {
     private func fetchSupabaseSmokeTest() {
         Task {
             do {
-                let publicFacilityPage: SupabasePage<PublicFacilityDTO> = try await networkService.fetchSupabaseData(
-                    api: .facility,
-                    limit: 5
-                )
+                let publicFacilityPage = try await sportsRepository.fetchFacilities(limit: 5)
+                
                 print("공공시설 조회 성공:", publicFacilityPage.items.count)
                 print("공공시설 다음 페이지 여부:", publicFacilityPage.hasNextPage)
                 print("공공시설 첫 데이터:", publicFacilityPage.items.first ?? "없음")
                 
-                let filteredClassInformationPage: SupabasePage<ClassInformationDTO> = try await networkService.fetchFilteredSupabaseData(api: .classInfo, keyword: "탁구", searchType: .className, order: .ascending)
+                let filteredClassInformationPage = try await sportsRepository.searchPrograms(keyword: "탁구")
                 
                 print("프로그램 목록 조회 성공:", filteredClassInformationPage.items.count)
                 print("프로그램 목록 다음 페이지 여부:", filteredClassInformationPage.hasNextPage)
                 print("프로그램 목록 첫 데이터:", filteredClassInformationPage.items.first ?? "없음")
                 
-                let weather = try await networkService.fetchWeatherData(latitude: 37.5710, longitude: 126.9770)
-                print("광화문 날씨:", weather.main)
+                let weather = try await weatherRepository.fetchWeather(latitude: 37.5710, longitude: 127.9770)
+                print("광화문 날씨:", weather)
             } catch {
                 print("Supabase 조회 실패:", error.localizedDescription)
             }
