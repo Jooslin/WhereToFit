@@ -1,4 +1,8 @@
 const crypto = require("node:crypto");
+const { execFile } = require("node:child_process");
+const { promisify } = require("node:util");
+
+const execFileAsync = promisify(execFile);
 
 const API_URL =
   "https://api.data.go.kr/openapi/tn_pubr_public_pblfclt_opn_info_api";
@@ -110,34 +114,48 @@ async function fetchPage(pageNo) {
   url.searchParams.set("numOfRows", String(PAGE_SIZE));
   url.searchParams.set("type", "json");
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
-  let response;
   try {
-    response = await fetch(withServiceKey(url), {
-      headers: {
-        accept: "application/json",
-        "user-agent": "WhereToFit-public-facilities-sync/1.0",
-      },
-      signal: controller.signal,
-    });
+    return parsePagePayload(await curlText(withServiceKey(url)), pageNo);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(
       `data.go.kr request failed before response on page ${pageNo}: ${sanitizeSecret(message)}`,
     );
-  } finally {
-    clearTimeout(timeout);
+  }
+}
+
+async function curlText(url) {
+  const { stdout } = await execFileAsync(
+    "curl",
+    [
+      "--fail",
+      "--silent",
+      "--show-error",
+      "--location",
+      "--max-time",
+      String(Math.ceil(REQUEST_TIMEOUT_MS / 1000)),
+      "--header",
+      "accept: application/json",
+      "--header",
+      "user-agent: WhereToFit-public-facilities-sync/1.0",
+      url,
+    ],
+    {
+      maxBuffer: 1024 * 1024 * 20,
+    },
+  );
+
+  return stdout;
+}
+
+function parsePagePayload(text, pageNo) {
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch {
+    throw new Error(`data.go.kr returned non-JSON response on page ${pageNo}: ${text.slice(0, 300)}`);
   }
 
-  const text = await response.text();
-
-  if (!response.ok) {
-    throw new Error(`data.go.kr request failed: ${response.status} ${text}`);
-  }
-
-  const payload = JSON.parse(text);
   const body = payload.response?.body ?? payload.body;
   const header = payload.response?.header ?? payload.header;
 
