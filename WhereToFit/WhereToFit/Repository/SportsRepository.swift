@@ -5,6 +5,8 @@
 //  Created by 변예린 on 6/2/26.
 //
 
+import RxSwift
+
 /**
  운동 관련(시설, 프로그램 등) Repository에 적용하는 프로토콜입니다.  구현체에서 채택하여 사용합니다.
  
@@ -12,8 +14,13 @@
  ```swift
  private lazy var sportsRepository = SportsRepository(networkService: networkService) // 실제 사용 시 의존성 주입 Flow에서 진행
 
- let publicFacility: SupabasePage<Facility> = try await sportsRepository.fetchFacilities(limit: 5) // 5개의 시설이 담긴 1개의 페이지를 가져옵니다. (id 오름차순 순서)
- let filteredClassInformationPage = try await sportsRepository.searchPrograms(keyword: "탁구") // "탁구" 키워드로 찾은 프로그램들을 가져옵니다.
+ let publicFacility = sportsRepository.fetchFacilities(limit: 5) // 5개의 시설이 담긴 1개의 페이지를 가져옵니다. (id 오름차순 순서)
+ let filteredClassInformationPage = sportsRepository.searchPrograms(keyword: "탁구") // "탁구" 키워드로 찾은 프로그램들을 가져옵니다.
+ 
+ // Reactor mutate에서 아래처럼 사용할 수 있습니다.
+ return sportsRepository.searchPrograms(keyword: "탁구")
+     .asObservable()
+     .map { Mutation.setPrograms($0.items) }
  ```
 
 대상 정보가 많을 수도 있으므로 페이지네이션을 하여 데이터를 끊어서 가져옵니다.
@@ -26,38 +33,16 @@
  private var nextOffset: Int?
  private let pageSize = 20
  
- func loadFirstPage() async throws {
-     let page = try await sportsRepository.fetchFacilities(limit: pageSize) // limit만큼 첫 번째 페이지 데이터 가져옴
-     facilities = page.items
-     nextOffset = page.nextOffset
-     
-     collectionView.reloadData() // 뷰 갱신
- }
- 
- func loadNextPageIfNeeded(currentIndex: Int) async throws {
+ func loadNextPageIfNeeded(currentIndex: Int) -> Single<SupabasePage<Facility>>? {
      guard currentIndex >= facilities.count - 3, // 현재 화면에 보이는 셀이 끝에서 3번째 즈음일 때 다음 페이지 불러옴
            let nextOffset else {
-         return
+         return nil
      }
  
-     let page = try await sportsRepository.fetchFacilities( // 다음 페이지 가져옴
+     return sportsRepository.fetchFacilities( // 다음 페이지 가져옴
          limit: pageSize,
          offset: nextOffset
      )
-     
-     facilities.append(contentsOf: page.items)
-     self.nextOffset = page.nextOffset
-     collectionView.reloadData()
- }
- 
- func collectionView(
-     _ collectionView: UICollectionView,
-     willDisplay cell: UICollectionViewCell,
-     forItemAt indexPath: IndexPath
- ) {
-     Task {
-         try await loadNextPageIfNeeded(currentIndex: indexPath.item)
-     }
  }
  ```
  
@@ -68,27 +53,27 @@ protocol SportsRepositoryProtocol {
         limit: Int,
         offset: Int,
         order: SearchOrder
-    ) async throws -> SupabasePage<Facility>
+    ) -> Single<SupabasePage<Facility>>
     
     func searchFacilities(
         keyword: String,
         limit: Int,
         offset: Int,
         order: SearchOrder
-    ) async throws -> SupabasePage<Facility>
+    ) -> Single<SupabasePage<Facility>>
     
     func fetchPrograms(
         limit: Int,
         offset: Int,
         order: SearchOrder
-    ) async throws -> SupabasePage<Program>
+    ) -> Single<SupabasePage<Program>>
     
     func searchPrograms(
         keyword: String,
         limit: Int,
         offset: Int,
         order: SearchOrder
-    ) async throws -> SupabasePage<Program>
+    ) -> Single<SupabasePage<Program>>
 }
 
 final class SportsRepository: SportsRepositoryProtocol {
@@ -102,15 +87,17 @@ final class SportsRepository: SportsRepositoryProtocol {
         limit: Int = 50,
         offset: Int = 0,
         order: SearchOrder = .ascending
-    ) async throws -> SupabasePage<Facility> {
-        let page: SupabasePage<PublicFacilityDTO> = try await networkService.fetchSupabaseData(
-            api: .facility,
-            limit: limit,
-            offset: offset,
-            order: order
-        )
-        
-        return page.map(Facility.init)
+    ) -> Single<SupabasePage<Facility>> {
+        Single.async { [networkService] in
+            let page: SupabasePage<PublicFacilityDTO> = try await networkService.fetchSupabaseData(
+                api: .facility,
+                limit: limit,
+                offset: offset,
+                order: order
+            )
+            
+            return page.map(Facility.init)
+        }
     }
     
     func searchFacilities(
@@ -118,32 +105,36 @@ final class SportsRepository: SportsRepositoryProtocol {
         limit: Int = 50,
         offset: Int = 0,
         order: SearchOrder = .ascending
-    ) async throws -> SupabasePage<Facility> {
-        let page: SupabasePage<PublicFacilityDTO> = try await networkService.fetchFilteredSupabaseData(
-            api: .facility,
-            keyword: keyword,
-            searchType: .facilityName,
-            order: order,
-            limit: limit,
-            offset: offset
-        )
-        
-        return page.map(Facility.init)
+    ) -> Single<SupabasePage<Facility>> {
+        Single.async { [networkService] in
+            let page: SupabasePage<PublicFacilityDTO> = try await networkService.fetchFilteredSupabaseData(
+                api: .facility,
+                keyword: keyword,
+                searchType: .facilityName,
+                order: order,
+                limit: limit,
+                offset: offset
+            )
+            
+            return page.map(Facility.init)
+        }
     }
     
     func fetchPrograms(
         limit: Int = 50,
         offset: Int = 0,
         order: SearchOrder = .ascending
-    ) async throws -> SupabasePage<Program> {
-        let page: SupabasePage<ClassInformationDTO> = try await networkService.fetchSupabaseData(
-            api: .classInfo,
-            limit: limit,
-            offset: offset,
-            order: order
-        )
-        
-        return page.map(Program.init)
+    ) -> Single<SupabasePage<Program>> {
+        Single.async { [networkService] in
+            let page: SupabasePage<ClassInformationDTO> = try await networkService.fetchSupabaseData(
+                api: .classInfo,
+                limit: limit,
+                offset: offset,
+                order: order
+            )
+            
+            return page.map(Program.init)
+        }
     }
     
     func searchPrograms(
@@ -151,17 +142,19 @@ final class SportsRepository: SportsRepositoryProtocol {
         limit: Int = 50,
         offset: Int = 0,
         order: SearchOrder = .ascending
-    ) async throws -> SupabasePage<Program> {
-        let page: SupabasePage<ClassInformationDTO> = try await networkService.fetchFilteredSupabaseData(
-            api: .classInfo,
-            keyword: keyword,
-            searchType: .className,
-            order: order,
-            limit: limit,
-            offset: offset
-        )
-        
-        return page.map(Program.init)
+    ) -> Single<SupabasePage<Program>> {
+        Single.async { [networkService] in
+            let page: SupabasePage<ClassInformationDTO> = try await networkService.fetchFilteredSupabaseData(
+                api: .classInfo,
+                keyword: keyword,
+                searchType: .className,
+                order: order,
+                limit: limit,
+                offset: offset
+            )
+            
+            return page.map(Program.init)
+        }
     }
 }
 
