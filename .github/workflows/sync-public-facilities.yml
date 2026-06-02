@@ -1,6 +1,9 @@
 name: Sync Public Facilities
 
 on:
+  push:
+    branches:
+      - "feature/network#7"
   workflow_dispatch:
   schedule:
     # Runs at 00:00 KST on the 5th of every month.
