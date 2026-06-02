@@ -9,8 +9,8 @@ const API_URL =
 const TABLE_NAME = "public_facilities";
 const METADATA_TABLE_NAME = "public_facility_sync_metadata";
 const METADATA_ID = "public_facilities";
-const PAGE_SIZE = 1000;
-const REQUEST_TIMEOUT_MS = 30000;
+const PAGE_SIZE = 100;
+const REQUEST_TIMEOUT_MS = 120000;
 const UPSERT_BATCH_SIZE = 500;
 const DELETE_BATCH_SIZE = 100;
 
@@ -132,6 +132,13 @@ async function curlText(url) {
       "--silent",
       "--show-error",
       "--location",
+      "--ipv4",
+      "--retry",
+      "3",
+      "--retry-delay",
+      "5",
+      "--connect-timeout",
+      "30",
       "--max-time",
       String(Math.ceil(REQUEST_TIMEOUT_MS / 1000)),
       "--header",
