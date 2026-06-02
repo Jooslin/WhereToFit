@@ -25,8 +25,8 @@ struct PublicFacilityDTO: Decodable, SearchProtocol {
     let excessUseUnitTime: String? // 초과 사용 단위 시간
     let excessRentalFee: String? // 초과사용료
     
-    let capacity: Double? // 수용가능 인원 수
-    let area: Double? // 면적
+    let capacity: String? // 수용가능 인원 수
+    let area: String? // 면적
     let extraFacilityInfo: String? // 부대시설 정보
     
     let applicationMethodType: String? // 신청 방법 구분

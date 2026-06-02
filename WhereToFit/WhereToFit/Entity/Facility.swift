@@ -25,8 +25,8 @@ struct Facility {
     let excessUseUnitTime: String?
     let excessRentalFee: String?
     
-    let capacity: Double?
-    let area: Double?
+    let capacity: String?
+    let area: String?
     let extraFacilityInfo: String?
     
     let applicationMethodType: String?

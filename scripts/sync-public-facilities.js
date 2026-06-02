@@ -247,38 +247,42 @@ function toTableRow(row) {
     id,
     source_key: sourceKey,
     source_hash: sourceHash,
-    facility_name: normalized.openFcltyNm,
-    location_name: normalized.openLcNm,
-    facility_type: normalized.openFcltyType,
-    closed_days: normalized.rstde,
-    weekday_open_time: normalized.weekdayOperOpenHhmm,
-    weekday_close_time: normalized.weekdayOperColseHhmm,
-    weekend_open_time: normalized.wkendOperOpenHhmm,
-    weekend_close_time: normalized.wkendOperCloseHhmm,
-    is_paid: normalized.pchrgUseYn,
-    usage_standard_time: normalized.useStdrTime,
-    rental_fee: normalized.rntfee,
-    excess_use_unit_time: normalized.excessUseUnitTime,
-    excess_rental_fee: normalized.excessRntfee,
-    capacity: normalized.aceptncPosblCo,
-    area: normalized.ar,
-    extra_facility_info: normalized.etcFclty,
-    application_method_type: normalized.sbscrptnMthSe,
-    facility_image: normalized.fcltyPicInfo,
-    road_address: normalized.rdnmadr,
-    lot_number_address: normalized.lnmadr,
-    latitude: normalized.latitude,
-    longitude: normalized.longitude,
-    institution: normalized.institutionNm,
-    charge_department: normalized.chrgDeptNm,
-    phone_number: normalized.phoneNumber,
-    homepage_url: normalized.homepageUrl,
-    reference_date: normalized.referenceDate,
-    institution_code: pickFirst(normalized, ["insttCode", "instt_code"]),
-    provider_institution: pickFirst(normalized, ["insttNm", "instt_nm"]),
+    facility_name: nullable(normalized.openFcltyNm),
+    location_name: nullable(normalized.openLcNm),
+    facility_type: nullable(normalized.openFcltyType),
+    closed_days: nullable(normalized.rstde),
+    weekday_open_time: nullable(normalized.weekdayOperOpenHhmm),
+    weekday_close_time: nullable(normalized.weekdayOperColseHhmm),
+    weekend_open_time: nullable(normalized.wkendOperOpenHhmm),
+    weekend_close_time: nullable(normalized.wkendOperCloseHhmm),
+    is_paid: nullable(normalized.pchrgUseYn),
+    usage_standard_time: nullable(normalized.useStdrTime),
+    rental_fee: nullable(normalized.rntfee),
+    excess_use_unit_time: nullable(normalized.excessUseUnitTime),
+    excess_rental_fee: nullable(normalized.excessRntfee),
+    capacity: nullable(normalized.aceptncPosblCo),
+    area: nullable(normalized.ar),
+    extra_facility_info: nullable(normalized.etcFclty),
+    application_method_type: nullable(normalized.sbscrptnMthSe),
+    facility_image: nullable(normalized.fcltyPicInfo),
+    road_address: nullable(normalized.rdnmadr),
+    lot_number_address: nullable(normalized.lnmadr),
+    latitude: nullable(normalized.latitude),
+    longitude: nullable(normalized.longitude),
+    institution: nullable(normalized.institutionNm),
+    charge_department: nullable(normalized.chrgDeptNm),
+    phone_number: nullable(normalized.phoneNumber),
+    homepage_url: nullable(normalized.homepageUrl),
+    reference_date: nullable(normalized.referenceDate),
+    institution_code: nullable(pickFirst(normalized, ["insttCode", "instt_code"])),
+    provider_institution: nullable(pickFirst(normalized, ["insttNm", "instt_nm"])),
     raw_data: normalized,
     synced_at: new Date().toISOString(),
   };
+}
+
+function nullable(value) {
+  return value === undefined ? null : value;
 }
 
 function normalizeRow(row) {
@@ -298,8 +302,6 @@ function normalizeRow(row) {
 
   setNumber(normalized, "latitude");
   setNumber(normalized, "longitude");
-  setNumber(normalized, "aceptncPosblCo");
-  setNumber(normalized, "ar");
 
   return normalized;
 }
@@ -309,10 +311,19 @@ function setNumber(object, key) {
     return;
   }
 
-  const value = Number(String(object[key]).replaceAll(",", ""));
+  const text = String(object[key]).replaceAll(",", "").trim();
+
+  if (!/^-?\d+(\.\d+)?$/.test(text)) {
+    object[key] = null;
+    return;
+  }
+
+  const value = Number(text);
 
   if (Number.isFinite(value)) {
     object[key] = value;
+  } else {
+    object[key] = null;
   }
 }
 
