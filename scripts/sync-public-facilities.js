@@ -1,16 +1,11 @@
 const crypto = require("node:crypto");
-const { execFile } = require("node:child_process");
-const { promisify } = require("node:util");
-
-const execFileAsync = promisify(execFile);
 
 const API_URL =
-  "http://api.data.go.kr/openapi/tn_pubr_public_pblfclt_opn_info_api";
+  "https://api.data.go.kr/openapi/tn_pubr_public_pblfclt_opn_info_api";
 const TABLE_NAME = "public_facilities";
 const METADATA_TABLE_NAME = "public_facility_sync_metadata";
 const METADATA_ID = "public_facilities";
-const PAGE_SIZE = 100;
-const REQUEST_TIMEOUT_MS = 120000;
+const PAGE_SIZE = 1000;
 const UPSERT_BATCH_SIZE = 500;
 const DELETE_BATCH_SIZE = 100;
 
@@ -114,55 +109,18 @@ async function fetchPage(pageNo) {
   url.searchParams.set("numOfRows", String(PAGE_SIZE));
   url.searchParams.set("type", "json");
 
-  try {
-    return parsePagePayload(await curlText(withServiceKey(url)), pageNo);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(
-      `data.go.kr request failed before response on page ${pageNo}: ${sanitizeSecret(message)}`,
-    );
-  }
-}
+  const response = await fetch(withServiceKey(url));
+  const text = await response.text();
 
-async function curlText(url) {
-  const { stdout } = await execFileAsync(
-    "curl",
-    [
-      "--fail",
-      "--silent",
-      "--show-error",
-      "--location",
-      "--ipv4",
-      "--retry",
-      "3",
-      "--retry-delay",
-      "5",
-      "--connect-timeout",
-      "30",
-      "--max-time",
-      String(Math.ceil(REQUEST_TIMEOUT_MS / 1000)),
-      "--header",
-      "accept: application/json",
-      "--header",
-      "user-agent: WhereToFit-public-facilities-sync/1.0",
-      url,
-    ],
-    {
-      maxBuffer: 1024 * 1024 * 20,
-    },
-  );
-
-  return stdout;
-}
-
-function parsePagePayload(text, pageNo) {
-  let payload;
-  try {
-    payload = JSON.parse(text);
-  } catch {
-    throw new Error(`data.go.kr returned non-JSON response on page ${pageNo}: ${text.slice(0, 300)}`);
+  if (!response.ok) {
+    throw new Error(`data.go.kr request failed: ${response.status} ${text}`);
   }
 
+  return parsePagePayload(text);
+}
+
+function parsePagePayload(text) {
+  const payload = JSON.parse(text);
   const body = payload.response?.body ?? payload.body;
   const header = payload.response?.header ?? payload.header;
 
