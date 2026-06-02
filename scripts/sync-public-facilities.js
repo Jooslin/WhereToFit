@@ -5,7 +5,7 @@ const { promisify } = require("node:util");
 const execFileAsync = promisify(execFile);
 
 const API_URL =
-  "https://api.data.go.kr/openapi/tn_pubr_public_pblfclt_opn_info_api";
+  "http://api.data.go.kr/openapi/tn_pubr_public_pblfclt_opn_info_api";
 const TABLE_NAME = "public_facilities";
 const METADATA_TABLE_NAME = "public_facility_sync_metadata";
 const METADATA_ID = "public_facilities";
