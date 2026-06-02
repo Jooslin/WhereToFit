@@ -29,7 +29,7 @@ struct Program {
     let endTime: String? // 종료 시각
     
     let phoneNumber: String? // 문의 전화
-    let reservationMethods: [String] // 예약 방법
+    let reservationMethods: [ReservationMethod] // 예약 방법
     let homepageURL: String?
 }
 
@@ -56,7 +56,7 @@ extension Program {
         self.endTime = dto.endTime
         
         self.phoneNumber = dto.phoneNumber
-        self.reservationMethods = dto.reservationMethods ?? []
+        self.reservationMethods = dto.reservationMethods?.map(ReservationMethod.init) ?? []
         self.homepageURL = dto.homepageURL
     }
 }
