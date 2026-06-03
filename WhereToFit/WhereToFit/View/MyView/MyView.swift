@@ -26,7 +26,7 @@ final class MyView: UIView {
     private let addressIcon = RoundImageView(image: .locationPinFilled, type: .circle).then {
         $0.tintColor = .gray600
     }
-    
+
     private let profileButton = UIButton(type: .system).then {
         $0.setTitle("프로필 관리", for: .normal)
         $0.setTitleColor(.primary600, for: .normal)
@@ -175,6 +175,8 @@ private extension MyView {
 private final class MyPageGroupView: UIView {
     private let stackView = UIStackView().then {
         $0.axis = .vertical
+        $0.isLayoutMarginsRelativeArrangement = true
+        $0.layoutMargins = UIEdgeInsets(top: 8, left: 0, bottom: 8, right: 0)
     }
 
     init(rows: [MyPageMenuRow]) {
@@ -323,12 +325,21 @@ private extension MyPageMenuRow {
 }
 
 private final class MyPageDivider: UIView {
+    private let lineView = UIView()
+
     init() {
         super.init(frame: .zero)
 
-        backgroundColor = .gray100
+        addSubview(lineView)
+        lineView.backgroundColor = .gray100
+
         snp.makeConstraints {
             $0.height.equalTo(1)
+        }
+
+        lineView.snp.makeConstraints {
+            $0.verticalEdges.equalToSuperview()
+            $0.horizontalEdges.equalToSuperview().inset(12)
         }
     }
 
