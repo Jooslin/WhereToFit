@@ -20,9 +20,8 @@ final class MyFlow: Flow {
         }
         
         switch step {
-            //TODO: 추후 VC 수정 필요
         case .myTab:
-            let vc = TempViewController(reactor: TempReactor())
+            let vc = MyViewController(reactor: MyReactor())
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
             
