@@ -97,7 +97,8 @@ private extension MyView {
         [nameLabel, addressIcon, addressLabel, profileButton].forEach(profileCard.addSubview)
 
         scrollView.snp.makeConstraints {
-            $0.edges.equalTo(safeAreaLayoutGuide)
+            $0.leading.trailing.top.equalTo(safeAreaLayoutGuide)
+            $0.bottom.equalToSuperview()
         }
 
         contentView.snp.makeConstraints {
@@ -182,7 +183,7 @@ private final class MyPageGroupView: UIView {
     init(rows: [MyPageMenuRow]) {
         super.init(frame: .zero)
 
-        backgroundColor = .gray50
+        backgroundColor = UIColor(red: 0.979, green: 0.98, blue: 0.981, alpha: 1)
         layer.cornerRadius = 12
         clipsToBounds = true
 
@@ -326,6 +327,7 @@ private extension MyPageMenuRow {
 
 private final class MyPageDivider: UIView {
     private let lineView = UIView()
+    private let pixelHeight = 1 / UIScreen.main.scale
 
     init() {
         super.init(frame: .zero)
@@ -334,7 +336,7 @@ private final class MyPageDivider: UIView {
         lineView.backgroundColor = .gray100
 
         snp.makeConstraints {
-            $0.height.equalTo(1)
+            $0.height.equalTo(pixelHeight)
         }
 
         lineView.snp.makeConstraints {
