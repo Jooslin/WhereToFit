@@ -19,6 +19,7 @@ final class HomeView: UIView {
     // Reactive
     fileprivate let registerButtonTap = PublishRelay<Void>()
     fileprivate let programButtonTap = PublishRelay<Void>()
+//    fileprivate let surveyButtonTap = PublishRelay<Void>()
     
     init() {
         super.init(frame: .zero)
@@ -47,6 +48,10 @@ extension HomeView {
             guard let section = self?.dataSource.sectionIdentifier(for: indexPath.section) else { return }
             
             switch section {
+            case .recommend:
+                supplementaryView.titleLabel.text = "오늘의 맞춤 운동 AI 추천"
+            case .program:
+                supplementaryView.titleLabel.text = "주변 프로그램"
             default:
                 break
             }
@@ -65,6 +70,22 @@ extension HomeView {
                 .disposed(by: cell.disposeBag)
         }
         
+        let recommendCellRegistration = UICollectionView.CellRegistration<HomeRecommendCell, HomeCollectionView.Item> { cell, indexPath, item in
+            cell.configure(image: .alarm, text: "더미")
+        }
+        
+        let onboardingCellRegistration = UICollectionView.CellRegistration<HomeOnboardingCell, HomeCollectionView.Item> { [weak self] cell,indexPath,item in
+            guard let self else { return }
+            
+//            cell.rx.surveyButtonTap
+//                .bind(to: self.surveyButtonTap)
+//                .disposed(by: cell.disposeBag)
+        }
+        
+        let programCellRegistration = UICollectionView.CellRegistration<HomeProgramCell, HomeCollectionView.Item> { cell, indexPath, item in
+            cell.configure(image: .alarm, text: "더미")
+        }
+        
         let dataSource = UICollectionViewDiffableDataSource<HomeCollectionView.Section, HomeCollectionView.Item>(collectionView: collectionView) { [weak self] collectionView, indexPath, item in
             
             guard let section = self?.dataSource.sectionIdentifier(for: indexPath.section) else {
@@ -74,6 +95,12 @@ extension HomeView {
             return switch section {
             case .weather:
                 collectionView.dequeueConfiguredReusableCell(using: weatherCellRegistration, for: indexPath, item: item)
+            case .recommend:
+                collectionView.dequeueConfiguredReusableCell(using: recommendCellRegistration, for: indexPath, item: item)
+            case .onboarding:
+                collectionView.dequeueConfiguredReusableCell(using: onboardingCellRegistration, for: indexPath, item: item)
+            case .program:
+                collectionView.dequeueConfiguredReusableCell(using: programCellRegistration, for: indexPath, item: item)
             }
         }
         
@@ -128,6 +155,22 @@ extension HomeView {
                 let section = self?.singleItemSectionLayout(height: 324)
                 section?.decorationItems = [weatherBackgroundItem]
                 return section
+                
+            case .recommend:
+                let section = self?.horizontalGroupItemSectionLayout(height: 130)
+                section?.boundarySupplementaryItems = [headerItem]
+                section?.contentInsets = .init(top: 12, leading: 0, bottom: 0, trailing: 0)
+                return section
+                
+            case .onboarding:
+                let section = self?.singleItemSectionLayout(height: 68)
+                return section
+                
+            case .program:
+                let section = self?.horizontalGroupItemSectionLayout(height: 202)
+                section?.boundarySupplementaryItems = [headerItem]
+                section?.contentInsets = .init(top: 12, leading: 0, bottom: 0, trailing: 0)
+                return section
             }
             
         }, configuration: configuration)
@@ -136,7 +179,7 @@ extension HomeView {
         return layout
     }
     
-    // single item section - weather
+    // single item section - weather, onboarding
     private func singleItemSectionLayout(height: CGFloat) -> NSCollectionLayoutSection {
         let item = NSCollectionLayoutItem(
             layoutSize: NSCollectionLayoutSize(
@@ -170,6 +213,8 @@ extension HomeView {
             subitems: [item]
         )
         
+        group.interItemSpacing = .fixed(12)
+        
         let section = NSCollectionLayoutSection(group: group)
         return section
     }
@@ -183,4 +228,8 @@ extension Reactive where Base: HomeView {
     var recordButtonTap: PublishRelay<Void> {
         base.rx.registerButtonTap
     }
+    
+//    var surveyButtonTap: PublishRelay<Void> {
+//        base.rx.surveyButtonTap
+//    }
 }

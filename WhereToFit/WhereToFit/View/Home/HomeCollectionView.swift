@@ -25,11 +25,19 @@ extension HomeCollectionView {
     nonisolated
     enum Section: Int {
         case weather = 0
+        case recommend
+        case onboarding
+        case program
+//        case notice
     }
     
     nonisolated
     enum Item: Hashable {
         case weather(WeatherSectionItem)
+        case recommend
+        case onboarding
+        case program
+//        case notice
     }
 }
 
