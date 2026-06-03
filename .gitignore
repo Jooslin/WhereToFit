@@ -78,4 +78,5 @@ node_modules/
 
 # Supabase
 supabase/
+scripts/sync-public-facilities.js
 export-class-information-sql.py
