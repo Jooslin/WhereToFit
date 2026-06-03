@@ -42,6 +42,9 @@ extension HomeRecommendCell {
 //MARK: Layout
 extension HomeRecommendCell {
     private func setLayout() {
+        contentView.addSubview(imageView)
+        contentView.addSubview(label)
+        
         imageView.snp.makeConstraints {
             $0.top.horizontalEdges.equalToSuperview()
         }
