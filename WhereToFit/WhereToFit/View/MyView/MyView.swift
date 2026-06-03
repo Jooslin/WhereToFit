@@ -23,23 +23,22 @@ final class MyView: UIView {
     private let nameLabel = UILabel(text: "김아정님", config: .title20Semibold)
     private let addressLabel = UILabel(text: "송파구 거주", config: .body13Medium, color: .gray600)
 
-    private let addressIcon = UIImageView(image: UIImage(systemName: "mappin.circle.fill")).then {
+    private let addressIcon = RoundImageView(image: .locationPinFilled, type: .circle).then {
         $0.tintColor = .gray600
-        $0.contentMode = .scaleAspectFit
     }
-
+    
     private let profileButton = UIButton(type: .system).then {
         $0.setTitle("프로필 관리", for: .normal)
-        $0.setTitleColor(.primary500, for: .normal)
-        $0.titleLabel?.font = .systemFont(ofSize: 12, weight: .medium)
+        $0.setTitleColor(.primary600, for: .normal)
+        $0.titleLabel?.font = .systemFont(ofSize: 13, weight: .medium)
         $0.layer.borderWidth = 1
         $0.layer.borderColor = UIColor.primary200.cgColor
         $0.layer.cornerRadius = 16
     }
 
-    private let activityTitleLabel = UILabel(text: "내 활동", config: .body14Semibold)
-    private let supportTitleLabel = UILabel(text: "고객지원 및 정보", config: .body14Semibold)
-    private let accountTitleLabel = UILabel(text: "계정", config: .body14Semibold)
+    private let activityTitleLabel = UILabel(text: "내 활동", config: .body15)
+    private let supportTitleLabel = UILabel(text: "고객지원 및 정보", config: .body15)
+    private let accountTitleLabel = UILabel(text: "계정", config: .body15)
 
     private lazy var activityGroup = MyPageGroupView(rows: [
         MyPageMenuRow(title: "내가 등록한 프로그램", subtitle: "등록 내역 확인 · 일정 확인", showsIcon: true),
@@ -137,7 +136,7 @@ private extension MyView {
             $0.trailing.equalToSuperview().inset(12)
             $0.centerY.equalToSuperview()
             $0.width.equalTo(88)
-            $0.height.equalTo(32)
+            $0.height.equalTo(38)
         }
 
         activityTitleLabel.snp.makeConstraints {
@@ -226,7 +225,7 @@ private final class MyPageMenuRow: UIView {
         titleLabel = UILabel(text: title, config: .body14Regular)
 
         if let subtitle {
-            subtitleLabel = UILabel(text: subtitle, config: .body12Regular, color: .gray500)
+            subtitleLabel = UILabel(text: subtitle, config: .body12Medium, color: .gray500)
         } else {
             subtitleLabel = nil
         }
@@ -242,8 +241,8 @@ private final class MyPageMenuRow: UIView {
 
         switch accessory {
         case .disclosure:
-            accessoryView = UIImageView(image: UIImage(systemName: "chevron.right")).then {
-                $0.tintColor = .gray400
+            accessoryView = UIImageView(image: UIImage(resource: .arrow)).then {
+                $0.tintColor = .gray200
                 $0.contentMode = .scaleAspectFit
             }
         case .toggle:
@@ -289,8 +288,8 @@ private extension MyPageMenuRow {
             $0.centerY.equalToSuperview()
 
             if accessoryView is UIImageView {
-                $0.width.equalTo(8)
-                $0.height.equalTo(14)
+                $0.width.equalTo(24)
+                $0.height.equalTo(24)
             }
         }
 
