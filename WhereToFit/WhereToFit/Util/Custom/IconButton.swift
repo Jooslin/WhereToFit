@@ -21,9 +21,16 @@ import RxCocoa
  favoriteButton.applyColor(UIColor.black) // 이미지 색상 설정
  ```
  
+ 파라미터들을 통해 우측 이미지, label 또한 생성할 수 있습니다. Configure 부분의 메서드들을 통해 이미지, 타이틀, 색상, 터치 범위를 수정할 수 있습니다.
+ 
  - Parameters:
-   - image: 기본 상태에서 보여줄 이미지
-    - selectedImage: 선택 상태(`isSelected == true`)에서 보여줄 이미지
+   - image: 기본 상태에서 보여줄 좌측 이미지
+    - selectedImage: 선택 상태(`isSelected == true`)에서 보여줄 좌측 이미지
+    - title: 버튼 타이틀
+    - labelConfig: 버튼 타이틀에 적용할 LabelConfiguration
+    - rightImage: 기본 상태에서 보여줄 우측 이미지
+    - rightSelectedImage: 선택 상태(`isSelected == true`)에서 보여줄 우측 이미지
+    - spacing: 좌측 / 레이블 / 우측 각 요소간 간격
 */
 class IconButton: UIControl {
     private enum Metric {
@@ -67,7 +74,6 @@ class IconButton: UIControl {
         selectedImage: UIImage? = nil,
         title: String? = nil,
         labelConfig: LabelConfiguration = .body14Medium,
-        titleColor: UIColor? = nil,
         rightImage: UIImage? = nil,
         selectedRightImage: UIImage? = nil,
         spacing: CGFloat = 4
@@ -81,7 +87,7 @@ class IconButton: UIControl {
             $0.contentMode = .scaleAspectFit
             $0.isUserInteractionEnabled = false
         }
-        titleLabel = UILabel(text: title ?? "", config: labelConfig, color: titleColor).then {
+        titleLabel = UILabel(text: title ?? "", config: labelConfig).then {
             $0.textAlignment = .center
             $0.isUserInteractionEnabled = false
         }
@@ -135,6 +141,7 @@ class IconButton: UIControl {
     }
 }
 
+//MARK: Configure
 extension IconButton {
     // 이미지 설정
     func setImage(_ image: UIImage?, rightImage: UIImage? = nil, for state: ButtonState) {
