@@ -8,6 +8,8 @@
 import UIKit
 
 class DesignTextField: UITextField {
+    private let contentInsets = UIEdgeInsets(top: 14, left: 12, bottom: 14, right: 12)
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         
@@ -18,9 +20,25 @@ class DesignTextField: UITextField {
         clipsToBounds = true
     }
     
+    override var intrinsicContentSize: CGSize {
+        CGSize(width: UIView.noIntrinsicMetric, height: 48)
+    }
+    
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func textRect(forBounds bounds: CGRect) -> CGRect {
+        bounds.inset(by: contentInsets)
+    }
+    
+    override func editingRect(forBounds bounds: CGRect) -> CGRect {
+        bounds.inset(by: contentInsets)
+    }
+    
+    override func placeholderRect(forBounds bounds: CGRect) -> CGRect {
+        bounds.inset(by: contentInsets)
     }
     
     func setPlaceholder(text: String) {
