@@ -19,10 +19,20 @@ class OnboardingBaseView: UIView {
         $0.title = "다음"
     }
     
+    let titleLabel = UILabel(config: .title20Semibold)
+    let subTitleLabel = UILabel(config: .body14Regular)
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         
+        let labelStackView = UIStackView(arrangedSubviews: [titleLabel, subTitleLabel]).then {
+            $0.axis = .vertical
+            $0.alignment = .leading
+            $0.spacing = 8
+        }
+        
         addSubview(titleView)
+        addSubview(labelStackView)
         addSubview(nextButton)
         
         titleView.addSubview(progressBar)
@@ -35,6 +45,11 @@ class OnboardingBaseView: UIView {
         progressBar.snp.makeConstraints {
             $0.verticalEdges.equalToSuperview().inset(20)
             $0.horizontalEdges.equalToSuperview().inset(48)
+        }
+        
+        labelStackView.snp.makeConstraints {
+            $0.top.equalTo(titleView.snp.bottom).offset(32)
+            $0.horizontalEdges.equalToSuperview().inset(16)
         }
         
         nextButton.snp.makeConstraints {

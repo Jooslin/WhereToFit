@@ -9,11 +9,7 @@ import UIKit
 import Then
 
 final class OnboardingViewController: BaseViewController<OnboardingReactor> {
-    let onboardingView = OnboardingBaseView().then {
-        $0.progressBar.setProgress(0.5, animated: true)
-        $0.nextButton.isEnabled = false
-    }
-    
+    let onboardingView = OnboardingPersonalInfoView()
     override func loadView() {
         view = onboardingView
     }
