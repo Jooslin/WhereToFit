@@ -12,7 +12,7 @@ import RxSwift
 import RxCocoa
 
 /**
- 아이콘 이미지가 포함된 단일 Button을 생성합니다. 최소 터치영역은 44x44 point입니다.
+ 아이콘 이미지가 포함된 배경색 투명의 단일 Button을 생성합니다. 최소 터치영역은 44x44 point입니다.
 
  아래와 같이 사용할 수 있습니다.
  ```swift
