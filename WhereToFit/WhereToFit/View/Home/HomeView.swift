@@ -17,7 +17,7 @@ final class HomeView: UIView {
     
     // Reactive
     fileprivate let registerButtonTap = PublishRelay<Void>()
-    fileprivate let programButtonTap = PublishRelay<Void>()
+    fileprivate let recordButtonTap = PublishRelay<Void>()
     fileprivate let surveyButtonTap = PublishRelay<Void>()
     
     init() {
@@ -65,7 +65,7 @@ extension HomeView {
                 .disposed(by: cell.disposeBag)
             
             cell.rx.recordButtonTap
-                .bind(to: self.programButtonTap)
+                .bind(to: self.recordButtonTap)
                 .disposed(by: cell.disposeBag)
         }
         
@@ -226,7 +226,7 @@ extension Reactive where Base: HomeView {
     }
     
     var recordButtonTap: PublishRelay<Void> {
-        base.registerButtonTap
+        base.recordButtonTap
     }
     
     var surveyButtonTap: PublishRelay<Void> {
