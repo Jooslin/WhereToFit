@@ -54,6 +54,7 @@ class IconButton: UIControl {
     private let spacing: CGFloat
     private var touchSize = Metric.hitSize
     
+    // 고유 크기 계산
     override var intrinsicContentSize: CGSize {
         var widths: [CGFloat] = []
         var heights: [CGFloat] = []
@@ -83,6 +84,7 @@ class IconButton: UIControl {
         )
     }
     
+    // isSelected되면 이미지 변경
     override var isSelected: Bool {
         didSet {
             updateImage()
@@ -110,6 +112,7 @@ class IconButton: UIControl {
         self.selectedRightImage = selectedRightImage
         self.spacing = spacing
         
+        // set attributes
         iconImageView = UIImageView(image: image).then {
             $0.contentMode = .scaleAspectFit
             $0.isUserInteractionEnabled = false
@@ -132,11 +135,13 @@ class IconButton: UIControl {
         
         super.init(frame: .zero)
         
+        // set priority
         setContentHuggingPriority(.required, for: .horizontal)
         setContentCompressionResistancePriority(.required, for: .horizontal)
         titleLabel.setContentHuggingPriority(.required, for: .horizontal)
         titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         
+        // set Layout
         iconImageView.isHidden = image == nil
         titleLabel.isHidden = title == nil
         rightIconImageView.isHidden = rightImage == nil
