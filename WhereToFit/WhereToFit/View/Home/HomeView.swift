@@ -221,14 +221,14 @@ extension HomeView {
 
 extension Reactive where Base: HomeView {
     var registerButtonTap: PublishRelay<Void> {
-        base.rx.registerButtonTap
+        base.registerButtonTap
     }
     
     var recordButtonTap: PublishRelay<Void> {
-        base.rx.registerButtonTap
+        base.registerButtonTap
     }
     
     var surveyButtonTap: PublishRelay<Void> {
-        base.rx.surveyButtonTap
+        base.surveyButtonTap
     }
 }
