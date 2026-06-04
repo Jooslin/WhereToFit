@@ -18,7 +18,7 @@ final class HomeView: UIView {
     // Reactive
     fileprivate let registerButtonTap = PublishRelay<Void>()
     fileprivate let programButtonTap = PublishRelay<Void>()
-//    fileprivate let surveyButtonTap = PublishRelay<Void>()
+    fileprivate let surveyButtonTap = PublishRelay<Void>()
     
     init() {
         super.init(frame: .zero)
@@ -76,9 +76,9 @@ extension HomeView {
         let onboardingCellRegistration = UICollectionView.CellRegistration<HomeOnboardingCell, HomeCollectionView.Item> { [weak self] cell,indexPath,item in
             guard let self else { return }
             
-//            cell.rx.surveyButtonTap
-//                .bind(to: self.surveyButtonTap)
-//                .disposed(by: cell.disposeBag)
+            cell.rx.surveyButtonTap
+                .bind(to: self.surveyButtonTap)
+                .disposed(by: cell.disposeBag)
         }
         
         let programCellRegistration = UICollectionView.CellRegistration<HomeProgramCell, HomeCollectionView.Item> { cell, indexPath, item in
@@ -228,7 +228,7 @@ extension Reactive where Base: HomeView {
         base.rx.registerButtonTap
     }
     
-//    var surveyButtonTap: PublishRelay<Void> {
-//        base.rx.surveyButtonTap
-//    }
+    var surveyButtonTap: PublishRelay<Void> {
+        base.rx.surveyButtonTap
+    }
 }

@@ -23,7 +23,7 @@ import RxCocoa
  
  파라미터들을 통해 우측 이미지, label 또한 생성할 수 있습니다. Configure 부분의 메서드들을 통해 이미지, 타이틀, 색상, 터치 범위를 수정할 수 있습니다.
  
- - Parameters:
+ - Parameters:      
    - image: 기본 상태에서 보여줄 좌측 이미지
     - selectedImage: 선택 상태(`isSelected == true`)에서 보여줄 좌측 이미지
     - title: 버튼 타이틀

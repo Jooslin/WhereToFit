@@ -15,7 +15,10 @@ import RxCocoa
 final class HomeOnboardingCell: UICollectionViewCell {
     private(set) var disposeBag = DisposeBag()
     
-    private let surveyButton = UIButton()
+    fileprivate let surveyButton = IconButton(title: "검사하기", labelConfig: .body13Medium, rightImage: .arrowRight, spacing: 0).then {
+        $0.applyColor(.primary400)
+        $0.setTouchSize(CGSize(width: 90, height: 55))
+    }
     
     override init(frame: CGRect) {
         super.init(frame: .zero)
@@ -45,7 +48,7 @@ extension HomeOnboardingCell {
         let imageView = UIImageView(image: .alarmOn)
         let titleLabel = UILabel(text: "나에게 맞는 운동 찾기", config: .body16Medium)
         let subLabel = UILabel(text: "무료 검사를 받아보세요!", config: .body13Regular, color: .gray500)
-        
+             
         let titleStackView = UIStackView(arrangedSubviews: [imageView, titleLabel]).then {
             $0.axis = .horizontal
             $0.alignment = .center
@@ -75,7 +78,7 @@ extension HomeOnboardingCell {
 
 //MARK: Reactive
 extension Reactive where Base: HomeOnboardingCell {
-//    var surveyButtonTap: ControlEvent<Void> {
-//        base.sirveuButton.rx.tap
-//    }
+    var surveyButtonTap: ControlEvent<Void> {
+        base.surveyButton.rx.tap
+    }
 }
