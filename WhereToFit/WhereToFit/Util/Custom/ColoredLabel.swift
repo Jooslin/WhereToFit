@@ -12,14 +12,12 @@ import UIKit
 
  아래와 같이 사용할 수 있습니다.
  ```swift
- let badgeLabel = MatchStatusBadgeLabel()
-
- badgeLabel.apply(style: .high)
- badgeLabel.apply(style: .medium, prefix: "온도")
+ private let matchLabel = ColoredLabel(text: "", style: .fill)
+ private let placeLabel = ColoredLabel(text: "", style: .border)
  ```
  
  - Parameters:
-   - config: ButtonConfiguration(기존에 정의된 것을 사용하거나 필요 시 생성하여 사용)
+   - style: Label에 적용할 스타일
  */
 
 class ColoredLabel: UILabel {

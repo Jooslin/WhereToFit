@@ -15,8 +15,8 @@ final class HomeProgramCell: UICollectionViewCell {
     private(set) var disposeBag = DisposeBag()
     
     fileprivate let imageView = ProgramImageView(image: nil)
-    private let matchLabel = UILabel(config: .body12Regular) //TODO: CustomLabel로 수정 필요
-    private let placeLabel = UILabel(config: .body12Regular) //TODO: CustomLabel로 수정 필요
+    private let matchLabel = ColoredLabel(text: "", style: .fill)
+    private let placeLabel = ColoredLabel(text: "", style: .border)
     private let nameLabel = UILabel(config: .body16Medium)
     private let facilityLabel = UILabel(config: .body12Regular)
     

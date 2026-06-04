@@ -11,7 +11,6 @@ import Then
 import RxSwift
 import RxCocoa
 
-//TODO: 터치 범위 확인 후 Reactive 및 버튼 설정 필요
 final class HomeOnboardingCell: UICollectionViewCell {
     private(set) var disposeBag = DisposeBag()
     
