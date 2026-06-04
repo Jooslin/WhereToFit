@@ -65,7 +65,7 @@ extension HomeView {
                 .disposed(by: cell.disposeBag)
             
             cell.rx.recordButtonTap
-                .bind(to: self.registerButtonTap)
+                .bind(to: self.programButtonTap)
                 .disposed(by: cell.disposeBag)
         }
         
