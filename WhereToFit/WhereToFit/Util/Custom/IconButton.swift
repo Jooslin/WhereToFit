@@ -51,10 +51,36 @@ class IconButton: UIControl {
     private var selectedImage: UIImage?
     private var normalRightImage: UIImage?
     private var selectedRightImage: UIImage?
+    private let spacing: CGFloat
     private var touchSize = Metric.hitSize
     
     override var intrinsicContentSize: CGSize {
-        return stackView.intrinsicContentSize
+        var widths: [CGFloat] = []
+        var heights: [CGFloat] = []
+        
+        if !iconImageView.isHidden {
+            widths.append(Metric.iconSize.width)
+            heights.append(Metric.iconSize.height)
+        }
+        
+        if !titleLabel.isHidden {
+            let titleSize = titleLabel.intrinsicContentSize
+            widths.append(titleSize.width)
+            heights.append(titleSize.height)
+        }
+        
+        if !rightIconImageView.isHidden {
+            widths.append(Metric.iconSize.width)
+            heights.append(Metric.iconSize.height)
+        }
+        
+        guard !widths.isEmpty else { return .zero }
+        
+        let totalSpacing = spacing * CGFloat(max(0, widths.count - 1))
+        return CGSize(
+            width: widths.reduce(0, +) + totalSpacing,
+            height: heights.max() ?? 0
+        )
     }
     
     override var isSelected: Bool {
@@ -82,6 +108,7 @@ class IconButton: UIControl {
         self.selectedImage = selectedImage
         self.normalRightImage = rightImage
         self.selectedRightImage = selectedRightImage
+        self.spacing = spacing
         
         iconImageView = UIImageView(image: image).then {
             $0.contentMode = .scaleAspectFit
@@ -89,6 +116,7 @@ class IconButton: UIControl {
         }
         titleLabel = UILabel(text: title ?? "", config: labelConfig).then {
             $0.textAlignment = .center
+            $0.numberOfLines = 1
             $0.isUserInteractionEnabled = false
         }
         rightIconImageView = UIImageView(image: rightImage).then {
@@ -104,11 +132,20 @@ class IconButton: UIControl {
         
         super.init(frame: .zero)
         
+        setContentHuggingPriority(.required, for: .horizontal)
+        setContentCompressionResistancePriority(.required, for: .horizontal)
+        titleLabel.setContentHuggingPriority(.required, for: .horizontal)
+        titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        
         iconImageView.isHidden = image == nil
         titleLabel.isHidden = title == nil
         rightIconImageView.isHidden = rightImage == nil
         
         addSubview(stackView)
+        
+        stackView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
         
         [iconImageView, rightIconImageView].forEach {
             $0.snp.makeConstraints {
@@ -122,11 +159,6 @@ class IconButton: UIControl {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        stackView.frame = bounds
-    }
-    
     // 터치 범위 설정
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         let widthInset = min(0, bounds.width - touchSize.width) / 2
@@ -138,6 +170,12 @@ class IconButton: UIControl {
     private func updateImage() {
         iconImageView.image = isSelected ? selectedImage ?? normalImage : normalImage
         rightIconImageView.image = isSelected ? selectedRightImage ?? normalRightImage : normalRightImage
+    }
+    
+    private func invalidateLayout() {
+        invalidateIntrinsicContentSize()
+        setNeedsLayout()
+        superview?.setNeedsLayout()
     }
 }
 
@@ -166,14 +204,14 @@ extension IconButton {
         }
         
         updateImage()
-        invalidateIntrinsicContentSize()
+        invalidateLayout()
     }
     
     // 타이틀 설정
     func setTitle(_ text: String) {
         titleLabel.text = text
         titleLabel.isHidden = false
-        invalidateIntrinsicContentSize()
+        invalidateLayout()
     }
     
     // 색상 설정

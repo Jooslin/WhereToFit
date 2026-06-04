@@ -7,12 +7,11 @@
 
 import UIKit
 import SnapKit
-import Then
 import RxCocoa
 import RxSwift
 
 final class HomeView: UIView {
-    private let titleView = TitleView(rightButtonImage: .alarm)
+    private let titleView = HomeTitleView()
     private lazy var collectionView = HomeCollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout())
     private lazy var dataSource = makeCollectionViewDiffableDataSource(collectionView)
     
