@@ -41,7 +41,7 @@ class TitleView: UIView {
     }
     
     fileprivate let leftButton = IconButton()
-    fileprivate let rightButton = UIButton(configuration: .plain())
+    fileprivate let rightButton = IconButton()
     
     override var intrinsicContentSize: CGSize {
         return CGSize(width: UIView.noIntrinsicMetric, height: 48) // 세로 크기만 부여
@@ -108,9 +108,8 @@ extension TitleView {
     // 색상 변경 메서드
     func apply(color: UIColor) {
         titleLabel.textColor = color
-//        leftButton.configuration?.baseForegroundColor = color
         leftButton.applyColor(color)
-        rightButton.configuration?.baseForegroundColor = color
+        rightButton.applyColor(color)
     }
 }
 
