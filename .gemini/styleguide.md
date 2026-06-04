@@ -49,3 +49,4 @@ Minor coordination logic or common MVC-style controller behavior should not auto
 ## Exceptions
 - You should not review about below codes:
     1) Do not review about 'Fatal Error'. most of them are written on purpose
+    2) Do not review about 'Memory Leak Risk' of 'Flows.use' method. 'Flows.use' method clears its all subscriptions after its completion. Therefore it doesn't have memory leak risk in current project.

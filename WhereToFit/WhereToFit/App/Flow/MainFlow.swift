@@ -57,7 +57,6 @@ final class MainFlow: Flow {
 
 extension MainFlow {
     private func navigateToMain() -> FlowContributors {
-        
         let homeFlow = HomeFlow()
         let mapFlow = MapFlow()
         let calendarFlow = CalendarFlow()
