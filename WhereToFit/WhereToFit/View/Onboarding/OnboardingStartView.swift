@@ -11,7 +11,7 @@ import Then
 
 final class OnboardingStartView: UIView {
     private let imageView = UIImageView(image: .checkOn)
-    private let logoLabel = UILabel(text: "운동갈지도(로고)", config: .title24, color: .primary400)
+    private let logoLabel = UILabel(text: "운동갈지도(로고)", config: .title24, color: .primary400) //TODO: 확인 후 수정 필요
     private let descriptionLabel = UILabel(
         text: """
         간단한 운동 테스트로
