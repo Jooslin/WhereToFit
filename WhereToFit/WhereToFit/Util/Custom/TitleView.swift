@@ -64,18 +64,21 @@ extension TitleView {
     private func configure(text: String? = nil, leftButtonImage: UIImage? = nil, rightButtonImage: UIImage? = nil) {
         if let text {
             titleLabel.text = text
+            titleLabel.isHidden = false
         } else {
             titleLabel.isHidden = true
         }
         
         if let leftButtonImage {
             leftButton.setImage(leftButtonImage, for: .normal)
+            leftButton.isHidden = false
         } else {
             leftButton.isHidden = true
         }
         
         if let rightButtonImage {
             rightButton.setImage(rightButtonImage, for: .normal)
+            rightButton.isHidden = false
         } else {
             rightButton.isHidden = true
         }

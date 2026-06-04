@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 import Then
 import RxSwift
 import RxCocoa
@@ -34,17 +35,19 @@ class IconButton: UIControl {
         case normal, selected
     }
     
+    private let stackView: UIStackView
     private let iconImageView: UIImageView
+    private let titleLabel: UILabel
+    private let rightIconImageView: UIImageView
+    
     private var normalImage: UIImage?
     private var selectedImage: UIImage?
-    
-    var image: UIImage?  {
-        get { iconImageView.image }
-        set { iconImageView.image = newValue }
-    }
+    private var normalRightImage: UIImage?
+    private var selectedRightImage: UIImage?
+    private var touchSize = Metric.hitSize
     
     override var intrinsicContentSize: CGSize {
-        return Metric.iconSize
+        return stackView.intrinsicContentSize
     }
     
     override var isSelected: Bool {
@@ -59,17 +62,53 @@ class IconButton: UIControl {
         }
     }
     
-    init(image: UIImage? = nil, selectedImage: UIImage? = nil) {
+    init(
+        image: UIImage? = nil,
+        selectedImage: UIImage? = nil,
+        title: String? = nil,
+        labelConfig: LabelConfiguration = .body14Medium,
+        titleColor: UIColor? = nil,
+        rightImage: UIImage? = nil,
+        selectedRightImage: UIImage? = nil,
+        spacing: CGFloat = 4
+    ) {
         self.normalImage = image
         self.selectedImage = selectedImage
+        self.normalRightImage = rightImage
+        self.selectedRightImage = selectedRightImage
+        
         iconImageView = UIImageView(image: image).then {
             $0.contentMode = .scaleAspectFit
+            $0.isUserInteractionEnabled = false
+        }
+        titleLabel = UILabel(text: title ?? "", config: labelConfig, color: titleColor).then {
+            $0.textAlignment = .center
+            $0.isUserInteractionEnabled = false
+        }
+        rightIconImageView = UIImageView(image: rightImage).then {
+            $0.contentMode = .scaleAspectFit
+            $0.isUserInteractionEnabled = false
+        }
+        stackView = UIStackView(arrangedSubviews: [iconImageView, titleLabel, rightIconImageView]).then {
+            $0.axis = .horizontal
+            $0.alignment = .center
+            $0.spacing = spacing
             $0.isUserInteractionEnabled = false
         }
         
         super.init(frame: .zero)
         
-        addSubview(iconImageView)
+        iconImageView.isHidden = image == nil
+        titleLabel.isHidden = title == nil
+        rightIconImageView.isHidden = rightImage == nil
+        
+        addSubview(stackView)
+        
+        [iconImageView, rightIconImageView].forEach {
+            $0.snp.makeConstraints {
+                $0.width.height.equalTo(Metric.iconSize)
+            }
+        }
     }
     
     @available(*, unavailable)
@@ -79,51 +118,70 @@ class IconButton: UIControl {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        iconImageView.frame = CGRect(
-            x: (bounds.width - Metric.iconSize.width) / 2,
-            y: (bounds.height - Metric.iconSize.height) / 2,
-            width: Metric.iconSize.width,
-            height: Metric.iconSize.height
-        )
+        stackView.frame = bounds
     }
     
     // 터치 범위 설정
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        let widthInset = min(0, bounds.width - Metric.hitSize.width) / 2
-        let heightInset = min(0, bounds.height - Metric.hitSize.height) / 2
+        let widthInset = min(0, bounds.width - touchSize.width) / 2
+        let heightInset = min(0, bounds.height - touchSize.height) / 2
         let hitFrame = bounds.insetBy(dx: widthInset, dy: heightInset)
         return hitFrame.contains(point)
     }
     
     private func updateImage() {
-        guard let selectedImage else {
-            iconImageView.image = normalImage
-            return
-        }
-        
-        iconImageView.image = isSelected ? selectedImage : normalImage
+        iconImageView.image = isSelected ? selectedImage ?? normalImage : normalImage
+        rightIconImageView.image = isSelected ? selectedRightImage ?? normalRightImage : normalRightImage
     }
 }
 
 extension IconButton {
     // 이미지 설정
-    func setImage(_ image: UIImage?, for state: ButtonState) {
+    func setImage(_ image: UIImage?, rightImage: UIImage? = nil, for state: ButtonState) {
         if let image {
             switch state {
             case .normal:
                 normalImage = image
+                iconImageView.isHidden = false
             case .selected:
                 selectedImage = image
             }
         }
+        
+        if let rightImage {
+            switch state {
+            case .normal:
+                normalRightImage = rightImage
+                rightIconImageView.isHidden = false
+            case .selected:
+                selectedRightImage = rightImage
+            }
+        }
+        
         updateImage()
+        invalidateIntrinsicContentSize()
+    }
+    
+    // 타이틀 설정
+    func setTitle(_ text: String) {
+        titleLabel.text = text
+        titleLabel.isHidden = false
+        invalidateIntrinsicContentSize()
     }
     
     // 색상 설정
     func applyColor(_ color: UIColor) {
         normalImage = normalImage?.withTintColor(color, renderingMode: .alwaysOriginal)
         selectedImage = selectedImage?.withTintColor(color, renderingMode: .alwaysOriginal)
+        normalRightImage = normalRightImage?.withTintColor(color, renderingMode: .alwaysOriginal)
+        selectedRightImage = selectedRightImage?.withTintColor(color, renderingMode: .alwaysOriginal)
+        titleLabel.textColor = color
         updateImage()
+    }
+    
+    // 터치 범위 설정
+    func setTouchSize(_ size: CGSize) {
+        touchSize = size
     }
 }
 
