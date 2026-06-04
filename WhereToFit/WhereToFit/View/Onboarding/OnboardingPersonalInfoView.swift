@@ -60,7 +60,8 @@ extension OnboardingPersonalInfoView {
         let weightStackView = makeStackView(title: "몸무게 (선택)", view: weightTextField)
         let bodyStackView = UIStackView(arrangedSubviews: [heightStackView, weightStackView]).then {
             $0.axis = .horizontal
-            $0.distribution = .equalSpacing
+            $0.spacing = 23
+            $0.distribution = .fill
         }
         
         let stackView = UIStackView(arrangedSubviews: [nicknameStackView, birthdayStackView, genderStackView, residenceStackView, bodyStackView]).then {
@@ -75,6 +76,30 @@ extension OnboardingPersonalInfoView {
         stackView.snp.makeConstraints {
             $0.top.equalTo(subTitleLabel.snp.bottom).offset(32)
             $0.horizontalEdges.equalToSuperview().inset(16)
+        }
+        
+        nicknameTextField.snp.makeConstraints {
+            $0.width.equalTo(stackView.snp.width)
+        }
+        
+        birthdayTextField.snp.makeConstraints {
+            $0.width.equalTo(stackView.snp.width)
+        }
+        
+        residenceTextField.snp.makeConstraints {
+            $0.width.equalTo(stackView.snp.width)
+        }
+        
+        bodyStackView.snp.makeConstraints {
+            $0.width.equalTo(stackView.snp.width)
+        }
+        
+        heightTextField.snp.makeConstraints {
+            $0.width.equalTo(heightStackView.snp.width)
+        }
+        
+        weightTextField.snp.makeConstraints {
+            $0.width.equalTo(weightStackView.snp.width)
         }
     }
     
