@@ -10,6 +10,20 @@ import Then
 import RxSwift
 import RxCocoa
 
+/**
+ 아이콘 이미지가 포함된 단일 Button을 생성합니다. 최소 터치영역은 44x44 point입니다.
+
+ 아래와 같이 사용할 수 있습니다.
+ ```swift
+ let favoriteButton = IconButton(image: nil, selectedImage: .heartFilled)
+ favoriteButton.setImage(image: .heart, for: .normal) // normal 상태의 이미지 설정
+ favoriteButton.applyColor(UIColor.black) // 이미지 색상 설정
+ ```
+ 
+ - Parameters:
+   - image: 기본 상태에서 보여줄 이미지
+    - selectedImage: 선택 상태(`isSelected == true`)에서 보여줄 이미지
+*/
 class IconButton: UIControl {
     private enum Metric {
         static let hitSize = CGSize(width: 44, height: 44)
