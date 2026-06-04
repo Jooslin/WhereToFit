@@ -47,6 +47,7 @@ final class SearchBar: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         layer.cornerRadius = bounds.height / 2
+        layer.borderColor = UIColor.gray200.cgColor
     }
 
     private func configure(placeholder: String) {
