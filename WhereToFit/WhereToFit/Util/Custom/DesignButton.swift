@@ -52,6 +52,14 @@ class DesignButton: UIControl {
         }
     }
     
+    override var isEnabled: Bool {
+        didSet {
+            background.backgroundColor = isEnabled ? config.color : .gray200
+            titleLabel.textColor = isEnabled ? config.titleColor : .white
+            isUserInteractionEnabled = isEnabled
+        }
+    }
+    
     init(config: ButtonConfiguration) {
         self.config = config
         

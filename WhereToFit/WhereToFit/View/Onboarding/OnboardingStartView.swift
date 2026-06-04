@@ -17,7 +17,9 @@ final class OnboardingStartView: UIView {
         간단한 운동 테스트로
         나에게 맞는 맞춤형 운동 경험을 시작해보세요
         """,
-        config: .body14Medium)
+        config: .body14Medium).then {
+            $0.textAlignment = .center
+        }
     
     let startButton = DesignButton(config: .largeFilledBlue).then {
         $0.title = "검사 시작하기"
@@ -50,7 +52,7 @@ final class OnboardingStartView: UIView {
         
         logoStackView.snp.makeConstraints {
             $0.centerX.equalToSuperview()
-            $0.centerY.equalToSuperview().multipliedBy(0.8)
+            $0.centerY.equalToSuperview().multipliedBy(0.85)
         }
         
         buttonStackView.snp.makeConstraints {
