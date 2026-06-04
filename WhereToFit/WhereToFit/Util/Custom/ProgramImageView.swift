@@ -11,14 +11,12 @@ import Then
 
 final class ProgramImageView: RoundImageView {
     let favoriteButton = IconButton(image: .heart, selectedImage: .heartFilled)
+    private let gradientLayer = CAGradientLayer()
     
     init(image: UIImage?) {
         super.init(image: image, type: .roundSquare)
         
         isUserInteractionEnabled = true
-        
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.frame = self.bounds
         
         let colors: [CGColor] = [
             UIColor.black.withAlphaComponent(0).cgColor,
@@ -36,5 +34,10 @@ final class ProgramImageView: RoundImageView {
             $0.width.height.equalTo(20)
             $0.bottom.trailing.equalToSuperview().inset(8)
         }
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        gradientLayer.frame = bounds
     }
 }
