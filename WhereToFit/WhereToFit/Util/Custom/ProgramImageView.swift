@@ -10,8 +10,12 @@ import SnapKit
 import Then
 
 final class ProgramImageView: RoundImageView {
+    let favoriteButton = IconButton(image: .heart, selectedImage: .heartFilled)
+    
     init(image: UIImage?) {
         super.init(image: image, type: .roundSquare)
+        
+        isUserInteractionEnabled = true
         
         let gradientLayer = CAGradientLayer()
         gradientLayer.frame = self.bounds
@@ -25,5 +29,12 @@ final class ProgramImageView: RoundImageView {
         gradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
         
         layer.addSublayer(gradientLayer)
+        
+        addSubview(favoriteButton)
+        
+        favoriteButton.snp.makeConstraints {
+            $0.width.height.equalTo(20)
+            $0.bottom.trailing.equalToSuperview().inset(8)
+        }
     }
 }

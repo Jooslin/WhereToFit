@@ -47,7 +47,7 @@ class IconButton: UIControl {
     
     init(image: UIImage? = nil, selectedImage: UIImage? = nil) {
         self.normalImage = image
-        self.selectedImage = selectedImage ?? (image == UIImage.heart ? UIImage.heartFilled : nil)
+        self.selectedImage = selectedImage
         iconImageView = UIImageView(image: image).then {
             $0.contentMode = .scaleAspectFit
             $0.isUserInteractionEnabled = false

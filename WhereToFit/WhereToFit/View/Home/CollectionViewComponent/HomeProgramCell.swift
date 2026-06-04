@@ -14,8 +14,7 @@ import RxSwift
 final class HomeProgramCell: UICollectionViewCell {
     private(set) var disposeBag = DisposeBag()
     
-    private let imageView = RoundImageView(image: nil, type: .roundSquare)
-    fileprivate let favoriteButton = UIButton() //TODO: CustomButton으로 수정 필요
+    fileprivate let imageView = ProgramImageView(image: nil)
     private let matchLabel = UILabel(config: .body12Regular) //TODO: CustomLabel로 수정 필요
     private let placeLabel = UILabel(config: .body12Regular) //TODO: CustomLabel로 수정 필요
     private let nameLabel = UILabel(config: .body16Medium)
@@ -63,15 +62,9 @@ extension HomeProgramCell {
         contentView.addSubview(coloredLabelStackView)
         contentView.addSubview(nameLabel)
         contentView.addSubview(facilityLabel)
-        imageView.addSubview(favoriteButton)
         
         imageView.snp.makeConstraints {
             $0.top.horizontalEdges.equalToSuperview()
-        }
-        
-        favoriteButton.snp.makeConstraints {
-            $0.width.height.equalTo(20)
-            $0.bottom.trailing.equalToSuperview().inset(8)
         }
         
         coloredLabelStackView.snp.makeConstraints {
@@ -94,6 +87,6 @@ extension HomeProgramCell {
 //MARK: Reactive
 extension Reactive where Base: HomeProgramCell {
     var favoriteButtonTap: ControlEvent<Void> {
-        base.favoriteButton.rx.tap
+        base.imageView.favoriteButton.rx.tap
     }
 }
