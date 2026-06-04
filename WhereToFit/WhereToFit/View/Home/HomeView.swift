@@ -205,16 +205,17 @@ extension HomeView {
                 heightDimension: .absolute(height)
             ))
         
-        let group = NSCollectionLayoutGroup.vertical(
+        let group = NSCollectionLayoutGroup.horizontal(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
                 heightDimension: .absolute(height)),
             subitems: [item]
         )
         
-        group.interItemSpacing = .fixed(12)
-        
         let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 12
+        section.orthogonalScrollingBehavior = .continuous
+        
         return section
     }
 }
