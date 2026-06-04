@@ -39,12 +39,43 @@ final class OnboardingPersonalInfoView: OnboardingBaseView {
         subTitleLabel.text = "운동 추천을 위해 몇 가지 정보를 알려주세요."
         
         progressBar.setProgress(0.125, animated: true)
+        
+        setLayout()
     }
 }
 
 extension OnboardingPersonalInfoView {
     private func setLayout() {
-
+        let buttonStackView = UIStackView(arrangedSubviews: [maleButton, femaleButton]).then {
+            $0.axis = .horizontal
+            $0.spacing = 8
+        }
+        
+        let nicknameStackView = makeStackView(title: "닉네임", view: nicknameTextField)
+        let birthdayStackView = makeStackView(title: "생년월일", view: birthdayTextField)
+        let genderStackView = makeStackView(title: "성별", view: buttonStackView)
+        let residenceStackView = makeStackView(title: "거주 지역 (선택)", view: residenceTextField)
+        
+        let heightStackView = makeStackView(title: "키 (선택)", view: heightTextField)
+        let weightStackView = makeStackView(title: "몸무게 (선택)", view: weightTextField)
+        let bodyStackView = UIStackView(arrangedSubviews: [heightStackView, weightStackView]).then {
+            $0.axis = .horizontal
+            $0.distribution = .equalSpacing
+        }
+        
+        let stackView = UIStackView(arrangedSubviews: [nicknameStackView, birthdayStackView, genderStackView, residenceStackView, bodyStackView]).then {
+            $0.axis = .vertical
+            $0.spacing = 20
+            $0.alignment = .leading
+            $0.distribution = .fill
+        }
+        
+        addSubview(stackView)
+        
+        stackView.snp.makeConstraints {
+            $0.top.equalTo(subTitleLabel.snp.bottom).offset(32)
+            $0.horizontalEdges.equalToSuperview().inset(16)
+        }
     }
     
     private func makeStackView(title: String, view: UIView) -> UIStackView {
