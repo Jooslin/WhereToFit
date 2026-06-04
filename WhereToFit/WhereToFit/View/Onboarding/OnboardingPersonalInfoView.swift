@@ -11,10 +11,10 @@ import Then
 
 final class OnboardingPersonalInfoView: OnboardingBaseView {
     let nicknameTextField = DesignTextField().then {
-        $0.placeholder = "닉네임을 입력해주세요"
+        $0.setPlaceholder(text: "닉네임을 입력해주세요")
     }
     let birthdayTextField = DesignTextField().then {
-        $0.placeholder = "ex)19991208"
+        $0.setPlaceholder(text: "ex)19991208")
     }
     let maleButton = DesignButton(config: .smallFilledGray).then {
         $0.title = "남성"
@@ -23,13 +23,13 @@ final class OnboardingPersonalInfoView: OnboardingBaseView {
         $0.title = "여성"
     }
     let residenceTextField = DesignTextField().then {
-        $0.placeholder = "주소 찾기"
+        $0.setPlaceholder(text: "주소 찾기")
     }
     let heightTextField = DesignTextField().then {
-        $0.placeholder = "키를 입력해주세요"
+        $0.setPlaceholder(text: "키를 입력해주세요")
     }
     let weightTextField = DesignTextField().then {
-        $0.placeholder = "몸무게를 입력해주세요"
+        $0.setPlaceholder(text: "몸무게를 입력해주세요")
     }
     
     override init(frame: CGRect) {

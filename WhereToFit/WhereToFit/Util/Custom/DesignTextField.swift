@@ -22,4 +22,13 @@ class DesignTextField: UITextField {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    func setPlaceholder(text: String) {
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 14, weight: .regular),
+            .foregroundColor: UIColor.gray300
+        ]
+        
+        attributedPlaceholder = NSAttributedString(string: text, attributes: attributes)
+    }
 }
