@@ -40,7 +40,7 @@ class TitleView: UIView {
         $0.textAlignment = .center
     }
     
-    fileprivate let leftButton = UIButton(configuration: .plain())
+    fileprivate let leftButton = IconButton()
     fileprivate let rightButton = UIButton(configuration: .plain())
     
     override var intrinsicContentSize: CGSize {
@@ -108,7 +108,8 @@ extension TitleView {
     // 색상 변경 메서드
     func apply(color: UIColor) {
         titleLabel.textColor = color
-        leftButton.configuration?.baseForegroundColor = color
+//        leftButton.configuration?.baseForegroundColor = color
+        leftButton.applyColor(color)
         rightButton.configuration?.baseForegroundColor = color
     }
 }
