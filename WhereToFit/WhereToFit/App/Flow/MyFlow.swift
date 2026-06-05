@@ -27,6 +27,7 @@ final class MyFlow: Flow {
 
         case .profileManagement:
             let vc = ProfileManagementViewController(reactor: ProfileManagementReactor())
+            vc.hidesBottomBarWhenPushed = true
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
 
