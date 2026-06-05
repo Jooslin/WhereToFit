@@ -40,20 +40,77 @@ final class MyView: UIView {
     private let supportTitleLabel = UILabel(text: "고객지원 및 정보", config: .body15)
     private let accountTitleLabel = UILabel(text: "계정", config: .body15)
 
+    private let registeredProgramsRow = MyPageMenuRow(
+        title: "내가 등록한 프로그램",
+        subtitle: "등록 내역 확인 · 일정 확인",
+        showsIcon: true
+    )
+
+    private let favoriteProgramsRow = MyPageMenuRow(title: "찜한 시설 및 프로그램", showsIcon: true)
+    private let exerciseResultRow = MyPageMenuRow(title: "운동 검사 결과", showsIcon: true)
+
+    private let notificationSettingRow = MyPageMenuRow(title: "알림설정")
+    private let inquiryRow = MyPageMenuRow(title: "문의하기")
+    private let versionInfoRow = MyPageMenuRow(title: "버전 정보", trailingText: "v1.0.0")
+    private let privacyPolicyRow = MyPageMenuRow(title: "개인정보처리방침")
+    private let termsOfServiceRow = MyPageMenuRow(title: "이용약관")
+    private let locationTermsRow = MyPageMenuRow(title: "위치기반 서비스 이용약관")
+    private let openSourceLicenseRow = MyPageMenuRow(title: "오픈소스 라이선스")
+
+    var registeredProgramsAccessoryButton: UIButton {
+        registeredProgramsRow.accessoryButton
+    }
+
+    var favoriteProgramsAccessoryButton: UIButton {
+        favoriteProgramsRow.accessoryButton
+    }
+
+    var exerciseResultAccessoryButton: UIButton {
+        exerciseResultRow.accessoryButton
+    }
+
+    var notificationSettingAccessoryButton: UIButton {
+        notificationSettingRow.accessoryButton
+    }
+
+    var inquiryAccessoryButton: UIButton {
+        inquiryRow.accessoryButton
+    }
+
+    var versionInfoAccessoryButton: UIButton {
+        versionInfoRow.accessoryButton
+    }
+
+    var privacyPolicyAccessoryButton: UIButton {
+        privacyPolicyRow.accessoryButton
+    }
+
+    var termsOfServiceAccessoryButton: UIButton {
+        termsOfServiceRow.accessoryButton
+    }
+
+    var locationTermsAccessoryButton: UIButton {
+        locationTermsRow.accessoryButton
+    }
+
+    var openSourceLicenseAccessoryButton: UIButton {
+        openSourceLicenseRow.accessoryButton
+    }
+
     private lazy var activityGroup = MyPageGroupView(rows: [
-        MyPageMenuRow(title: "내가 등록한 프로그램", subtitle: "등록 내역 확인 · 일정 확인", showsIcon: true),
-        MyPageMenuRow(title: "찜한 시설 및 프로그램", showsIcon: true),
-        MyPageMenuRow(title: "운동 검사 결과", showsIcon: true)
+        registeredProgramsRow,
+        favoriteProgramsRow,
+        exerciseResultRow
     ])
 
     private lazy var supportGroup = MyPageGroupView(rows: [
-        MyPageMenuRow(title: "알림설정"),
-        MyPageMenuRow(title: "문의하기"),
-        MyPageMenuRow(title: "버전 정보", trailingText: "v1.0.0"),
-        MyPageMenuRow(title: "개인정보처리방침"),
-        MyPageMenuRow(title: "이용약관"),
-        MyPageMenuRow(title: "위치기반 서비스 이용약관"),
-        MyPageMenuRow(title: "오픈소스 라이선스")
+        notificationSettingRow,
+        inquiryRow,
+        versionInfoRow,
+        privacyPolicyRow,
+        termsOfServiceRow,
+        locationTermsRow,
+        openSourceLicenseRow
     ])
 
     private lazy var accountGroup = MyPageGroupView(rows: [
@@ -217,6 +274,8 @@ private final class MyPageMenuRow: UIView {
     private let subtitleLabel: UILabel?
     private let leadingIcon: UIView?
     private let accessoryView: UIView
+    let accessoryButton = UIButton(type: .custom)
+    private let accessory: Accessory
 
     init(
         title: String,
@@ -226,6 +285,7 @@ private final class MyPageMenuRow: UIView {
         accessory: Accessory = .disclosure
     ) {
         titleLabel = UILabel(text: title, config: .body14Regular)
+        self.accessory = accessory
 
         if let subtitle {
             subtitleLabel = UILabel(text: subtitle, config: .body12Medium, color: .gray500)
@@ -248,11 +308,13 @@ private final class MyPageMenuRow: UIView {
                 $0.tintColor = .gray200
                 $0.contentMode = .scaleAspectFit
             }
+            accessoryButton.backgroundColor = .clear
         case .toggle:
             accessoryView = UISwitch().then {
                 $0.isOn = false
                 $0.onTintColor = .primary400
             }
+            accessoryButton.isHidden = true
         }
 
         super.init(frame: .zero)
@@ -294,6 +356,14 @@ private extension MyPageMenuRow {
             if accessoryView is UIImageView {
                 $0.width.equalTo(24)
                 $0.height.equalTo(24)
+            }
+        }
+
+        if case .disclosure = accessory {
+            addSubview(accessoryButton)
+            accessoryButton.snp.makeConstraints {
+                $0.verticalEdges.trailing.equalToSuperview()
+                $0.width.equalTo(75)
             }
         }
 
