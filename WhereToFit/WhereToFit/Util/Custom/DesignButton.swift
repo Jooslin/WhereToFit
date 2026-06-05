@@ -36,6 +36,7 @@ class DesignButton: UIControl {
     private let background: UIView
     private let titleLabel: UILabel
     private let config: ButtonConfiguration
+    private var selectedConfig: ButtonConfiguration?
     
     var title: String?  {
         get { titleLabel.text }
@@ -60,8 +61,20 @@ class DesignButton: UIControl {
         }
     }
     
-    init(config: ButtonConfiguration) {
+    override var isSelected: Bool {
+        didSet {
+            if let selectedConfig {
+                background.backgroundColor = isSelected ? selectedConfig.color : config.color
+                titleLabel.textColor = isSelected ? selectedConfig.titleColor : config.titleColor
+                background.layer.borderWidth = isSelected ? selectedConfig.style.borderWidth : config.style.borderWidth
+                background.layer.borderColor = isSelected ? selectedConfig.borderColor.cgColor : config.borderColor.cgColor
+            }
+        }
+    }
+    
+    init(config: ButtonConfiguration, selectedConfig: ButtonConfiguration? = nil) {
         self.config = config
+        self.selectedConfig = selectedConfig
         
         background = switch config.style {
         case .fill:

@@ -16,10 +16,11 @@ final class OnboardingPersonalInfoView: OnboardingBaseView {
     let birthdayTextField = DesignTextField().then {
         $0.setPlaceholder(text: "ex)19991208")
     }
-    let maleButton = DesignButton(config: .smallFilledGray).then {
+    let maleButton = DesignButton(config: .smallFilledLightGray, selectedConfig: .selectedSmallBorderBlue).then {
         $0.title = "남성"
+        $0.isSelected = true
     }
-    let femaleButton = DesignButton(config: .smallFilledGray).then {
+    let femaleButton = DesignButton(config: .smallFilledLightGray, selectedConfig: .selectedSmallBorderBlue).then {
         $0.title = "여성"
     }
     let residenceTextField = DesignTextField().then {

@@ -7,6 +7,8 @@
 
 import UIKit
 import Then
+import RxSwift
+import ReactorKit
 
 final class OnboardingViewController: BaseViewController<OnboardingReactor> {
     let onboardingView = OnboardingPersonalInfoView()
@@ -16,12 +18,13 @@ final class OnboardingViewController: BaseViewController<OnboardingReactor> {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        onboardingView.maleButton.addAction(UIAction(handler: { [weak self] _ in
+            self?.onboardingView.maleButton.isSelected.toggle()
+        }), for: .touchUpInside)
     }
     
-//    override func bind(reactor: TempReactor) {
-//       
-//    }
+    func bind(reactor: TempReactor) {
+    }
     
 }
 

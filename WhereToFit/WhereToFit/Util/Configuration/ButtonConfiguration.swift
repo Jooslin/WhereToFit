@@ -12,6 +12,7 @@ struct ButtonConfiguration {
     let style: ButtonStyle
     let color: UIColor
     let titleColor: UIColor
+    let borderColor: UIColor
     
     enum ButtonStyle {
         case fill
@@ -61,13 +62,15 @@ extension ButtonConfiguration {
         size: ButtonSize,
         style: ButtonStyle,
         color: UIColor,
-        titleColor: UIColor? = nil
+        titleColor: UIColor? = nil,
+        borderColor: UIColor? = nil
     ) -> ButtonConfiguration {
         ButtonConfiguration(
             size: size,
             style: style,
             color: color,
-            titleColor: titleColor ?? size.labelConfig.color
+            titleColor: titleColor ?? size.labelConfig.color,
+            borderColor: borderColor ?? size.labelConfig.color
         )
     }
     
@@ -88,4 +91,7 @@ extension ButtonConfiguration {
     static let smallBorderBlue = make(size: .small, style: .border, color: .white, titleColor: .primary400)
     static let mediumBorderBlue = make(size: .medium, style: .border, color: .white, titleColor: .primary400)
     static let largeBorderBlue = make(size: .large, style: .border, color: .white, titleColor: .primary400)
+    
+    //MARK: SelectedBorder
+    static let selectedSmallBorderBlue = make(size: .small, style: .border, color: .primary25, titleColor: .primary600, borderColor: .primary200)
 }
