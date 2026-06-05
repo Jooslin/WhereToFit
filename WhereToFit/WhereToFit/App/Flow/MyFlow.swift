@@ -31,6 +31,12 @@ final class MyFlow: Flow {
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
 
+        case .notificationSetting:
+            let vc = NotificationSettingViewController(reactor: NotificationSettingReactor())
+            vc.hidesBottomBarWhenPushed = true
+            navigationController.pushViewController(vc, animated: true)
+            return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
+
         case .pageBack:
             navigationController.popViewController(animated: true)
             return .none

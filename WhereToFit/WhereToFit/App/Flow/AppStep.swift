@@ -22,5 +22,6 @@ enum AppStep: Step {
 
     // My
     case profileManagement
+    case notificationSetting
     case pageBack
 }
