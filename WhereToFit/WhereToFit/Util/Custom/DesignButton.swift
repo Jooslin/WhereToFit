@@ -102,12 +102,16 @@ class DesignButton: UIControl {
     override func layoutSubviews() {
         super.layoutSubviews()
         background.frame = bounds
+        layoutContent()
+    }
+    
+    func layoutContent() {
         titleLabel.frame = bounds.inset(by: config.size.padding)
     }
 }
 
 extension DesignButton {
-    class ButtonBackgroundView: UIView {
+    private class ButtonBackgroundView: UIView {
         init(config: ButtonConfiguration) {
             super.init(frame: .zero)
             isUserInteractionEnabled = false
