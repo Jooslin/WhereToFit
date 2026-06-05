@@ -104,7 +104,9 @@ extension ButtonConfiguration {
     //MARK: SelectedBorder
     static let selectedSmallBorderBlue = make(size: .small, style: .border, color: .primary25, titleColor: .primary600, borderColor: .primary200)
     static let selectedOnboarding = make(size: .onboarding, style: .border, color: .primary25, titleColor: .primary600, borderColor: .primary200)
+    static let selectedOnboardingCard = make(size: .onboardingCard, style: .border, color: .primary25, titleColor: .primary600, borderColor: .primary200)
     
     //MARK: Onboarding
     static let onboarding = make(size: .onboarding, style: .fill, color: .gray50, titleColor: .gray600)
+    static let onboardingCard = make(size: .onboardingCard, style: .fill, color: .gray50, titleColor: .gray600)
 }

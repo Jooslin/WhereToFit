@@ -33,8 +33,8 @@ import RxCocoa
    - config: ButtonConfiguration(기존에 정의된 것을 사용하거나 필요 시 생성하여 사용)
 */
 class DesignButton: UIControl {
-    private let config: ButtonConfiguration
-    private let selectedConfig: ButtonConfiguration?
+    let config: ButtonConfiguration
+    let selectedConfig: ButtonConfiguration?
     
     let background: UIView
     let titleLabel: UILabel
