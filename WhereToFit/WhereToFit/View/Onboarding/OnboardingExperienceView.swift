@@ -38,6 +38,17 @@ final class OnboardingExperienceView: OnboardingBaseView {
 
 extension OnboardingExperienceView {
     private func setLayout() {
+        let stackView = UIStackView(arrangedSubviews: [starterButton, beginnerButton, intermediateButton, advancedButton]).then {
+            $0.axis = .vertical
+            $0.spacing = 16
+            $0.alignment = .center
+        }
         
+        addSubview(stackView)
+        
+        stackView.snp.makeConstraints {
+            $0.top.equalTo(subTitleLabel.snp.bottom).offset(32)
+            $0.horizontalEdges.equalToSuperview().inset(16)
+        }
     }
 }
