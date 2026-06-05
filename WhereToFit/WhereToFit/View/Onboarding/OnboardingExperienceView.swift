@@ -30,43 +30,14 @@ final class OnboardingExperienceView: OnboardingBaseView {
         $0.subTitle = "어느 운동이든 잘 해내요"
     }
     
-    override init(frame: CGRect) {
-        super.init(frame: .zero)
-        
-        titleLabel.text = "운동 경험을 알려주세요!"
-        subTitleLabel.text = "스스로 생각하는 정도를 선택해주세요."
-        
-        progressBar.setProgress(0.125, animated: true)
-        
+    override init(frame: CGRect = .zero, step: OnboardingStep = .experience) {
+        super.init(frame: frame, step: step)        
         setLayout()
     }
 }
 
 extension OnboardingExperienceView {
     private func setLayout() {
-        addSubview(subTitleButton)
-        addSubview(imageButton)
-        addSubview(titleButton)
-        addSubview(cardButton)
         
-        subTitleButton.snp.makeConstraints {
-            $0.top.equalTo(subTitleLabel.snp.bottom).offset(10)
-            $0.centerX.equalToSuperview()
-        }
-        
-        imageButton.snp.makeConstraints {
-            $0.top.equalTo(subTitleButton.snp.bottom).offset(10)
-            $0.centerX.equalToSuperview()
-        }
-        
-        titleButton.snp.makeConstraints {
-            $0.top.equalTo(imageButton.snp.bottom).offset(10)
-            $0.centerX.equalToSuperview()
-        }
-        
-        cardButton.snp.makeConstraints {
-            $0.top.equalTo(titleButton.snp.bottom).offset(10)
-            $0.centerX.equalToSuperview()
-        }
     }
 }

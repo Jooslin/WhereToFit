@@ -33,14 +33,8 @@ final class OnboardingPersonalInfoView: OnboardingBaseView {
         $0.setPlaceholder(text: "몸무게를 입력해주세요")
     }
     
-    override init(frame: CGRect) {
-        super.init(frame: .zero)
-        
-        titleLabel.text = "안녕하세요!"
-        subTitleLabel.text = "운동 추천을 위해 몇 가지 정보를 알려주세요."
-        
-        progressBar.setProgress(0.125, animated: true)
-        
+    override init(frame: CGRect = .zero, step: OnboardingStep = .info) {
+        super.init(frame: .zero, step: step)
         setLayout()
     }
 }
