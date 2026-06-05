@@ -27,7 +27,7 @@ final class MyView: UIView {
         $0.tintColor = .gray600
     }
 
-    private let profileButton = UIButton(type: .system).then {
+    let profileButton = UIButton(type: .system).then {
         $0.setTitle("프로필 관리", for: .normal)
         $0.setTitleColor(.primary600, for: .normal)
         $0.titleLabel?.font = .systemFont(ofSize: 13, weight: .medium)

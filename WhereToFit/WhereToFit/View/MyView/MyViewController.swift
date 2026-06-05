@@ -6,6 +6,7 @@
 //
 
 import ReactorKit
+import RxCocoa
 import UIKit
 
 final class MyViewController: BaseViewController<MyReactor> {
@@ -15,5 +16,11 @@ final class MyViewController: BaseViewController<MyReactor> {
         view = myView
     }
 
-    override func bind(reactor: MyReactor) {}
+    override func bind(reactor: MyReactor) {
+        myView.profileButton.rx.tap
+            .bind(with: self) { owner, _ in
+                owner.steps.accept(AppStep.profileManagement)
+            }
+            .disposed(by: disposeBag)
+    }
 }
