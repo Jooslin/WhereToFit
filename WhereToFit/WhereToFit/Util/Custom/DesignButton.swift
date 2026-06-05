@@ -33,10 +33,11 @@ import RxCocoa
    - config: ButtonConfiguration(기존에 정의된 것을 사용하거나 필요 시 생성하여 사용)
 */
 class DesignButton: UIControl {
-    private let background: UIView
-    private let titleLabel: UILabel
     private let config: ButtonConfiguration
-    private var selectedConfig: ButtonConfiguration?
+    private let selectedConfig: ButtonConfiguration?
+    
+    let background: UIView
+    let titleLabel: UILabel
     
     var title: String?  {
         get { titleLabel.text }
@@ -106,7 +107,7 @@ class DesignButton: UIControl {
 }
 
 extension DesignButton {
-    private class ButtonBackgroundView: UIView {
+    class ButtonBackgroundView: UIView {
         init(config: ButtonConfiguration) {
             super.init(frame: .zero)
             isUserInteractionEnabled = false

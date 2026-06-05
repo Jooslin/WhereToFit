@@ -30,6 +30,8 @@ struct ButtonConfiguration {
         case small
         case medium
         case large
+        case onboarding
+        case onboardingCard
         
         var padding: UIEdgeInsets {
             switch self {
@@ -37,6 +39,10 @@ struct ButtonConfiguration {
                     .init(top: 10, left: 24, bottom: 10, right: 24)
             case .medium, .large:
                     .init(top: 14, left: 0, bottom: 14, right: 0)
+            case .onboarding:
+                    .init(top: 16, left: 24, bottom: 16, right: 24)
+            case .onboardingCard:
+                    .init(top: 0, left: 0, bottom: 0, right: 0)
             }
         }
         
@@ -45,6 +51,8 @@ struct ButtonConfiguration {
             case .small: return CGSize(width: 80, height: 38)
             case .medium: return CGSize(width: 222, height: 48)
             case .large: return CGSize(width: 343, height: 48)
+            case .onboarding: return CGSize(width: 343, height: 60)
+            case .onboardingCard: return CGSize(width: 100, height: 100)
             }
         }
         
@@ -52,6 +60,7 @@ struct ButtonConfiguration {
             switch self {
             case .small: return .body12Medium
             case .medium, .large: return .body14Semibold
+            case .onboarding, .onboardingCard: return .title16
             }
         }
     }
@@ -94,4 +103,8 @@ extension ButtonConfiguration {
     
     //MARK: SelectedBorder
     static let selectedSmallBorderBlue = make(size: .small, style: .border, color: .primary25, titleColor: .primary600, borderColor: .primary200)
+    static let selectedOnboarding = make(size: .onboarding, style: .border, color: .primary25, titleColor: .primary600, borderColor: .primary200)
+    
+    //MARK: Onboarding
+    static let onboarding = make(size: .onboarding, style: .fill, color: .gray50, titleColor: .gray600)
 }
