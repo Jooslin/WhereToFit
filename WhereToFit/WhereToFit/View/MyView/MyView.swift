@@ -251,6 +251,7 @@ private final class MyPageMenuRow: UIView {
         case .toggle:
             accessoryView = UISwitch().then {
                 $0.isOn = false
+                $0.onTintColor = .primary400
             }
         }
 
