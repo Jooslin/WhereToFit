@@ -9,6 +9,7 @@ import SnapKit
 import Then
 import UIKit
 
+// TODO: 선택시 버튼 색 바뀌도록
 final class ProfileManagementView: UIView {
     let backButton = UIButton(type: .system).then {
         $0.setImage(UIImage(systemName: "chevron.left"), for: .normal)
@@ -162,7 +163,6 @@ private extension ProfileInputField {
     }
 }
 
-// TODO: 선택시 버튼 색 바뀌도록
 private final class ProfileGenderField: UIView {
     private let titleLabel = UILabel(text: "성별", config: .body14Medium, color: .gray600)
     
@@ -208,24 +208,5 @@ private extension ProfileGenderField {
             $0.centerY.equalTo(maleButton)
             $0.width.height.equalTo(maleButton)
         }
-    }
-}
-
-private final class ProfileOptionButton: UIButton {
-    init(title: String, isSelected: Bool) {
-        super.init(frame: .zero)
-
-        setTitle(title, for: .normal)
-        titleLabel?.font = .systemFont(ofSize: 13, weight: .medium)
-        layer.cornerRadius = 19
-        layer.borderWidth = isSelected ? 1 : 0
-        layer.borderColor = UIColor.primary400.cgColor
-        backgroundColor = isSelected ? .white : UIColor(red: 0.979, green: 0.98, blue: 0.981, alpha: 1)
-        setTitleColor(isSelected ? .primary600 : .gray600, for: .normal)
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 }
