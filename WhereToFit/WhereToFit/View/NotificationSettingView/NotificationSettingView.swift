@@ -19,10 +19,26 @@ final class NotificationSettingView: UIView {
         $0.textAlignment = .center
     }
 
+    private let reservationAlertRow = NotificationToggleRow(title: "내 프로그램 예약 알림", isOn: false)
+    private let startAlertRow = NotificationToggleRow(title: "내 프로그램 시작 전 알림", isOn: true)
+    private let timeSettingRow = NotificationTimeRow()
+
+    var reservationAlertSwitch: UISwitch {
+        reservationAlertRow.toggleSwitch
+    }
+
+    var startAlertSwitch: UISwitch {
+        startAlertRow.toggleSwitch
+    }
+
+    var timeSettingButton: UIButton {
+        timeSettingRow.timeButton
+    }
+
     private lazy var settingGroup = MenuGroupView(rows: [
-        NotificationToggleRow(title: "내 프로그램 예약 알림", isOn: false),
-        NotificationToggleRow(title: "내 프로그램 시작 전 알림", isOn: true),
-        NotificationTimeRow()
+        reservationAlertRow,
+        startAlertRow,
+        timeSettingRow
     ])
 
     override init(frame: CGRect) {
@@ -70,7 +86,7 @@ private extension NotificationSettingView {
 
 private final class NotificationToggleRow: UIView {
     private let titleLabel: UILabel
-    private let toggleSwitch = UISwitch().then {
+    let toggleSwitch = UISwitch().then {
         $0.onTintColor = .primary400
     }
 
@@ -112,7 +128,7 @@ private extension NotificationToggleRow {
 private final class NotificationTimeRow: UIView {
     private let titleLabel = UILabel(text: "알림 시간 설정", config: .body14Regular)
     private let optionLabel = UILabel(text: "프로그램 시작", config: .body13Medium, color: .gray500)
-    private let timeButton = UIButton(type: .system).then {
+    let timeButton = UIButton(type: .system).then {
         $0.setTitle("30분 전", for: .normal)
         $0.setTitleColor(.primary600, for: .normal)
         $0.titleLabel?.font = .systemFont(ofSize: 13, weight: .medium)
