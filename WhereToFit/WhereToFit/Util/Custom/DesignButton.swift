@@ -48,6 +48,10 @@ class DesignButton: UIControl {
         return config.size.size
     }
     
+    var backgroundCornerRadius: CGFloat {
+        bounds.height / 2
+    }
+    
     override var isHighlighted: Bool {
         didSet {
             alpha = isHighlighted ? 0.5 : 1
@@ -102,6 +106,7 @@ class DesignButton: UIControl {
     override func layoutSubviews() {
         super.layoutSubviews()
         background.frame = bounds
+        background.layer.cornerRadius = backgroundCornerRadius
         layoutContent()
     }
     
@@ -128,10 +133,6 @@ extension DesignButton {
             fatalError("init(coder:) has not been implemented")
         }
         
-        override func layoutSubviews() {
-            super.layoutSubviews()
-            layer.cornerRadius = bounds.height / 2
-        }
     }
 }
 

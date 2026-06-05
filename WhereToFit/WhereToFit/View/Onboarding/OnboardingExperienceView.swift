@@ -24,6 +24,8 @@ final class OnboardingExperienceView: OnboardingBaseView {
     
     let cardButton = OnboardingButton(config: .onboardingCard, selectedConfig: .selectedOnboardingCard, type: .card).then {
         $0.title = "card"
+        $0.isSelected = true
+        
     }
     
     override init(frame: CGRect) {

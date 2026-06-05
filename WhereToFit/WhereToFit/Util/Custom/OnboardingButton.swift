@@ -52,6 +52,10 @@ class OnboardingButton: DesignButton {
         set { subTitleLabel.text = newValue }
     }
     
+    override var backgroundCornerRadius: CGFloat {
+        buttonType == .card ? 16 : super.backgroundCornerRadius
+    }
+    
     override var isSelected: Bool {
         didSet {
             if let selectedConfig {
