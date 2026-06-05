@@ -97,13 +97,13 @@ final class MyView: UIView {
         openSourceLicenseRow.accessoryButton
     }
 
-    private lazy var activityGroup = MenuGroupView(rows: [
+    private lazy var activityGroup = MyPageGroupView(rows: [
         registeredProgramsRow,
         favoriteProgramsRow,
         exerciseResultRow
     ])
 
-    private lazy var supportGroup = MenuGroupView(rows: [
+    private lazy var supportGroup = MyPageGroupView(rows: [
         notificationSettingRow,
         inquiryRow,
         versionInfoRow,
@@ -113,7 +113,7 @@ final class MyView: UIView {
         openSourceLicenseRow
     ])
 
-    private lazy var accountGroup = MenuGroupView(rows: [
+    private lazy var accountGroup = MyPageGroupView(rows: [
         MyPageMenuRow(title: "iCloud 동기화", accessory: .toggle)
     ])
 
@@ -227,6 +227,40 @@ private extension MyView {
             $0.horizontalEdges.equalToSuperview().inset(16)
             $0.bottom.equalToSuperview().inset(24)
         }
+    }
+}
+
+private final class MyPageGroupView: UIView {
+    private let stackView = UIStackView().then {
+        $0.axis = .vertical
+        $0.isLayoutMarginsRelativeArrangement = true
+        $0.layoutMargins = UIEdgeInsets(top: 8, left: 0, bottom: 8, right: 0)
+    }
+
+    init(rows: [MyPageMenuRow]) {
+        super.init(frame: .zero)
+
+        backgroundColor = UIColor(red: 0.979, green: 0.98, blue: 0.981, alpha: 1)
+        layer.cornerRadius = 12
+        clipsToBounds = true
+
+        addSubview(stackView)
+        stackView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+
+        for (index, row) in rows.enumerated() {
+            stackView.addArrangedSubview(row)
+
+            if index < rows.count - 1 {
+                stackView.addArrangedSubview(MyPageDivider())
+            }
+        }
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }
 
@@ -359,5 +393,31 @@ private extension MyPageMenuRow {
                 $0.centerY.equalToSuperview()
             }
         }
+    }
+}
+
+private final class MyPageDivider: UIView {
+    private let lineView = UIView()
+    private let pixelHeight = 1 / UIScreen.main.scale
+
+    init() {
+        super.init(frame: .zero)
+
+        addSubview(lineView)
+        lineView.backgroundColor = .gray100
+
+        snp.makeConstraints {
+            $0.height.equalTo(pixelHeight)
+        }
+
+        lineView.snp.makeConstraints {
+            $0.verticalEdges.equalToSuperview()
+            $0.horizontalEdges.equalToSuperview().inset(12)
+        }
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }
