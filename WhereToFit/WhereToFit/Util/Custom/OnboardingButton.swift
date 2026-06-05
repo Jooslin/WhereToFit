@@ -29,6 +29,7 @@ class OnboardingButton: DesignButton {
     private lazy var imageHorizontalStackView = UIStackView(arrangedSubviews: [imageView, titleLabel]).then {
         $0.axis = .horizontal
         $0.spacing = 16
+        $0.alignment = .center
         
         imageView.setContentHuggingPriority(.required, for: .horizontal)
         imageView.setContentCompressionResistancePriority(.required, for: .horizontal)
@@ -68,13 +69,25 @@ class OnboardingButton: DesignButton {
         
         switch buttonType {
         case .subTitle:
+            labelStackView.frame = fallbackContentFrame
             addSubview(labelStackView)
             titleLabel.textAlignment = .left
+            
         case .image:
+            imageHorizontalStackView.frame = fallbackContentFrame
             addSubview(imageHorizontalStackView)
             titleLabel.textAlignment = .left
+            imageView.snp.makeConstraints {
+                $0.width.height.equalTo(24)
+            }
+            
         case .card:
+            imageVerticalStackView.frame = fallbackContentFrame
             addSubview(imageVerticalStackView)
+            imageView.snp.makeConstraints {
+                $0.width.height.equalTo(36)
+            }
+            
         case .label:
             addSubview(titleLabel)
             titleLabel.textAlignment = .left
@@ -92,13 +105,17 @@ class OnboardingButton: DesignButton {
             labelStackView.frame = bounds.inset(by: config.size.padding)
         case .image:
             imageHorizontalStackView.frame = bounds.inset(by: config.size.padding)
-            imageView.frame.size = CGSize(width: 24, height: 24)
         case .card:
             imageVerticalStackView.frame = bounds.inset(by: config.size.padding)
-            imageView.frame.size = CGSize(width: 36, height: 36)
+            
         case .label:
            titleLabel.frame = bounds.inset(by: config.size.padding)
         }
+    }
+    
+    // 임시 프레임 사이즈
+    private var fallbackContentFrame: CGRect {
+        CGRect(origin: .zero, size: config.size.size).inset(by: config.size.padding)
     }
 }
 

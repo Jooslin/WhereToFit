@@ -42,7 +42,7 @@ struct ButtonConfiguration {
             case .onboarding:
                     .init(top: 16, left: 24, bottom: 16, right: 24)
             case .onboardingCard:
-                    .init(top: 0, left: 0, bottom: 0, right: 0)
+                    .init(top: 18, left: 0, bottom: 14, right: 0)
             }
         }
         
