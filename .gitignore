@@ -66,3 +66,17 @@ fastlane/test_output
 *.xcconfig
 AGENTS.md
 .codex/
+
+# Local secrets
+.env
+.env.*
+serviceAccountKey.json
+firebase-debug.log
+
+# Node
+node_modules/
+
+# Supabase
+supabase/
+scripts/sync-public-facilities.js
+export-class-information-sql.py

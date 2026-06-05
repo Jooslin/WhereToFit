@@ -1,0 +1,243 @@
+//
+//  NetworkService.swift
+//  WhereToFit
+//
+//  Created by 변예린 on 5/29/26.
+//
+
+import Foundation
+import Alamofire
+
+final class NetworkService: Sendable {
+    private let supabaseBaseURL: String
+    private let supabasePublishableKey: String
+    private let weatherKey: String
+    
+    init(
+        supabaseBaseURL: String = Bundle.main.supabaseBaseURL,
+        supabasePublishableKey: String = Bundle.main.supabasePublishableKey,
+        weatherKey: String = Bundle.main.openweatherKey
+    ) {
+        self.supabaseBaseURL = supabaseBaseURL
+        self.supabasePublishableKey = supabasePublishableKey
+        self.weatherKey = weatherKey
+    }
+
+}
+
+struct SupabasePage<T> {
+    let items: [T]
+    let nextOffset: Int?
+    
+    var hasNextPage: Bool {
+        nextOffset != nil
+    }
+}
+
+enum SearchOrder: String {
+    case ascending = "asc"
+    case descending = "desc"
+}
+
+//MARK: Supabase
+extension NetworkService {
+    // supabase 전체 데이터 가져오기 메서드
+    func fetchSupabaseData<T: Decodable & Sendable>(
+        api: API,
+        limit: Int = 50,
+        offset: Int = 0,
+        order: SearchOrder = .ascending
+    ) async throws -> SupabasePage<T> {
+        guard let tableName = api.tableName else {
+            throw NetworkServiceError.invalidEndpoint
+        }
+
+        let parameters: Parameters = [
+            "select": "*",
+            "order": "id.\(order.rawValue)"
+        ]
+
+        return try await requestSupabasePage(
+            tableName: tableName,
+            parameters: parameters,
+            limit: limit,
+            offset: offset
+        )
+    }
+
+    // supabase 데이터 검색 메서드
+    func fetchFilteredSupabaseData<T: Decodable & Sendable>(
+        api: API,
+        keyword: String,
+        searchType: SearchType,
+        order: SearchOrder,
+        limit: Int = 50, // 한 페이지에 들어갈 데이터 수
+        offset: Int = 0 // 현재 페이지 위치
+    ) async throws -> SupabasePage<T> {
+        guard let tableName = api.tableName else {
+            throw NetworkServiceError.invalidEndpoint
+        }
+
+        let parameters: Parameters = [
+            "select": "*",
+            searchType.rawValue: "ilike.*\(keyword)*",
+            "order": "id.\(order.rawValue)"
+        ]
+
+        return try await requestSupabasePage(
+            tableName: tableName,
+            parameters: parameters,
+            limit: limit,
+            offset: offset
+        )
+    }
+
+    // page 요청 메서드
+    private func requestSupabasePage<T: Decodable & Sendable>(
+        tableName: String,
+        parameters: Parameters,
+        limit: Int,
+        offset: Int
+    ) async throws -> SupabasePage<T> {
+        guard !supabaseBaseURL.isEmpty,
+              !supabaseBaseURL.contains("$("),
+              !supabasePublishableKey.isEmpty,
+              !supabasePublishableKey.contains("$(") else {
+            throw NetworkServiceError.missingSupabaseConfiguration
+        }
+
+        guard limit > 0, offset >= 0 else {
+            throw NetworkServiceError.invalidPaginationParameter
+        }
+
+        let baseURL = supabaseBaseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let url = "\(baseURL)/rest/v1/\(tableName)"
+        let headers: HTTPHeaders = [
+            "apikey": supabasePublishableKey,
+            "Accept": "application/json"
+        ]
+        var parameters = parameters
+        parameters["limit"] = limit + 1
+        parameters["offset"] = offset
+
+        let rows = try await AF.request(
+            url,
+            method: .get,
+            parameters: parameters,
+            encoding: URLEncoding.queryString,
+            headers: headers
+        )
+            .validate()
+            .serializingDecodable([T].self)
+            .value
+
+        let hasNextPage = rows.count > limit
+        let items = hasNextPage ? Array(rows.prefix(limit)) : rows
+        let nextOffset = hasNextPage ? offset + limit : nil // 다음 페이지가 존재한다면 다음 Offset을 반환, 없다면 nil 반환
+
+        return SupabasePage(
+            items: items, // 현재 페이지 데이터들
+            nextOffset: nextOffset // 다음 페이지 존재 여부 + offset
+        )
+    }
+}
+
+//MARK: API Networking
+extension NetworkService {
+    func fetchWeatherData(latitude: Double, longitude: Double) async throws -> CurrentWeatherDTO {
+        guard !weatherKey.isEmpty,
+              !weatherKey.contains("$(") else {
+            throw NetworkServiceError.missingOpenWeatherConfiguration
+        }
+
+        guard let baseUrl = API.weather.baseUrl else {
+            throw NetworkServiceError.invalidEndpoint
+        }
+
+        let params: Parameters = [
+            "lat": latitude,
+            "lon": longitude,
+            "appid": weatherKey,
+            "units": "metric",
+            "lang": "kr"
+        ]
+        
+        return try await AF.request(
+            baseUrl,
+            method: .get,
+            parameters: params,
+            encoding: URLEncoding.queryString
+        )
+            .validate()
+            .serializingDecodable(CurrentWeatherDTO.self)
+            .value
+    }
+}
+
+//MARK: Util
+extension NetworkService {
+    enum NetworkServiceError: LocalizedError {
+        case missingSupabaseConfiguration
+        case missingOpenWeatherConfiguration
+        case invalidEndpoint
+        case invalidPaginationParameter
+
+        var errorDescription: String? {
+            switch self {
+            case .missingSupabaseConfiguration:
+                return "Supabase configuration is missing. Add SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY to Info.plist or build settings."
+            case .missingOpenWeatherConfiguration:
+                return "OpenWeather configuration is missing. Add OPENWEATHER_KEY to Info.plist or build settings."
+            case .invalidEndpoint:
+                return "The selected API endpoint is not configured."
+            case .invalidPaginationParameter:
+                return "Pagination limit must be greater than 0 and offset must be 0 or greater."
+            }
+        }
+    }
+
+    enum API {
+        case weather
+        case facility
+        case classInfo
+        
+        var baseUrl: String? {
+            switch self {
+            case .weather:
+                return "https://api.openweathermap.org/data/2.5/weather"
+            case .facility, .classInfo:
+                return nil
+            }
+        }
+        
+        var tableName: String? {
+            switch self {
+            case .weather:
+                return nil
+            case .facility:
+                return "public_facilities"
+            case .classInfo:
+                return "class_information"
+            }
+        }
+    }
+    
+    enum SearchType: String {
+        case facilityName = "facility_name"
+        case className = "class_name"
+    }
+}
+
+private extension Bundle {
+    var supabaseBaseURL: String {
+        object(forInfoDictionaryKey: "SUPABASE_URL") as? String ?? ""
+    }
+
+    var supabasePublishableKey: String {
+        object(forInfoDictionaryKey: "SUPABASE_PUBLISHABLE_KEY") as? String ?? ""
+    }
+    
+    var openweatherKey: String {
+        object(forInfoDictionaryKey: "OPENWEATHER_KEY") as? String ?? ""
+    }
+}
