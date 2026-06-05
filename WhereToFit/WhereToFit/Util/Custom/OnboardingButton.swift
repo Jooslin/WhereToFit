@@ -21,6 +21,7 @@ class OnboardingButton: DesignButton {
     private lazy var labelStackView = UIStackView(arrangedSubviews: [titleLabel, subTitleLabel]).then {
         $0.axis = .horizontal
         $0.spacing = 16
+        $0.isUserInteractionEnabled = false
         
         titleLabel.setContentHuggingPriority(.required, for: .horizontal)
         titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
@@ -30,6 +31,7 @@ class OnboardingButton: DesignButton {
         $0.axis = .horizontal
         $0.spacing = 16
         $0.alignment = .center
+        $0.isUserInteractionEnabled = false
         
         imageView.setContentHuggingPriority(.required, for: .horizontal)
         imageView.setContentCompressionResistancePriority(.required, for: .horizontal)
@@ -39,6 +41,7 @@ class OnboardingButton: DesignButton {
         $0.axis = .vertical
         $0.spacing = 10
         $0.alignment = .center
+        $0.isUserInteractionEnabled = false
         
         imageView.setContentHuggingPriority(.required, for: .horizontal)
         imageView.setContentCompressionResistancePriority(.required, for: .horizontal)
