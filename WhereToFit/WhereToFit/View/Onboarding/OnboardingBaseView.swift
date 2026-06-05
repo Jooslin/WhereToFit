@@ -63,7 +63,44 @@ class OnboardingBaseView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 }
+extension OnboardingBaseView {
+    enum OnboardingStep: Float {
+        case info = 1
+        case experience
+        case goal
+        case preference
+        case disabled
+        case facilityExperience
+        
+        var title: String {
+            switch self {
+            case .info: "안녕하세요!"
+            case .experience: "운동 경험을 알려주세요!"
+            case .goal: "운동 목표는 무엇인가요?"
+            case .preference: "어떤 운동을 좋아하세요?"
+            case .disabled: "불편한 신체부위가 있나요?"
+            case .facilityExperience: "공공체육시설을 이용중이신가요?"
+            }
+        }
+        
+        var subTitle: String {
+            switch self {
+            case .info: "운동 추천을 위해 몇 가지 정보를 알려주세요."
+            case .experience: "스스로 생각하는 정도를 선택해주세요."
+            case .goal: "달성하고 싶은 목표를 선택해주세요."
+            case .preference: "관심있는 운동을 모두 선택해주세요."
+            case .disabled: "운동을 하면 무리가 가는 부위를 알려주세요."
+            case .facilityExperience: "이용중인 프로그램이 있다면 등록해주세요."
+            }
+        }
+        
+        var progress: Float {
+            self.rawValue / 8
+        }
+    }
+}
 
+//MARK: Component
 final class RoundedProgressView: UIProgressView {
     override func layoutSubviews() {
         super.layoutSubviews()

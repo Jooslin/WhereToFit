@@ -10,22 +10,24 @@ import SnapKit
 import Then
 
 final class OnboardingExperienceView: OnboardingBaseView {
-    let subTitleButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .subTitle).then {
+    let starterButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .subTitle).then {
         $0.title = "초급"
-        $0.subTitle = "초급임"
-        $0.isSelected = true
-    }
-    let imageButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .image).then {
-        $0.title = "종목"
-    }
-    let titleButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .label).then  {
-        $0.title = "title"
+        $0.subTitle = "이제 시작하는 단계예요"
     }
     
-    let cardButton = OnboardingButton(config: .onboardingCard, selectedConfig: .selectedOnboardingCard, type: .card).then {
-        $0.title = "card"
-        $0.isSelected = true
-        
+    let beginnerButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .subTitle).then {
+        $0.title = "입문"
+        $0.subTitle = "가볍게 경험해봤어요"
+    }
+    
+    let intermediateButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .subTitle).then {
+        $0.title = "중급"
+        $0.subTitle = "꾸준히 운동하고 있어요"
+    }
+    
+    let advancedButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .subTitle).then {
+        $0.title = "숙련"
+        $0.subTitle = "어느 운동이든 잘 해내요"
     }
     
     override init(frame: CGRect) {
