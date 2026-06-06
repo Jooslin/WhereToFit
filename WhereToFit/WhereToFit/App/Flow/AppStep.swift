@@ -11,6 +11,7 @@ import Foundation
 enum AppStep: Step {
     // Main
     case splash
+    case onboarding
     case main
     case updateRequired(message: String, storeURL: URL)
     

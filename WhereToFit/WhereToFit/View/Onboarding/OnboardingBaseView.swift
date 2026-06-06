@@ -28,6 +28,8 @@ class OnboardingBaseView: UIView {
         self.step = step
         super.init(frame: frame)
         
+        backgroundColor = .white
+        
         titleLabel.text = step.title
         subTitleLabel.text = step.subTitle
         progressBar.setProgress(step.progress, animated: true)
