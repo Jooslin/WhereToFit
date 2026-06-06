@@ -43,6 +43,22 @@ final class OnboardingProgramListCell: UICollectionViewListCell {
 }
 
 extension OnboardingProgramListCell {
+    func configure(_ program: Program) {
+        nameLabel.text = program.className
+        facilityLabel.text = program.facilityName
+        weekdayLabel.text = program.days.joined()
+        
+        guard let startTime = program.startTime else { return }
+        
+        if let endTime = program.endTime {
+            timeLabel.text = "\(startTime)~\(endTime)"
+        } else {
+            timeLabel.text = startTime
+        }
+    }
+}
+
+extension OnboardingProgramListCell {
     private func setLayout() {
         let timeLabelStack = UIStackView(arrangedSubviews: [weekdayLabel, timeLabel]).then {
             $0.axis = .horizontal
