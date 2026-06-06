@@ -11,7 +11,7 @@ import RxSwift
 import ReactorKit
 
 final class OnboardingViewController: BaseViewController<OnboardingReactor> {
-    let onboardingView = OnboardingGoalView()
+    let onboardingView = OnboardingPreferenceView()
     override func loadView() {
         view = onboardingView
     }
