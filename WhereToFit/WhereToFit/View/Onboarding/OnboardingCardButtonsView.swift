@@ -9,21 +9,17 @@ import UIKit
 import SnapKit
 import Then
 
-final class OnboardingPreferenceView: OnboardingBaseView {
-    let categories = [
-        "헬스", "피트니스", "요가/필라",
-        "체조", "댄스/무용", "수중",
-        "구기", "빙상", "무도/격투",
-        "러닝/사이클", "생활체육", "특수체육"
-    ]
+final class OnboardingCardButtonsView: OnboardingBaseView {
+    let categories: [String]
     
-    override init(frame: CGRect = .zero, step: OnboardingStep = .goal) {
-        super.init(frame: frame, step: step)
+    override init(frame: CGRect = .zero, step: OnboardingStep) {
+        self.categories = step.categories
+        super.init(frame: .zero, step: step)
         setLayout()
     }
 }
 
-extension OnboardingPreferenceView {
+extension OnboardingCardButtonsView {
     private func setLayout() {
         let stackView = makeButtonStack()
         

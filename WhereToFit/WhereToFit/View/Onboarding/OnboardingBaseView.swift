@@ -104,6 +104,17 @@ enum OnboardingStep: Float {
     var progress: Float {
         self.rawValue / 8
     }
+    
+    var categories: [String] {
+        switch self {
+        case .preference:
+            return ["헬스", "피트니스", "요가/필라", "체조", "댄스/무용", "수중", "구기", "빙상", "무도/격투", "러닝/사이클", "생활체육", "특수체육"]
+        case .disabled:
+            return ["어지럼증", "목", "어깨", "팔꿈치", "손목", "허리", "무릎", "발목"]
+        default:
+            return []
+        }
+    }
 }
 
 
