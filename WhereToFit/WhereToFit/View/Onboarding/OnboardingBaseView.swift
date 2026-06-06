@@ -102,7 +102,7 @@ enum OnboardingStep: Float {
     }
     
     var progress: Float {
-        self.rawValue / 8
+        self.rawValue / 7
     }
     
     var categories: [String] {
