@@ -84,8 +84,21 @@ extension OnboardingFacilityView {
             }
         }
         
-        let dataSource = UICollectionViewDiffableDataSource<OnboardingFacilityView.Section, OnboardingFacilityView.Item>(collectionView: collectionView) { collectionView, indexPath, item in
-            collectionView.dequeueConfiguredReusableCell(using: listCellRegistration, for: indexPath, item: item)
+        let addCellRegistration = UICollectionView.CellRegistration<OnboardingProgramAddCell, OnboardingFacilityView.Item> { cell, indexPath, item in
+        }
+
+        let dataSource = UICollectionViewDiffableDataSource<OnboardingFacilityView.Section, OnboardingFacilityView.Item>(collectionView: collectionView) { [weak self] collectionView, indexPath, item in
+            
+            guard let section = self?.dataSource.sectionIdentifier(for: indexPath.section) else {
+                fatalError("OnboardingCollectionView: 유효하지 않은 섹션입니다.")
+            }
+            
+            return switch section {
+            case .list:
+                collectionView.dequeueConfiguredReusableCell(using: listCellRegistration, for: indexPath, item: item)
+            case .button:
+                collectionView.dequeueConfiguredReusableCell(using: addCellRegistration, for: indexPath, item: item)
+            }
         }
         
         return dataSource
