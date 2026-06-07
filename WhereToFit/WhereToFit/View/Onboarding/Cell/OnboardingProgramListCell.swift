@@ -41,8 +41,9 @@ final class OnboardingProgramListCell: UICollectionViewListCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func layoutSubviews() {
-        super.layoutSubviews()
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        nameLabel.text = ""
         facilityLabel.text = ""
         weekdayLabel.text = ""
         timeLabel.text = ""

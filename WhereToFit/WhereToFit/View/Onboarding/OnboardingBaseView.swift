@@ -32,7 +32,7 @@ class OnboardingBaseView: UIView {
         
         titleLabel.text = step.title
         subTitleLabel.text = step.subTitle
-        progressBar.setProgress(step.progress, animated: true)
+        progressBar.setProgress(step.progress, animated: false)
         
         let labelStackView = UIStackView(arrangedSubviews: [titleLabel, subTitleLabel]).then {
             $0.axis = .vertical

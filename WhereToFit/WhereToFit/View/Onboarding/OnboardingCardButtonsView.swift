@@ -27,7 +27,7 @@ extension OnboardingCardButtonsView {
         
         stackView.snp.makeConstraints {
             $0.top.equalTo(subTitleLabel.snp.bottom).offset(32)
-            $0.centerX.equalToSuperview()
+            $0.horizontalEdges.equalToSuperview().inset(16)
         }
     }
     
