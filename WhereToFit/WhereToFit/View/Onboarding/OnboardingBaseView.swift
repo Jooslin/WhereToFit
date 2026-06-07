@@ -122,16 +122,20 @@ enum OnboardingStep: Float {
 
 //MARK: Component
 final class RoundedProgressView: UIProgressView {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        clipsToBounds = true
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func layoutSubviews() {
         super.layoutSubviews()
         
         let radius = bounds.height / 2
         layer.cornerRadius = radius
-        clipsToBounds = true
-        
-        subviews.forEach {
-            $0.layer.cornerRadius = radius
-            $0.clipsToBounds = true
-        }
     }
 }
