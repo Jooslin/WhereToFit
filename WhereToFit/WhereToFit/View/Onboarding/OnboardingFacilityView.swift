@@ -109,8 +109,8 @@ extension OnboardingFacilityView {
         var snapshot = NSDiffableDataSourceSnapshot<OnboardingFacilityView.Section, OnboardingFacilityView.Item>()
         snapshot.appendSections([.list, .button])
         
-        guard let listItem = data[.list],
-              let buttonItem = data[.button] else { return }
+        let listItem = data[.list] ?? []
+        let buttonItem = data[.button] ?? []
         snapshot.appendItems(listItem, toSection: .list)
         snapshot.appendItems(buttonItem, toSection: .button)
         
