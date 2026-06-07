@@ -59,11 +59,7 @@ class OnboardingButton: DesignButton {
     override var isSelected: Bool {
         didSet {
             if let selectedConfig {
-                background.backgroundColor = isSelected ? selectedConfig.color : config.color
-                titleLabel.textColor = isSelected ? selectedConfig.titleColor : config.titleColor
                 subTitleLabel.textColor = isSelected ? selectedConfig.titleColor : config.titleColor
-                background.layer.borderWidth = isSelected ? selectedConfig.style.borderWidth : config.style.borderWidth
-                background.layer.borderColor = isSelected ? selectedConfig.borderColor.cgColor : config.borderColor.cgColor
             }
         }
     }
@@ -116,7 +112,7 @@ class OnboardingButton: DesignButton {
             imageVerticalStackView.frame = bounds.inset(by: config.size.padding)
             
         case .label:
-           titleLabel.frame = bounds.inset(by: config.size.padding)
+            titleLabel.frame = bounds.inset(by: config.size.padding)
         }
     }
     

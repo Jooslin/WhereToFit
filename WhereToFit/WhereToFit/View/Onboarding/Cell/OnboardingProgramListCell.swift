@@ -40,6 +40,13 @@ final class OnboardingProgramListCell: UICollectionViewListCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        facilityLabel.text = ""
+        weekdayLabel.text = ""
+        timeLabel.text = ""
+    }
 }
 
 extension OnboardingProgramListCell {
