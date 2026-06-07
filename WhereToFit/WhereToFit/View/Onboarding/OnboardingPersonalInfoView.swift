@@ -56,7 +56,7 @@ extension OnboardingPersonalInfoView {
         let bodyStackView = UIStackView(arrangedSubviews: [heightStackView, weightStackView]).then {
             $0.axis = .horizontal
             $0.spacing = 23
-            $0.distribution = .fill
+            $0.distribution = .fillEqually
         }
         
         let stackView = UIStackView(arrangedSubviews: [nicknameStackView, birthdayStackView, genderStackView, residenceStackView, bodyStackView]).then {
