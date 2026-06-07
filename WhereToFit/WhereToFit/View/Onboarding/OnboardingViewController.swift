@@ -51,7 +51,7 @@ final class OnboardingViewController: BaseViewController<OnboardingReactor> {
         ])
     }
     
-    func bind(reactor: TempReactor) {
+    override func bind(reactor: OnboardingReactor) {
     }
     
 }
