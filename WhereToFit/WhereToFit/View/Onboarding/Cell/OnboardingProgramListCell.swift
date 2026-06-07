@@ -72,12 +72,15 @@ extension OnboardingProgramListCell {
             $0.spacing = 8
             facilityLabel.setContentHuggingPriority(.required, for: .horizontal)
             facilityLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+            
+            separateBar.setContentHuggingPriority(.required, for: .horizontal)
+            separateBar.setContentCompressionResistancePriority(.required, for: .horizontal)
         }
         
         let verticalLabelStack = UIStackView(arrangedSubviews: [nameLabel, horizontalLabelStack]).then {
             $0.axis = .vertical
             $0.spacing = 2
-            $0.alignment = .leading
+            $0.alignment = .fill
         }
         
         let stackView = UIStackView(arrangedSubviews: [imageView, verticalLabelStack, button]).then {
@@ -99,6 +102,10 @@ extension OnboardingProgramListCell {
         
         button.snp.makeConstraints {
             $0.width.height.equalTo(24)
+        }
+        
+        separateBar.snp.makeConstraints {
+            $0.width.equalTo(1)
         }
     }
 }

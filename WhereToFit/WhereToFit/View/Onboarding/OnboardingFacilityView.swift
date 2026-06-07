@@ -43,6 +43,7 @@ extension OnboardingFacilityView {
         }
         
         addSubview(stackView)
+        addSubview(collectionView)
         
         stackView.snp.makeConstraints {
             $0.top.equalTo(subTitleLabel.snp.bottom).offset(32)
@@ -52,7 +53,7 @@ extension OnboardingFacilityView {
         collectionView.snp.makeConstraints {
             $0.top.equalTo(stackView.snp.bottom).offset(32)
             $0.horizontalEdges.equalToSuperview()
-            $0.bottom.equalTo(nextButton.snp.top).inset(32)
+            $0.bottom.equalTo(nextButton.snp.top).offset(-32)
         }
     }
     
