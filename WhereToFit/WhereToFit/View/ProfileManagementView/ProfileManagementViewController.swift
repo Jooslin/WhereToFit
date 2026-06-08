@@ -17,7 +17,7 @@ final class ProfileManagementViewController: BaseViewController<ProfileManagemen
     }
 
     override func bind(reactor: ProfileManagementReactor) {
-        profileManagementView.backButton.rx.tap
+        profileManagementView.titleView.rx.leftButtonTap
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.pageBack)
             }

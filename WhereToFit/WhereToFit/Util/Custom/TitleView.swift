@@ -70,6 +70,7 @@ extension TitleView {
         
         if let leftButtonImage {
             leftButton.setImage(leftButtonImage, for: .normal)
+            leftButton.configuration?.baseForegroundColor = .gray900
         } else {
             leftButton.isHidden = true
         }

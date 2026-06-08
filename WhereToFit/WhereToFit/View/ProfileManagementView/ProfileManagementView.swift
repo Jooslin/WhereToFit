@@ -11,14 +11,7 @@ import UIKit
 
 // TODO: 선택시 버튼 색 바뀌도록
 final class ProfileManagementView: UIView {
-    let backButton = UIButton(type: .system).then {
-        $0.setImage(UIImage(systemName: "chevron.left"), for: .normal)
-        $0.tintColor = .gray900
-    }
-
-    private let titleLabel = UILabel(text: "프로필 관리", config: .title18).then {
-        $0.textAlignment = .center
-    }
+    let titleView = TitleView(text: "프로필 관리", leftButtonImage: UIImage(systemName: "chevron.left"))
 
     private let nicknameField = ProfileInputField(title: "닉네임", text: "김아정")
     private let birthDateField = ProfileInputField(title: "생년월일", text: "19980609")
@@ -58,8 +51,7 @@ private extension ProfileManagementView {
 
     func setLayout() {
         [
-            backButton,
-            titleLabel,
+            titleView,
             nicknameField,
             birthDateField,
             genderField,
@@ -71,19 +63,13 @@ private extension ProfileManagementView {
         bodyInfoStackView.addArrangedSubview(heightField)
         bodyInfoStackView.addArrangedSubview(weightField)
 
-        backButton.snp.makeConstraints {
-            $0.top.equalTo(safeAreaLayoutGuide).offset(23)
-            $0.leading.equalToSuperview().offset(16)
-            $0.size.equalTo(24)
-        }
-
-        titleLabel.snp.makeConstraints {
-            $0.centerY.equalTo(backButton)
-            $0.centerX.equalToSuperview()
+        titleView.snp.makeConstraints {
+            $0.top.equalTo(safeAreaLayoutGuide).offset(11)
+            $0.horizontalEdges.equalToSuperview()
         }
 
         nicknameField.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(56)
+            $0.top.equalTo(titleView.snp.bottom).offset(42)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
 

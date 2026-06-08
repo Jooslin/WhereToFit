@@ -17,7 +17,7 @@ final class NotificationSettingViewController: BaseViewController<NotificationSe
     }
 
     override func bind(reactor: NotificationSettingReactor) {
-        notificationSettingView.backButton.rx.tap
+        notificationSettingView.titleView.rx.leftButtonTap
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.pageBack)
             }

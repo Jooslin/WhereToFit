@@ -10,14 +10,7 @@ import Then
 import UIKit
 
 final class NotificationSettingView: UIView {
-    let backButton = UIButton(type: .system).then {
-        $0.setImage(UIImage(systemName: "chevron.left"), for: .normal)
-        $0.tintColor = .gray900
-    }
-
-    private let titleLabel = UILabel(text: "알림 설정", config: .title18).then {
-        $0.textAlignment = .center
-    }
+    let titleView = TitleView(text: "알림 설정", leftButtonImage: UIImage(systemName: "chevron.left"))
 
     private let reservationAlertRow = NotificationToggleRow(title: "내 프로그램 예약 알림", isOn: false)
     private let startAlertRow = NotificationToggleRow(title: "내 프로그램 시작 전 알림", isOn: true)
@@ -61,24 +54,17 @@ private extension NotificationSettingView {
 
     func setLayout() {
         [
-            backButton,
-            titleLabel,
+            titleView,
             settingGroup
         ].forEach(addSubview)
 
-        backButton.snp.makeConstraints {
-            $0.top.equalTo(safeAreaLayoutGuide).offset(23)
-            $0.leading.equalToSuperview().offset(16)
-            $0.size.equalTo(24)
-        }
-
-        titleLabel.snp.makeConstraints {
-            $0.centerY.equalTo(backButton)
-            $0.centerX.equalToSuperview()
+        titleView.snp.makeConstraints {
+            $0.top.equalTo(safeAreaLayoutGuide).offset(11)
+            $0.horizontalEdges.equalToSuperview()
         }
 
         settingGroup.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(50)
+            $0.top.equalTo(titleView.snp.bottom).offset(36)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
     }
