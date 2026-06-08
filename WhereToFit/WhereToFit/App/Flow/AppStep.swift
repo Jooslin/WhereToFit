@@ -13,15 +13,19 @@ enum AppStep: Step {
     case splash
     case main
     case updateRequired(message: String, storeURL: URL)
-    
+
     // Tab
     case homeTab
     case mapTab
     case calendarTab
     case myTab
     
-    
     // Map
     case mapFilter(FacilityFilter)
     case mapFacilityDetail(FitnessFacility)
+
+    // My
+    case profileManagement
+    case notificationSetting
+    case pageBack
 }

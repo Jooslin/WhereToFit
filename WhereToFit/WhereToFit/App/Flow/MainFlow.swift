@@ -66,7 +66,11 @@ extension MainFlow {
             home.tabBarItem = UITabBarItem(title: "홈", image: .home, selectedImage: .homeFilled)
             map.tabBarItem = UITabBarItem(title: "지도", image: .locationPin, selectedImage: .locationPinFilled)
             calendar.tabBarItem = UITabBarItem(title: "캘린더", image: .date, selectedImage: .dateFilled)
-            my.tabBarItem = UITabBarItem(title: "마이", image: .home, selectedImage: .homeFilled)
+            my.tabBarItem = UITabBarItem(
+                title: "마이",
+                image: UIImage(systemName: "person"),
+                selectedImage: UIImage(systemName: "person.fill")
+            )
             
             self.tabBarController.setViewControllers([home, map, calendar, my], animated: true)
             self.tabBarController.tabBar.tintColor = .gray800

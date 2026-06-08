@@ -12,20 +12,35 @@ import ReactorKit
 final class MyFlow: Flow {
     private let navigationController = UINavigationController()
     var root: any RxFlow.Presentable { navigationController }
-    
+
     func navigate(to step: any RxFlow.Step) -> RxFlow.FlowContributors {
         // 정의한 AppStep일 때만 동작
         guard let step = step as? AppStep else {
             return .none
         }
-        
+
         switch step {
-            //TODO: 추후 VC 수정 필요
         case .myTab:
-            let vc = TempViewController(reactor: TempReactor())
+            let vc = MyViewController(reactor: MyReactor())
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
-            
+
+        case .profileManagement:
+            let vc = ProfileManagementViewController(reactor: ProfileManagementReactor())
+            vc.hidesBottomBarWhenPushed = true
+            navigationController.pushViewController(vc, animated: true)
+            return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
+
+        case .notificationSetting:
+            let vc = NotificationSettingViewController(reactor: NotificationSettingReactor())
+            vc.hidesBottomBarWhenPushed = true
+            navigationController.pushViewController(vc, animated: true)
+            return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
+
+        case .pageBack:
+            navigationController.popViewController(animated: true)
+            return .none
+
         default:
             return .one(flowContributor: .forwardToParentFlow(withStep: step))
         }
