@@ -12,12 +12,13 @@ import UIKit
 final class MyView: UIView {
     private let scrollView = UIScrollView()
     private let contentView = UIView()
+    private let profileGradientLayer = CAGradientLayer()
 
     private let titleLabel = UILabel(text: "마이페이지", config: .title20Semibold)
 
     private let profileCard = UIView().then {
-        $0.backgroundColor = .primary25
         $0.layer.cornerRadius = 12
+        $0.clipsToBounds = true
     }
 
     private let nameLabel = UILabel(text: "김아정님", config: .title20Semibold)
@@ -30,6 +31,7 @@ final class MyView: UIView {
     let profileButton = UIButton(type: .system).then {
         $0.setTitle("프로필 관리", for: .normal)
         $0.setTitleColor(.primary600, for: .normal)
+        $0.backgroundColor = .primary25
         $0.titleLabel?.font = .systemFont(ofSize: 13, weight: .medium)
         $0.layer.borderWidth = 1
         $0.layer.borderColor = UIColor.primary200.cgColor
@@ -124,6 +126,11 @@ final class MyView: UIView {
         setLayout()
     }
 
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        profileGradientLayer.frame = profileCard.bounds
+    }
+
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -134,6 +141,13 @@ private extension MyView {
     func setStyle() {
         backgroundColor = .white
         scrollView.showsVerticalScrollIndicator = false
+        profileGradientLayer.colors = [
+            UIColor.primary25.cgColor,
+            UIColor.gray50.cgColor
+        ]
+        profileGradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        profileGradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        profileCard.layer.insertSublayer(profileGradientLayer, at: 0)
     }
 
     func setLayout() {
