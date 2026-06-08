@@ -104,7 +104,7 @@ private extension ProfileManagementView {
 private final class ProfileInputField: UIView {
     private let titleLabel: UILabel
     private let textField = UITextField().then {
-        $0.backgroundColor = UIColor(red: 0.979, green: 0.98, blue: 0.981, alpha: 1)
+        $0.backgroundColor = .gray50
         $0.layer.cornerRadius = 8
         $0.font = .systemFont(ofSize: 15, weight: .medium)
         $0.textColor = .gray900
