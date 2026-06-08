@@ -34,20 +34,31 @@ import RxCocoa
     - text: 타이틀 레이블에 사용될 텍스트 (nil 값일 경우 미표시. 기본값은 nil)
     - leftButtonImage: 왼쪽 버튼에 사용할 이미지 (nil 값일 경우 미표시. 기본값은 nil)
     - rightButtonImage: 오른쪽 버튼에 사용할 이미지 (nil 값일 경우 미표시. 기본값은 nil)
+    - leftButton: 왼쪽 버튼. 커스텀 버튼을 삽입할 경우 사용
+    - rightButton: 오른쪽 버튼. 커스텀 버튼을 삽입할 경우 사용
  */
 class TitleView: UIView {
     private let titleLabel = UILabel(text: "", config: .title16, color: .gray900).then {
         $0.textAlignment = .center
     }
     
-    fileprivate let leftButton = UIButton(configuration: .plain())
-    fileprivate let rightButton = UIButton(configuration: .plain())
+    let leftButton: IconButton
+    let rightButton: IconButton
     
     override var intrinsicContentSize: CGSize {
         return CGSize(width: UIView.noIntrinsicMetric, height: 48) // 세로 크기만 부여
     }
     
-    init(text: String? = nil, leftButtonImage: UIImage? = nil, rightButtonImage: UIImage? = nil) {
+    init(
+        text: String? = nil,
+        leftButtonImage: UIImage? = nil,
+        rightButtonImage: UIImage? = nil,
+        leftButton: IconButton = IconButton(),
+        rightButton: IconButton = IconButton()
+    ) {
+        self.leftButton = leftButton
+        self.rightButton = rightButton
+        
         super.init(frame: .zero)
         
         configure(text: text, leftButtonImage: leftButtonImage, rightButtonImage: rightButtonImage)
@@ -64,6 +75,7 @@ extension TitleView {
     private func configure(text: String? = nil, leftButtonImage: UIImage? = nil, rightButtonImage: UIImage? = nil) {
         if let text {
             titleLabel.text = text
+            titleLabel.isHidden = false
         } else {
             titleLabel.isHidden = true
         }
@@ -71,12 +83,14 @@ extension TitleView {
         if let leftButtonImage {
             leftButton.setImage(leftButtonImage, for: .normal)
             leftButton.configuration?.baseForegroundColor = .gray900
+            leftButton.isHidden = false
         } else {
             leftButton.isHidden = true
         }
         
         if let rightButtonImage {
             rightButton.setImage(rightButtonImage, for: .normal)
+            rightButton.isHidden = false
         } else {
             rightButton.isHidden = true
         }
@@ -109,8 +123,8 @@ extension TitleView {
     // 색상 변경 메서드
     func apply(color: UIColor) {
         titleLabel.textColor = color
-        leftButton.configuration?.baseForegroundColor = color
-        rightButton.configuration?.baseForegroundColor = color
+        leftButton.applyColor(color)
+        rightButton.applyColor(color)
     }
 }
 
