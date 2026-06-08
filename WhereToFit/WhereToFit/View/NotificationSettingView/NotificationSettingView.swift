@@ -10,7 +10,7 @@ import Then
 import UIKit
 
 final class NotificationSettingView: UIView {
-    let titleView = TitleView(text: "알림 설정", leftButtonImage: UIImage(systemName: "chevron.left"))
+    let titleView = TitleView(text: "알림 설정", leftButtonImage: UIImage(resource: .arrowLeft))
 
     private let reservationAlertRow = NotificationToggleRow(title: "내 프로그램 예약 알림", isOn: false)
     private let startAlertRow = NotificationToggleRow(title: "내 프로그램 시작 전 알림", isOn: true)
