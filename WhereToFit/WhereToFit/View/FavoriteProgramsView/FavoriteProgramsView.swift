@@ -10,29 +10,16 @@ import Then
 import UIKit
 
 final class FavoriteProgramsView: UIView {
-    struct FavoriteItem {
-        let name: String
-        let schedule: String
-        let distance: String
-        let price: String
-    }
-
     let titleView = TitleView(text: "찜한 시설 및 프로그램", leftButtonImage: UIImage(resource: .arrowLeft))
+    let segmentedControl = UISegmentedControl(items: ["찜한 시설", "찜한 프로그램"])
 
-    private let segmentedControl = FavoriteSegmentedControl()
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionViewLayout()).then {
         $0.backgroundColor = .white
         $0.showsVerticalScrollIndicator = false
         $0.dataSource = self
         $0.register(FavoriteProgramCell.self, forCellWithReuseIdentifier: FavoriteProgramCell.reuseIdentifier)
     }
-
-    private let items: [FavoriteItem] = [
-        FavoriteItem(name: "올림픽수영장", schedule: "월-금 06:00-23:00", distance: "거리 1.0km", price: "원~"),
-        FavoriteItem(name: "곰두리체육문화회관", schedule: "요일 00:00-00:00", distance: "거리 0.0km", price: "원~"),
-        FavoriteItem(name: "송파여성체육문화회관", schedule: "요일 00:00-00:00", distance: "거리 0.0km", price: "원~"),
-        FavoriteItem(name: "송파배드민턴체육관", schedule: "요일 00:00-00:00", distance: "거리 0.0km", price: "원~")
-    ]
+    private var items: [FavoriteProgramsReactor.FavoriteItem] = []
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -47,9 +34,37 @@ final class FavoriteProgramsView: UIView {
     }
 }
 
+extension FavoriteProgramsView {
+    func updateSelectedTab(_ tab: FavoriteProgramsReactor.FavoriteTab) {
+        segmentedControl.selectedSegmentIndex = tab.segmentIndex
+    }
+
+    func updateItems(_ items: [FavoriteProgramsReactor.FavoriteItem]) {
+        self.items = items
+        collectionView.reloadData()
+    }
+}
+
 private extension FavoriteProgramsView {
     func setStyle() {
         backgroundColor = .white
+        segmentedControl.selectedSegmentIndex = FavoriteProgramsReactor.FavoriteTab.facility.segmentIndex
+        segmentedControl.selectedSegmentTintColor = .white
+        segmentedControl.backgroundColor = UIColor(red: 0.979, green: 0.98, blue: 0.981, alpha: 1)
+        segmentedControl.setTitleTextAttributes(
+            [
+                .foregroundColor: UIColor.gray700,
+                .font: UIFont.systemFont(ofSize: 14, weight: .medium)
+            ],
+            for: .normal
+        )
+        segmentedControl.setTitleTextAttributes(
+            [
+                .foregroundColor: UIColor.primary500,
+                .font: UIFont.systemFont(ofSize: 14, weight: .medium)
+            ],
+            for: .selected
+        )
     }
 
     func setLayout() {
@@ -114,58 +129,3 @@ extension FavoriteProgramsView: UICollectionViewDataSource {
         return cell
     }
 }
-
-private final class FavoriteSegmentedControl: UIView {
-    private let selectedBackgroundView = UIView().then {
-        $0.backgroundColor = .white
-        $0.layer.cornerRadius = 24
-    }
-    private let facilityLabel = UILabel(text: "찜한 시설", config: .body14Medium, color: .primary500).then {
-        $0.textAlignment = .center
-    }
-    private let programLabel = UILabel(text: "찜한 프로그램", config: .body14Medium, color: .gray700).then {
-        $0.textAlignment = .center
-    }
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        setLayout()
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
-
-private extension FavoriteSegmentedControl {
-    func setLayout() {
-        backgroundColor = UIColor(red: 0.979, green: 0.98, blue: 0.981, alpha: 1)
-        layer.cornerRadius = 25
-        clipsToBounds = true
-
-        [
-            selectedBackgroundView,
-            facilityLabel,
-            programLabel
-        ].forEach(addSubview)
-
-        selectedBackgroundView.snp.makeConstraints {
-            $0.verticalEdges.leading.equalToSuperview().inset(3)
-            $0.width.equalToSuperview().multipliedBy(0.5).offset(-3)
-        }
-
-        facilityLabel.snp.makeConstraints {
-            $0.leading.verticalEdges.equalToSuperview()
-            $0.width.equalToSuperview().multipliedBy(0.5)
-        }
-
-        programLabel.snp.makeConstraints {
-            $0.trailing.verticalEdges.equalToSuperview()
-            $0.width.equalToSuperview().multipliedBy(0.5)
-        }
-    }
-}
-
-

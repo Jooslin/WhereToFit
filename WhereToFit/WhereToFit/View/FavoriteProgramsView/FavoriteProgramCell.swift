@@ -83,7 +83,7 @@ private extension FavoriteReservationBadge {
 }
 
 extension FavoriteProgramCell {
-    func configure(item: FavoriteProgramsView.FavoriteItem) {
+    func configure(item: FavoriteProgramsReactor.FavoriteItem) {
         nameLabel.text = item.name
         scheduleLabel.text = item.schedule
         distanceLabel.text = item.distance
