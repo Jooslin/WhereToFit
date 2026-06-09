@@ -24,5 +24,6 @@ enum AppStep: Step {
     case profileManagement
     case notificationSetting
     case favoritePrograms
+    case registeredPrograms
     case pageBack
 }

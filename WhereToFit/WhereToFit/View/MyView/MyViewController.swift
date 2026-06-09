@@ -23,6 +23,12 @@ final class MyViewController: BaseViewController<MyReactor> {
             }
             .disposed(by: disposeBag)
 
+        myView.registeredProgramsAccessoryButton.rx.tap
+            .bind(with: self) { owner, _ in
+                owner.steps.accept(AppStep.registeredPrograms)
+            }
+            .disposed(by: disposeBag)
+
         myView.notificationSettingAccessoryButton.rx.tap
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.notificationSetting)
