@@ -8,7 +8,7 @@
 import ReactorKit
 import RxSwift
 
-final class FavoriteProgramsReactor: BaseReactor {
+final class FavoriteListReactor: BaseReactor {
     let initialState = State(
         selectedTab: .facility,
         items: FavoriteTab.facility.items
@@ -35,17 +35,17 @@ final class FavoriteProgramsReactor: BaseReactor {
             switch self {
             case .facility:
                 return [
-                    FavoriteItem(name: "올림픽수영장", schedule: "월-금 06:00-23:00", distance: "거리 1.0km", price: "원~"),
-                    FavoriteItem(name: "곰두리체육문화회관", schedule: "요일 00:00-00:00", distance: "거리 0.0km", price: "원~"),
-                    FavoriteItem(name: "송파여성체육문화회관", schedule: "요일 00:00-00:00", distance: "거리 0.0km", price: "원~"),
-                    FavoriteItem(name: "송파배드민턴체육관", schedule: "요일 00:00-00:00", distance: "거리 0.0km", price: "원~")
+                    FavoriteItem(name: "올림픽수영장", facilityLabelText: nil, day: "월-금", time: "06:00-23:00", distance: "거리 1.0km", price: "원~"),
+                    FavoriteItem(name: "곰두리체육문화회관", facilityLabelText: nil, day: "요일", time: "00:00-00:00", distance: "거리 0.0km", price: "원~"),
+                    FavoriteItem(name: "송파여성체육문화회관", facilityLabelText: nil, day: "요일", time: "00:00-00:00", distance: "거리 0.0km", price: "원~"),
+                    FavoriteItem(name: "송파배드민턴체육관", facilityLabelText: nil, day: "요일", time: "00:00-00:00", distance: "거리 0.0km", price: "원~")
                 ]
             case .program:
                 return [
-                    FavoriteItem(name: "수영 초보 클래스", schedule: "시설  요일 00:00-00:00", distance: "거리 0.0km", price: "원~"),
-                    FavoriteItem(name: "저녁 요가", schedule: "시설  요일 00:00-00:00", distance: "거리 0.0km", price: "원~"),
-                    FavoriteItem(name: "초급 필라테스", schedule: "시설  요일 00:00-00:00", distance: "거리 0.0km", price: "원~"),
-                    FavoriteItem(name: "배드민턴 2:1 듀엣", schedule: "시설  요일 00:00-00:00", distance: "거리 0.0km", price: "원~")
+                    FavoriteItem(name: "수영 초보 클래스", facilityLabelText: "시설 |", day: "요일", time: "00:00-00:00", distance: "거리 0.0km", price: "원~"),
+                    FavoriteItem(name: "저녁 요가", facilityLabelText: "시설 |", day: "요일", time: "00:00-00:00", distance: "거리 0.0km", price: "원~"),
+                    FavoriteItem(name: "초급 필라테스", facilityLabelText: "시설 |", day: "요일", time: "00:00-00:00", distance: "거리 0.0km", price: "원~"),
+                    FavoriteItem(name: "배드민턴 2:1 듀엣", facilityLabelText: "시설 |", day: "요일", time: "00:00-00:00", distance: "거리 0.0km", price: "원~")
                 ]
             }
         }
@@ -53,7 +53,9 @@ final class FavoriteProgramsReactor: BaseReactor {
 
     struct FavoriteItem: Equatable {
         let name: String
-        let schedule: String
+        let facilityLabelText: String?
+        let day: String
+        let time: String
         let distance: String
         let price: String
     }
