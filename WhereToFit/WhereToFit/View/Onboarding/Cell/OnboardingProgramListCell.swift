@@ -17,7 +17,7 @@ final class OnboardingProgramListCell: UICollectionViewListCell {
     let timeLabel = UILabel(config: .body12Regular, color: .gray500)
     //TODO: IconButton으로 교체 필요
     let button = UIButton().then {
-        $0.setImage(.arrow, for: .normal)
+        $0.setImage(.arrowRight, for: .normal)
     }
     
     let separateBar = UIView().then {
