@@ -41,11 +41,16 @@ final class MyView: UIView {
     private let registeredProgramsRow = MyPageMenuRow(
         title: "내가 등록한 프로그램",
         subtitle: "등록 내역 확인 · 일정 확인",
-        showsIcon: true
+        leadingIcon: UIImage(resource: .registeredProgram)
     )
-
-    private let favoriteProgramsRow = MyPageMenuRow(title: "찜한 시설 및 프로그램", showsIcon: true)
-    private let exerciseResultRow = MyPageMenuRow(title: "운동 검사 결과", showsIcon: true)
+    private let favoriteProgramsRow = MyPageMenuRow(
+        title: "찜한 시설 및 프로그램",
+        leadingIcon: UIImage(resource: .heartFilled)
+    )
+    private let exerciseResultRow = MyPageMenuRow(
+        title: "운동 검사 결과",
+        leadingIcon: UIImage(resource: .testResult)
+    )
 
     private let notificationSettingRow = MyPageMenuRow(title: "알림설정")
     private let inquiryRow = MyPageMenuRow(title: "문의하기")
@@ -236,7 +241,7 @@ private final class MyPageMenuRow: UIView {
 
     private let titleLabel: UILabel
     private let subtitleLabel: UILabel?
-    private let leadingIcon: UIView?
+    private let leadingIconView: UIImageView?
     private let accessoryView: UIView
     let accessoryButton = UIButton(type: .custom)
     private let accessory: Accessory
@@ -245,7 +250,7 @@ private final class MyPageMenuRow: UIView {
         title: String,
         subtitle: String? = nil,
         trailingText: String? = nil,
-        showsIcon: Bool = false,
+        leadingIcon: UIImage? = nil,
         accessory: Accessory = .disclosure
     ) {
         titleLabel = UILabel(text: title, config: .body14Regular)
@@ -257,13 +262,13 @@ private final class MyPageMenuRow: UIView {
             subtitleLabel = nil
         }
 
-        if showsIcon {
-            leadingIcon = UIView().then {
-                $0.backgroundColor = .gray100
-                $0.layer.cornerRadius = 16
+        if let leadingIcon {
+            leadingIconView = UIImageView(image: leadingIcon).then {
+                $0.tintColor = .primary400
+                $0.contentMode = .scaleAspectFit
             }
         } else {
-            leadingIcon = nil
+            leadingIconView = nil
         }
 
         switch accessory {
@@ -297,19 +302,19 @@ private extension MyPageMenuRow {
         addSubview(titleLabel)
         addSubview(accessoryView)
 
-        let hasIcon = leadingIcon != nil
+        let hasIcon = leadingIconView != nil
         let rowHeight: CGFloat = hasIcon ? 56 : 48
 
         snp.makeConstraints {
             $0.height.equalTo(rowHeight)
         }
 
-        if let leadingIcon {
-            addSubview(leadingIcon)
-            leadingIcon.snp.makeConstraints {
+        if let leadingIconView {
+            addSubview(leadingIconView)
+            leadingIconView.snp.makeConstraints {
                 $0.leading.equalToSuperview().offset(12)
                 $0.centerY.equalToSuperview()
-                $0.size.equalTo(32)
+                $0.size.equalTo(36)
             }
         }
 
@@ -332,7 +337,7 @@ private extension MyPageMenuRow {
         }
 
         titleLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(hasIcon ? 52 : 12)
+            $0.leading.equalToSuperview().offset(hasIcon ? 60 : 12)
 
             if subtitleLabel == nil {
                 $0.centerY.equalToSuperview()
