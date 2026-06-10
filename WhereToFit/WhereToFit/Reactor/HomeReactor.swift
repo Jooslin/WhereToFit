@@ -16,10 +16,19 @@ final class HomeReactor: BaseReactor {
     
     enum Mutation {
         case setLoading(Bool)
+        case setWeeklyDate([WeeklyDate])
     }
     
     struct State {
         var isLoading: Bool = false
+        var data: [HomeCollectionView.Section: [HomeCollectionView.Item]] = [:]
+    }
+    
+    //MARK: Properties & Initialize
+    private let dateService: DateService
+    
+    init(dateService: DateService) {
+        self.dateService = dateService
     }
     
     func mutate(action: Action) -> Observable<Mutation> {
@@ -32,6 +41,32 @@ final class HomeReactor: BaseReactor {
     }
     
     func reduce(state: State, mutation: Mutation) -> State {
-        <#code#>
+        var newState = state
+        
+        switch mutation {
+        case .setLoading(let isLoading):
+            newState.isLoading = isLoading
+        case .setWeeklyDate(let weeklyDate):
+            newState.data[.weather]
+        }
+        
+        return newState
+    }
+}
+
+extension HomeReactor {
+    private func makeWeathersection() -> Observable<Mutation> {
+        Observable.create { [weak self] observer in
+            guard let self else {
+                observer.onCompleted()
+                return Disposables.create()
+            }
+            
+            let weeklyDate = dateService.weeklyDate()
+            observer.onNext(.setWeeklyDate(weeklyDate))
+            observer.onCompleted()
+            
+            return Disposables.create()
+        }
     }
 }
