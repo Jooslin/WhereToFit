@@ -6,6 +6,9 @@
 //
 
 import UIKit
+import RxSwift
+import ReactorKit
+import RxCocoa
 
 final class HomeViewController: BaseViewController<HomeReactor> {
     private let homeView = HomeView()
@@ -24,7 +27,10 @@ final class HomeViewController: BaseViewController<HomeReactor> {
     }
     
     private func bindAction(reactor: HomeReactor) {
-        
+        self.rx.viewWillAppear
+            .map { HomeReactor.Action.viewWillAppear }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
     }
     
     private func bindState(reactor: HomeReactor) {
