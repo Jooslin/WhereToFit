@@ -13,6 +13,14 @@ final class HomeFlow: Flow {
     private let navigationController = UINavigationController()
     var root: any RxFlow.Presentable { navigationController }
     
+    private let dateService: DateService
+    private let weatherRepository: WeatherRepository
+    
+    init(dateService: DateService, weatherRepository: WeatherRepository) {
+        self.dateService = dateService
+        self.weatherRepository = weatherRepository
+    }
+    
     func navigate(to step: any RxFlow.Step) -> RxFlow.FlowContributors {
         // 정의한 AppStep일 때만 동작
         guard let step = step as? AppStep else {
@@ -21,7 +29,7 @@ final class HomeFlow: Flow {
         
         switch step {
         case .homeTab:
-            let vc = HomeViewController(reactor: HomeReactor())
+            let vc = HomeViewController(reactor: HomeReactor(dateService: dateService, repository: weatherRepository))
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
             

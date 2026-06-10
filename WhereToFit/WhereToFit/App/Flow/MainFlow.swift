@@ -15,6 +15,10 @@ final class MainFlow: Flow {
     
     var root: any Presentable { tabBarController }
     
+    private let dateService = DateService()
+    private let weatherRepository = WeatherRepository()
+    private let sportsRepository = SportsRepository()
+    
     init(window: UIWindow) {
         window.rootViewController = tabBarController
         self.window = window
@@ -57,7 +61,7 @@ final class MainFlow: Flow {
 
 extension MainFlow {
     private func navigateToMain() -> FlowContributors {
-        let homeFlow = HomeFlow()
+        let homeFlow = HomeFlow(dateService: dateService, weatherRepository: weatherRepository)
         let mapFlow = MapFlow()
         let calendarFlow = CalendarFlow()
         let myFlow = MyFlow()
