@@ -284,7 +284,7 @@ private final class MyPageMenuRow: UIView {
 
         switch accessory {
         case .disclosure:
-            accessoryView = UIImageView(image: UIImage(resource: .arrow)).then {
+            accessoryView = UIImageView(image: UIImage(resource: .arrowRight)).then {
                 $0.tintColor = .gray200
                 $0.contentMode = .scaleAspectFit
             }
