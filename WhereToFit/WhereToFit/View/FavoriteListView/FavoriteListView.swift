@@ -1,5 +1,5 @@
 //
-//  FavoriteProgramsView.swift
+//  FavoriteListView.swift
 //  WhereToFit
 //
 //  Created by Yeseul Jang on 6/9/26.
@@ -19,7 +19,7 @@ final class FavoriteListView: UIView {
         $0.dataSource = self
         $0.register(FavoriteListCell.self, forCellWithReuseIdentifier: FavoriteListCell.reuseIdentifier)
     }
-    private var items: [FavoriteProgramsReactor.FavoriteItem] = []
+    private var items: [FavoriteListReactor.FavoriteItem] = []
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -35,11 +35,11 @@ final class FavoriteListView: UIView {
 }
 
 extension FavoriteListView {
-    func updateSelectedTab(_ tab: FavoriteProgramsReactor.FavoriteTab) {
+    func updateSelectedTab(_ tab: FavoriteListReactor.FavoriteTab) {
         segmentedControl.selectedSegmentIndex = tab.segmentIndex
     }
 
-    func updateItems(_ items: [FavoriteProgramsReactor.FavoriteItem]) {
+    func updateItems(_ items: [FavoriteListReactor.FavoriteItem]) {
         self.items = items
         collectionView.reloadData()
     }
@@ -48,7 +48,7 @@ extension FavoriteListView {
 private extension FavoriteListView {
     func setStyle() {
         backgroundColor = .white
-        segmentedControl.selectedSegmentIndex = FavoriteProgramsReactor.FavoriteTab.facility.segmentIndex
+        segmentedControl.selectedSegmentIndex = FavoriteListReactor.FavoriteTab.facility.segmentIndex
         segmentedControl.selectedSegmentTintColor = .white
         segmentedControl.backgroundColor = .gray50
         segmentedControl.setTitleTextAttributes(
