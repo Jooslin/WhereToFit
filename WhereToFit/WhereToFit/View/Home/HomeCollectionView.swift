@@ -45,7 +45,7 @@ extension HomeCollectionView {
     struct WeatherSectionItem: Hashable {
         let weeklyDate: [WeeklyDate] // 주간 요일, day
 //        let schedule: [] - 운동 종류 모델 사용
-//        let weather: Weather
+        let weather: Weather
         
         func hash(into hasher: inout Hasher) {
             hasher.combine(weeklyDate)

@@ -26,9 +26,11 @@ final class HomeReactor: BaseReactor {
     
     //MARK: Properties & Initialize
     private let dateService: DateService
+    private let weatherRepository: WeatherRepository
     
-    init(dateService: DateService) {
+    init(dateService: DateService, repository: WeatherRepository) {
         self.dateService = dateService
+        self.weatherRepository = repository
     }
     
     func mutate(action: Action) -> Observable<Mutation> {
@@ -55,22 +57,19 @@ final class HomeReactor: BaseReactor {
 }
 
 extension HomeReactor {
-    private func makeWeathersection() -> Observable<Mutation> {
-        Observable.create { [weak self] observer in
-            guard let self else {
-                observer.onCompleted()
-                return Disposables.create()
+    private func makeWeatherSection() -> Observable<Mutation> {
+        let weeklyDate = dateService.weeklyDate()
+        
+        return weatherRepository
+            .fetchWeather(latitude: 37.57, longitude: 127)
+            .map { weather in
+                let item = HomeCollectionView.WeatherSectionItem(
+                    weeklyDate: weeklyDate,
+                    weather: weather
+                )
+                
+                return Mutation.setWeatherSectionItem([item])
             }
-            
-            let weeklyDate = dateService.weeklyDate()
-            
-            let item = HomeCollectionView.WeatherSectionItem(
-                weeklyDate: weeklyDate)
-            
-            observer.onNext(.setWeatherSectionItem([item]))
-            observer.onCompleted()
-            
-            return Disposables.create()
-        }
+            .asObservable()
     }
 }
