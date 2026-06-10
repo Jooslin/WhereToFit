@@ -12,14 +12,10 @@ import UIKit
 final class MyView: UIView {
     private let scrollView = UIScrollView()
     private let contentView = UIView()
-    private let profileGradientLayer = CAGradientLayer()
 
     private let titleLabel = UILabel(text: "마이페이지", config: .title20Semibold)
 
-    private let profileCard = UIView().then {
-        $0.layer.cornerRadius = 12
-        $0.clipsToBounds = true
-    }
+    private let profileCard = PrimaryGradientCardView()
 
     private let nameLabel = UILabel(text: "김아정님", config: .title20Semibold)
     private let addressLabel = UILabel(text: "송파구 거주", config: .body13Medium, color: .gray600)
@@ -126,11 +122,6 @@ final class MyView: UIView {
         setLayout()
     }
 
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        profileGradientLayer.frame = profileCard.bounds
-    }
-
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -141,13 +132,6 @@ private extension MyView {
     func setStyle() {
         backgroundColor = .white
         scrollView.showsVerticalScrollIndicator = false
-        profileGradientLayer.colors = [
-            UIColor.primary25.cgColor,
-            UIColor.gray50.cgColor
-        ]
-        profileGradientLayer.startPoint = CGPoint(x: 0, y: 0)
-        profileGradientLayer.endPoint = CGPoint(x: 1, y: 1)
-        profileCard.layer.insertSublayer(profileGradientLayer, at: 0)
     }
 
     func setLayout() {
