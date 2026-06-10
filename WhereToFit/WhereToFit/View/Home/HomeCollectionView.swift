@@ -43,12 +43,12 @@ extension HomeCollectionView {
 
 extension HomeCollectionView {
     struct WeatherSectionItem: Hashable {
-        let weekday: [String] // 요일 - 오늘은 '오늘'로 입력받아야함
+        let weeklyDate: [WeeklyDate] // 주간 요일, day
 //        let schedule: [] - 운동 종류 모델 사용
 //        let weather: Weather
         
         func hash(into hasher: inout Hasher) {
-            hasher.combine(weekday)
+            hasher.combine(weeklyDate)
         }
     }
 }

@@ -16,7 +16,7 @@ final class HomeReactor: BaseReactor {
     
     enum Mutation {
         case setLoading(Bool)
-        case setWeeklyDate([WeeklyDate])
+        case setWeatherSectionItem([HomeCollectionView.WeatherSectionItem])
     }
     
     struct State {
@@ -46,7 +46,7 @@ final class HomeReactor: BaseReactor {
         switch mutation {
         case .setLoading(let isLoading):
             newState.isLoading = isLoading
-        case .setWeeklyDate(let weeklyDate):
+        case .setWeatherSectionItem(let weeklyDate):
             newState.data[.weather]
         }
         
@@ -63,7 +63,11 @@ extension HomeReactor {
             }
             
             let weeklyDate = dateService.weeklyDate()
-            observer.onNext(.setWeeklyDate(weeklyDate))
+            
+            let item = HomeCollectionView.WeatherSectionItem(
+                weeklyDate: weeklyDate)
+            
+            observer.onNext(.setWeatherSectionItem([item]))
             observer.onCompleted()
             
             return Disposables.create()

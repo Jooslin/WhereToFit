@@ -38,7 +38,7 @@ final class DateService {
 }
 
 //MARK: Entity
-struct WeeklyDate {
+struct WeeklyDate: Hashable {
     let weekday: String
     let day: Int
 }
