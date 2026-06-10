@@ -13,7 +13,16 @@ final class FavoriteListCell: UICollectionViewCell {
 
     private let programImageView = ProgramImageView(image: nil)
     private let nameLabel = UILabel(config: .body16Medium)
-    private let scheduleLabel = UILabel(config: .body12Regular, color: .gray500)
+    private let facilityLabel = UILabel(config: .body12Regular, color: .gray500)
+    private let dayLabel = UILabel(config: .body12Regular, color: .gray500)
+    private let timeLabel = UILabel(config: .body12Regular, color: .gray500)
+    private let scheduleStackView = UIStackView().then {
+        $0.axis = .horizontal
+        $0.spacing = 4
+        $0.alignment = .leading
+        $0.setContentHuggingPriority(.required, for: .horizontal)
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+    }
     private let distanceLabel = UILabel(config: .body12Regular, color: .gray600).then {
         $0.textAlignment = .right
     }
@@ -31,6 +40,7 @@ final class FavoriteListCell: UICollectionViewCell {
         super.init(frame: frame)
 
         setLayout()
+        setPriority()
     }
 
     @available(*, unavailable)
@@ -83,24 +93,44 @@ private extension FavoriteReservationBadge {
 }
 
 extension FavoriteListCell {
-    func configure(item: FavoriteProgramsReactor.FavoriteItem) {
+    func configure(item: FavoriteListReactor.FavoriteItem) {
         nameLabel.text = item.name
-        scheduleLabel.text = item.schedule
+        facilityLabel.text = item.facilityLabelText
+        facilityLabel.isHidden = item.facilityLabelText == nil
+        dayLabel.text = item.day
+        timeLabel.text = item.time
         distanceLabel.text = item.distance
         priceLabel.text = item.price
         programImageView.favoriteButton.isSelected = true
+    }
+
+    func setPriority() {
+        [
+            facilityLabel,
+            dayLabel,
+            timeLabel
+        ].forEach {
+            $0.setContentHuggingPriority(.required, for: .horizontal)
+            $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+        }
     }
 
     func setLayout() {
         [
             programImageView,
             nameLabel,
-            scheduleLabel,
+            scheduleStackView,
             distanceLabel,
             reservationBadge,
             priceLabel,
             divider
         ].forEach(contentView.addSubview)
+
+        [
+            facilityLabel,
+            dayLabel,
+            timeLabel
+        ].forEach(scheduleStackView.addArrangedSubview)
 
         programImageView.snp.makeConstraints {
             $0.top.leading.equalToSuperview()
@@ -113,10 +143,10 @@ extension FavoriteListCell {
             $0.trailing.lessThanOrEqualTo(distanceLabel.snp.leading).offset(-8)
         }
 
-        scheduleLabel.snp.makeConstraints {
+        scheduleStackView.snp.makeConstraints {
             $0.top.equalTo(nameLabel.snp.bottom).offset(4)
             $0.leading.equalTo(nameLabel)
-            $0.trailing.lessThanOrEqualToSuperview()
+            $0.trailing.lessThanOrEqualTo(distanceLabel.snp.leading).offset(-8)
         }
 
         distanceLabel.snp.makeConstraints {
