@@ -33,9 +33,11 @@ import RxCocoa
    - config: ButtonConfiguration(기존에 정의된 것을 사용하거나 필요 시 생성하여 사용)
 */
 class DesignButton: UIControl {
-    private let background: UIView
-    private let titleLabel: UILabel
-    private let config: ButtonConfiguration
+    let config: ButtonConfiguration
+    let selectedConfig: ButtonConfiguration?
+    
+    let background: UIView
+    let titleLabel: UILabel
     
     var title: String?  {
         get { titleLabel.text }
@@ -46,14 +48,38 @@ class DesignButton: UIControl {
         return config.size.size
     }
     
+    var backgroundCornerRadius: CGFloat {
+        bounds.height / 2
+    }
+    
     override var isHighlighted: Bool {
         didSet {
             alpha = isHighlighted ? 0.5 : 1
         }
     }
     
-    init(config: ButtonConfiguration) {
+    override var isEnabled: Bool {
+        didSet {
+            background.backgroundColor = isEnabled ? config.color : .gray200
+            titleLabel.textColor = isEnabled ? config.titleColor : .white
+            isUserInteractionEnabled = isEnabled
+        }
+    }
+    
+    override var isSelected: Bool {
+        didSet {
+            if let selectedConfig {
+                background.backgroundColor = isSelected ? selectedConfig.color : config.color
+                titleLabel.textColor = isSelected ? selectedConfig.titleColor : config.titleColor
+                background.layer.borderWidth = isSelected ? selectedConfig.style.borderWidth : config.style.borderWidth
+                background.layer.borderColor = isSelected ? selectedConfig.borderColor.cgColor : config.borderColor.cgColor
+            }
+        }
+    }
+    
+    init(config: ButtonConfiguration, selectedConfig: ButtonConfiguration? = nil) {
         self.config = config
+        self.selectedConfig = selectedConfig
         
         background = switch config.style {
         case .fill:
@@ -80,6 +106,11 @@ class DesignButton: UIControl {
     override func layoutSubviews() {
         super.layoutSubviews()
         background.frame = bounds
+        background.layer.cornerRadius = backgroundCornerRadius
+        layoutContent()
+    }
+    
+    func layoutContent() {
         titleLabel.frame = bounds.inset(by: config.size.padding)
     }
 }
@@ -102,10 +133,6 @@ extension DesignButton {
             fatalError("init(coder:) has not been implemented")
         }
         
-        override func layoutSubviews() {
-            super.layoutSubviews()
-            layer.cornerRadius = bounds.height / 2
-        }
     }
 }
 

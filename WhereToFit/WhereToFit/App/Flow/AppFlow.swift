@@ -36,6 +36,9 @@ final class AppFlow: Flow {
                     withNextStepper: vc
                 ))
 
+        case .onboarding:
+            return navigateToOnboarding()
+            
         case .main:
             return navigateToMain()
 
@@ -83,4 +86,14 @@ extension AppFlow {
 //        window.rootViewController = updateRequiredViewController
 //        return .none
 //    }
+    
+    private func navigateToOnboarding() -> FlowContributors {
+        let vc = OnboardingViewController(reactor: OnboardingReactor())
+        window.rootViewController = vc
+        return .one(
+            flowContributor: .contribute(
+                withNextPresentable: vc,
+                withNextStepper: vc
+            ))
+    }
 }
