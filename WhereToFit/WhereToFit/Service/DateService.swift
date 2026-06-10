@@ -8,20 +8,27 @@ import Foundation
 
 final class DateService {
     private let calendar: Calendar
-    private let today: Date
+    private let nowProvider: () -> Date
     private let weekdaySymbols = ["일", "월", "화", "수", "목", "금", "토"]
     
-    init(today: Date = Date.now) {
+    init(nowProvider: @escaping () -> Date = { Date.now }) {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Asia/Seoul")!
         calendar.locale = Locale(identifier: "ko_KR")
         calendar.firstWeekday = 2
         
         self.calendar = calendar
-        self.today = calendar.startOfDay(for: today)
+        self.nowProvider = nowProvider
+    }
+    
+    func isNight() -> Bool {
+        let hour = calendar.component(.hour, from: nowProvider())
+        return hour >= 18 || hour < 6
     }
     
     func weeklyDate() -> [WeeklyDate] {
+        let today = calendar.startOfDay(for: nowProvider())
+        
         guard let monday = calendar.dateInterval(of: .weekOfYear, for: today)?.start else {
             return []
         }

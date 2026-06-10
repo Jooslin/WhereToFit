@@ -4,7 +4,6 @@
 //
 //  Created by 변예린 on 6/2/26.
 //
-import UIKit
 
 struct Weather: Hashable {
     let category: WeatherCategory

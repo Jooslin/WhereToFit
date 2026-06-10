@@ -63,7 +63,15 @@ extension HomeWeatherCell {
             }
         }
         
-        weatherImageView.image = .sun
+        weatherImageView.image = switch item.weather.category {
+        case .thunderstorm: .storm
+        case .drizzle, .rain: .rain
+        case .sun: item.isNight ? .moon : .sun
+        case .cloud: .cloud
+        case .atmosphere, .wind: .cloudSun
+        case .snow: .snow
+        case .unknown: .sun
+        }
         weatherLabel.text = "\(item.weather.temperature)º"
         weatherDescriptionLabel.text = item.weather.description
         

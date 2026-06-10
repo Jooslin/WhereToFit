@@ -60,13 +60,15 @@ extension HomeReactor {
     //TODO: schedule 정보
     private func makeWeatherSection() -> Observable<Mutation> {
         let weeklyDate = dateService.weeklyDate()
+        let isNight = dateService.isNight()
         
         return weatherRepository
             .fetchWeather(latitude: 37.57, longitude: 127)
             .map { weather in
                 let item = HomeCollectionView.WeatherSectionItem(
                     weeklyDate: weeklyDate,
-                    weather: weather
+                    weather: weather,
+                    isNight: isNight
                 )
                 
                 return Mutation.setWeatherSectionItem([HomeCollectionView.Item.weather(item)])

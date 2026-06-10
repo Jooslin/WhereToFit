@@ -47,9 +47,12 @@ extension HomeCollectionView {
         let weeklyDate: [WeeklyDate] // 주간 요일, day
 //        let schedule: [] - 운동 종류 모델 사용
         let weather: Weather
+        let isNight: Bool
         
         func hash(into hasher: inout Hasher) {
             hasher.combine(weeklyDate)
+            hasher.combine(weather)
+            hasher.combine(isNight)
         }
     }
 }
