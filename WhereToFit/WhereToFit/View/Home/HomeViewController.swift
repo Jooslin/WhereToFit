@@ -34,7 +34,15 @@ final class HomeViewController: BaseViewController<HomeReactor> {
     }
     
     private func bindState(reactor: HomeReactor) {
+        let state = reactor.state
+            .asDriver(onErrorJustReturn: .init())
         
+        state.map(\.data)
+            .drive(with: homeView,
+                   onNext: { homeView, data in
+                homeView.setSnapshot(data)
+            })
+            .disposed(by: disposeBag)
     }
 }
 

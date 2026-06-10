@@ -67,6 +67,13 @@ extension HomeView {
             cell.rx.recordButtonTap
                 .bind(to: self.recordButtonTap)
                 .disposed(by: cell.disposeBag)
+            
+            switch item {
+            case .weather(let item):
+                cell.configure(item)
+            default:
+                break
+            }
         }
         
         let recommendCellRegistration = UICollectionView.CellRegistration<HomeRecommendCell, HomeCollectionView.Item> { cell, indexPath, item in
