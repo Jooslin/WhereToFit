@@ -12,6 +12,10 @@ import UIKit
 final class ExerciseResultView: UIView {
     let titleView = TitleView(text: "운동 검사 결과", leftButtonImage: UIImage(resource: .arrowLeft))
 
+    private let scrollView = UIScrollView().then {
+        $0.showsVerticalScrollIndicator = false
+    }
+    private let contentView = UIView()
     private let summaryCardView = PrimaryGradientCardView()
     private let summaryStackView = UIStackView().then {
         $0.axis = .vertical
@@ -36,6 +40,7 @@ final class ExerciseResultView: UIView {
     }
 
     private var recommendationItems: [ExerciseResultReactor.RecommendationItem] = []
+    private var collectionViewHeightConstraint: Constraint?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -65,6 +70,7 @@ extension ExerciseResultView {
     func updateRecommendationItems(_ items: [ExerciseResultReactor.RecommendationItem]) {
         recommendationItems = items
         collectionView.reloadData()
+        collectionViewHeightConstraint?.update(offset: CGFloat(items.count) * 70)
     }
 }
 
@@ -76,10 +82,16 @@ private extension ExerciseResultView {
     func setLayout() {
         [
             titleView,
+            scrollView
+        ].forEach(addSubview)
+
+        scrollView.addSubview(contentView)
+
+        [
             summaryCardView,
             recommendationTitleLabel,
             collectionView
-        ].forEach(addSubview)
+        ].forEach(contentView.addSubview)
 
         [
             summaryStackView,
@@ -91,8 +103,18 @@ private extension ExerciseResultView {
             $0.horizontalEdges.equalToSuperview()
         }
 
+        scrollView.snp.makeConstraints {
+            $0.top.equalTo(titleView.snp.bottom)
+            $0.horizontalEdges.bottom.equalToSuperview()
+        }
+
+        contentView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+            $0.width.equalTo(scrollView)
+        }
+
         summaryCardView.snp.makeConstraints {
-            $0.top.equalTo(titleView.snp.bottom).offset(32)
+            $0.top.equalToSuperview().offset(32)
             $0.horizontalEdges.equalToSuperview().inset(16)
             $0.height.equalTo(182)
         }
@@ -117,7 +139,8 @@ private extension ExerciseResultView {
         collectionView.snp.makeConstraints {
             $0.top.equalTo(recommendationTitleLabel.snp.bottom).offset(14)
             $0.horizontalEdges.equalToSuperview().inset(16)
-            $0.height.equalTo(210)
+            collectionViewHeightConstraint = $0.height.equalTo(0).constraint
+            $0.bottom.equalToSuperview().inset(24)
         }
     }
 
