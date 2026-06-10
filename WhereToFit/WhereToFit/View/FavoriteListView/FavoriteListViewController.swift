@@ -1,5 +1,5 @@
 //
-//  FavoriteProgramsViewController.swift
+//  FavoriteListViewController.swift
 //  WhereToFit
 //
 //  Created by Yeseul Jang on 6/9/26.
@@ -9,14 +9,14 @@ import ReactorKit
 import RxCocoa
 import UIKit
 
-final class FavoriteListViewController: BaseViewController<FavoriteProgramsReactor> {
+final class FavoriteListViewController: BaseViewController<FavoriteListReactor> {
     let favoriteProgramsView = FavoriteListView()
 
     override func loadView() {
         view = favoriteProgramsView
     }
 
-    override func bind(reactor: FavoriteProgramsReactor) {
+    override func bind(reactor: FavoriteListReactor) {
         favoriteProgramsView.titleView.rx.leftButtonTap
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.pageBack)
@@ -26,8 +26,8 @@ final class FavoriteListViewController: BaseViewController<FavoriteProgramsReact
         favoriteProgramsView.segmentedControl.rx
             .controlEvent(.valueChanged)
             .map { [weak self] in
-                FavoriteProgramsReactor.Action.selectTab(
-                    FavoriteProgramsReactor.FavoriteTab(
+                FavoriteListReactor.Action.selectTab(
+                    FavoriteListReactor.FavoriteTab(
                         segmentIndex: self?.favoriteProgramsView.segmentedControl.selectedSegmentIndex ?? 0
                     )
                 )
