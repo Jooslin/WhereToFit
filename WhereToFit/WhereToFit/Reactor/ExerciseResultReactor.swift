@@ -6,6 +6,7 @@
 //
 
 import ReactorKit
+import UIKit
 
 final class ExerciseResultReactor: BaseReactor {
     let initialState = State(
@@ -16,9 +17,9 @@ final class ExerciseResultReactor: BaseReactor {
             SummaryItem(title: "운동 강도", value: "초급")
         ],
         recommendationItems: [
-            RecommendationItem(title: "저녁 요가", tags: ["초급", "실내"], imageName: "Gym"),
-            RecommendationItem(title: "체조", tags: ["초급", "야외"], imageName: "Gym"),
-            RecommendationItem(title: "초급 수영", tags: ["초급", "실내"], imageName: "Gym")
+            RecommendationItem(title: "저녁 요가", tags: ["초급", "실내"], image: UIImage(resource: .aquaticSports)),
+            RecommendationItem(title: "체조", tags: ["초급", "야외"], image: UIImage(resource: .aquaticSports)),
+            RecommendationItem(title: "초급 수영", tags: ["초급", "실내"], image: UIImage(resource: .aquaticSports))
         ]
     )
 
@@ -32,7 +33,7 @@ final class ExerciseResultReactor: BaseReactor {
     struct RecommendationItem: Equatable {
         let title: String
         let tags: [String]
-        let imageName: String
+        let image: UIImage
     }
 
     struct State {

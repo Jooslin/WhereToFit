@@ -12,8 +12,7 @@ import UIKit
 final class ExerciseRecommendationCell: UICollectionViewCell {
     static let reuseIdentifier = "ExerciseRecommendationCell"
 
-    private let exerciseImageView = RoundImageView(image: UIImage(named: "Gym"), type: .roundSquare).then {
-        $0.backgroundColor = .primary50
+    private let exerciseImageView = UIImageView().then {
         $0.contentMode = .scaleAspectFit
     }
     private let titleLabel = UILabel(config: .body15)
@@ -46,7 +45,7 @@ final class ExerciseRecommendationCell: UICollectionViewCell {
 extension ExerciseRecommendationCell {
     func configure(item: ExerciseResultReactor.RecommendationItem, hidesDivider: Bool) {
         titleLabel.text = item.title
-        exerciseImageView.image = UIImage(named: item.imageName)
+        exerciseImageView.image = item.image
         divider.isHidden = hidesDivider
 
         tagStackView.arrangedSubviews.forEach {
@@ -79,7 +78,7 @@ private extension ExerciseRecommendationCell {
         exerciseImageView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(12)
             $0.centerY.equalToSuperview()
-            $0.size.equalTo(44)
+            $0.size.equalTo(36)
         }
 
         titleLabel.snp.makeConstraints {
