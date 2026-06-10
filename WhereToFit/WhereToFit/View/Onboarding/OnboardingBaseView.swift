@@ -10,7 +10,7 @@ import SnapKit
 import Then
 
 class OnboardingBaseView: UIView {
-    let titleView = TitleView(leftButtonImage: .arrowRight)
+    let titleView = TitleView(leftButtonImage: .arrowLeft)
     let progressBar = RoundedProgressView(progressViewStyle: .bar).then {
         $0.progressTintColor = .primary400
         $0.trackTintColor = .gray100
