@@ -40,5 +40,11 @@ final class MyViewController: BaseViewController<MyReactor> {
                 owner.steps.accept(AppStep.favoritePrograms)
             }
             .disposed(by: disposeBag)
+
+        myView.exerciseResultAccessoryButton.rx.tap
+            .bind(with: self) { owner, _ in
+                owner.steps.accept(AppStep.exerciseResult)
+            }
+            .disposed(by: disposeBag)
     }
 }
