@@ -7,7 +7,8 @@
 
 import Foundation
 
-struct Program {
+nonisolated
+struct Program: Hashable {
     let id: Int?
     let facilityName: String? // 시설 이름
     let facilityLocation: String? // 시설 소재지
