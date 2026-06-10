@@ -16,7 +16,7 @@ final class HomeReactor: BaseReactor {
     
     enum Mutation {
         case setLoading(Bool)
-        case setWeatherSectionItem([HomeCollectionView.WeatherSectionItem])
+        case setWeatherSectionItem([HomeCollectionView.Item])
     }
     
     struct State {
@@ -48,8 +48,8 @@ final class HomeReactor: BaseReactor {
         switch mutation {
         case .setLoading(let isLoading):
             newState.isLoading = isLoading
-        case .setWeatherSectionItem(let weeklyDate):
-            newState.data[.weather]
+        case .setWeatherSectionItem(let item):
+            newState.data[.weather] = item
         }
         
         return newState
@@ -57,6 +57,7 @@ final class HomeReactor: BaseReactor {
 }
 
 extension HomeReactor {
+    //TODO: schedule 정보
     private func makeWeatherSection() -> Observable<Mutation> {
         let weeklyDate = dateService.weeklyDate()
         
@@ -68,7 +69,7 @@ extension HomeReactor {
                     weather: weather
                 )
                 
-                return Mutation.setWeatherSectionItem([item])
+                return Mutation.setWeatherSectionItem([HomeCollectionView.Item.weather(item)])
             }
             .asObservable()
     }

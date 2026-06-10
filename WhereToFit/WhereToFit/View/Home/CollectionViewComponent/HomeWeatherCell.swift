@@ -52,8 +52,23 @@ final class HomeWeatherCell: UICollectionViewCell {
 
 //MARK: Configure
 extension HomeWeatherCell {
-    func configure() {
+    func configure(_ item: HomeCollectionView.WeatherSectionItem) {
+        weeklyDateView.arrangedSubviews.enumerated().forEach {
+            if let view = $0.element as? OneDayView {
+                view.weekdayLabel.text = item.weeklyDate[$0.offset].weekday
+                view.dateLabel.text = String(item.weeklyDate[$0.offset].day)
+                
+                //TODO: 이미지 변경 필요
+//                view.dateImageView
+            }
+        }
         
+        weatherImageView.image = .sun
+        weatherLabel.text = "\(item.weather.temperature)º"
+        weatherDescriptionLabel.text = item.weather.description
+        
+        //TODO: 문구 연동 필요
+        reservationLabel.text = "예약된 프로그램이 없습니다"
     }
 }
 

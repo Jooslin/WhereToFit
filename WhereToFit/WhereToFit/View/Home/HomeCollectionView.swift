@@ -42,6 +42,7 @@ extension HomeCollectionView {
 }
 
 extension HomeCollectionView {
+    //TODO: schedule
     struct WeatherSectionItem: Hashable {
         let weeklyDate: [WeeklyDate] // 주간 요일, day
 //        let schedule: [] - 운동 종류 모델 사용
