@@ -17,7 +17,7 @@ final class FavoriteProgramsView: UIView {
         $0.backgroundColor = .white
         $0.showsVerticalScrollIndicator = false
         $0.dataSource = self
-        $0.register(FavoriteProgramCell.self, forCellWithReuseIdentifier: FavoriteProgramCell.reuseIdentifier)
+        $0.register(FavoriteListCell.self, forCellWithReuseIdentifier: FavoriteListCell.reuseIdentifier)
     }
     private var items: [FavoriteProgramsReactor.FavoriteItem] = []
 
@@ -50,17 +50,17 @@ private extension FavoriteProgramsView {
         backgroundColor = .white
         segmentedControl.selectedSegmentIndex = FavoriteProgramsReactor.FavoriteTab.facility.segmentIndex
         segmentedControl.selectedSegmentTintColor = .white
-        segmentedControl.backgroundColor = UIColor(red: 0.979, green: 0.98, blue: 0.981, alpha: 1)
+        segmentedControl.backgroundColor = .gray50
         segmentedControl.setTitleTextAttributes(
             [
-                .foregroundColor: UIColor.gray700,
+                .foregroundColor: UIColor.gray600,
                 .font: UIFont.systemFont(ofSize: 14, weight: .medium)
             ],
             for: .normal
         )
         segmentedControl.setTitleTextAttributes(
             [
-                .foregroundColor: UIColor.primary500,
+                .foregroundColor: UIColor.primary400,
                 .font: UIFont.systemFont(ofSize: 14, weight: .medium)
             ],
             for: .selected
@@ -75,18 +75,18 @@ private extension FavoriteProgramsView {
         ].forEach(addSubview)
 
         titleView.snp.makeConstraints {
-            $0.top.equalTo(safeAreaLayoutGuide).offset(11)
+            $0.top.equalTo(safeAreaLayoutGuide)
             $0.horizontalEdges.equalToSuperview()
         }
 
         segmentedControl.snp.makeConstraints {
-            $0.top.equalTo(titleView.snp.bottom).offset(32)
+            $0.top.equalTo(titleView.snp.bottom).offset(12)
             $0.horizontalEdges.equalToSuperview().inset(16)
-            $0.height.equalTo(50)
+            $0.height.equalTo(52)
         }
 
         collectionView.snp.makeConstraints {
-            $0.top.equalTo(segmentedControl.snp.bottom).offset(31)
+            $0.top.equalTo(segmentedControl.snp.bottom).offset(32)
             $0.horizontalEdges.equalToSuperview().inset(16)
             $0.bottom.equalToSuperview()
         }
@@ -119,9 +119,9 @@ extension FavoriteProgramsView: UICollectionViewDataSource {
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: FavoriteProgramCell.reuseIdentifier,
+            withReuseIdentifier: FavoriteListCell.reuseIdentifier,
             for: indexPath
-        ) as? FavoriteProgramCell else {
+        ) as? FavoriteListCell else {
             return UICollectionViewCell()
         }
 

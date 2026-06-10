@@ -1,5 +1,5 @@
 //
-//  FavoriteProgramCell.swift
+//  FavoriteListCell.swift
 //  WhereToFit
 //
 //  Created by Yeseul Jang on 6/9/26.
@@ -8,7 +8,7 @@ import UIKit
 import Then
 import SnapKit
 
-final class FavoriteProgramCell: UICollectionViewCell {
+final class FavoriteListCell: UICollectionViewCell {
     static let reuseIdentifier = "FavoriteProgramCell"
 
     private let programImageView = ProgramImageView(image: nil)
@@ -82,7 +82,7 @@ private extension FavoriteReservationBadge {
     }
 }
 
-extension FavoriteProgramCell {
+extension FavoriteListCell {
     func configure(item: FavoriteProgramsReactor.FavoriteItem) {
         nameLabel.text = item.name
         scheduleLabel.text = item.schedule
