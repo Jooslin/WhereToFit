@@ -32,10 +32,17 @@ final class HomeView: UIView {
     
     private func setLayout() {
         addSubview(titleView)
+        addSubview(collectionView)
         
         titleView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
             $0.horizontalEdges.equalToSuperview()
+        }
+        
+        collectionView.snp.makeConstraints {
+            $0.top.equalTo(titleView.snp.bottom)
+            $0.horizontalEdges.equalToSuperview()
+            $0.bottom.equalTo(safeAreaLayoutGuide)
         }
     }
 }

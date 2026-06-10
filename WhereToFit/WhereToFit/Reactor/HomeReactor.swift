@@ -37,7 +37,9 @@ final class HomeReactor: BaseReactor {
         switch action {
         case .viewWillAppear:
             return Observable.concat([
-                .just(.setLoading(true))
+                .just(.setLoading(true)),
+                makeWeatherSection(),
+                .just(.setLoading(false))
             ])
         }
     }
