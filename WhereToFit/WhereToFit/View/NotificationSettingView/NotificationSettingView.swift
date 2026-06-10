@@ -59,12 +59,12 @@ private extension NotificationSettingView {
         ].forEach(addSubview)
 
         titleView.snp.makeConstraints {
-            $0.top.equalTo(safeAreaLayoutGuide).offset(11)
+            $0.top.equalTo(safeAreaLayoutGuide)
             $0.horizontalEdges.equalToSuperview()
         }
 
         settingGroup.snp.makeConstraints {
-            $0.top.equalTo(titleView.snp.bottom).offset(36)
+            $0.top.equalTo(titleView.snp.bottom).offset(32)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
     }

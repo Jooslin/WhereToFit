@@ -178,7 +178,7 @@ private extension MyView {
         }
 
         titleLabel.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(24)
+            $0.top.equalToSuperview()
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
 
