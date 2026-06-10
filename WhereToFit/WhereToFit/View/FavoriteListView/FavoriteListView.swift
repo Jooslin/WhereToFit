@@ -9,7 +9,7 @@ import SnapKit
 import Then
 import UIKit
 
-final class FavoriteProgramsView: UIView {
+final class FavoriteListView: UIView {
     let titleView = TitleView(text: "찜한 시설 및 프로그램", leftButtonImage: UIImage(resource: .arrowLeft))
     let segmentedControl = UISegmentedControl(items: ["찜한 시설", "찜한 프로그램"])
 
@@ -34,7 +34,7 @@ final class FavoriteProgramsView: UIView {
     }
 }
 
-extension FavoriteProgramsView {
+extension FavoriteListView {
     func updateSelectedTab(_ tab: FavoriteProgramsReactor.FavoriteTab) {
         segmentedControl.selectedSegmentIndex = tab.segmentIndex
     }
@@ -45,7 +45,7 @@ extension FavoriteProgramsView {
     }
 }
 
-private extension FavoriteProgramsView {
+private extension FavoriteListView {
     func setStyle() {
         backgroundColor = .white
         segmentedControl.selectedSegmentIndex = FavoriteProgramsReactor.FavoriteTab.facility.segmentIndex
@@ -112,7 +112,7 @@ private extension FavoriteProgramsView {
     }
 }
 
-extension FavoriteProgramsView: UICollectionViewDataSource {
+extension FavoriteListView: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         items.count
     }

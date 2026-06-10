@@ -38,7 +38,7 @@ final class MyFlow: Flow {
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
 
         case .favoritePrograms:
-            let vc = FavoriteProgramsViewController(reactor: FavoriteProgramsReactor())
+            let vc = FavoriteListViewController(reactor: FavoriteProgramsReactor())
             vc.hidesBottomBarWhenPushed = true
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))

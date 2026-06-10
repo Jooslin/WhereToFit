@@ -9,8 +9,8 @@ import ReactorKit
 import RxCocoa
 import UIKit
 
-final class FavoriteProgramsViewController: BaseViewController<FavoriteProgramsReactor> {
-    let favoriteProgramsView = FavoriteProgramsView()
+final class FavoriteListViewController: BaseViewController<FavoriteProgramsReactor> {
+    let favoriteProgramsView = FavoriteListView()
 
     override func loadView() {
         view = favoriteProgramsView
