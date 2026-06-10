@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0A92251E2FD25AAC0056EA46 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 0A92251D2FD25AAC0056EA46 /* Config.xcconfig */; };
 		F9B36D192FBC47C0006BCED0 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = F9B36D182FBC47C0006BCED0 /* SnapKit */; };
 		F9B36D1C2FBC47E8006BCED0 /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = F9B36D1B2FBC47E8006BCED0 /* Then */; };
 		F9B36D1F2FBC4848006BCED0 /* ReactorKit in Frameworks */ = {isa = PBXBuildFile; productRef = F9B36D1E2FBC4848006BCED0 /* ReactorKit */; };
@@ -20,7 +19,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0A92251D2FD25AAC0056EA46 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		F9B36CFB2FBC13FB006BCED0 /* WhereToFit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhereToFit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -28,6 +26,7 @@
 		F9B36D112FBC13FD006BCED0 /* Exceptions for "WhereToFit" folder in "WhereToFit" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Config.xcconfig,
 				Info.plist,
 			);
 			target = F9B36CFA2FBC13FB006BCED0 /* WhereToFit */;
@@ -70,7 +69,6 @@
 			children = (
 				F9B36CFD2FBC13FB006BCED0 /* WhereToFit */,
 				F9B36CFC2FBC13FB006BCED0 /* Products */,
-				0A92251D2FD25AAC0056EA46 /* Config.xcconfig */,
 			);
 			sourceTree = "<group>";
 		};
@@ -164,7 +162,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0A92251E2FD25AAC0056EA46 /* Config.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -183,7 +180,8 @@
 /* Begin XCBuildConfiguration section */
 		F9B36D132FBC13FD006BCED0 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0A92251D2FD25AAC0056EA46 /* Config.xcconfig */;
+			baseConfigurationReferenceAnchor = F9B36CFD2FBC13FB006BCED0 /* WhereToFit */;
+			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = whereToFitAppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -198,9 +196,9 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -227,7 +225,8 @@
 		};
 		F9B36D142FBC13FD006BCED0 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0A92251D2FD25AAC0056EA46 /* Config.xcconfig */;
+			baseConfigurationReferenceAnchor = F9B36CFD2FBC13FB006BCED0 /* WhereToFit */;
+			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = whereToFitAppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -242,9 +241,9 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
