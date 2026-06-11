@@ -85,7 +85,12 @@ extension HomeView {
         }
         
         let recommendCellRegistration = UICollectionView.CellRegistration<HomeRecommendCell, HomeCollectionView.Item> { cell, indexPath, item in
-            cell.configure(image: .alarm, text: "더미")
+            switch item {
+            case .recommend(let item):
+                cell.configure(item)
+            default:
+                break
+            }
         }
         
         let onboardingCellRegistration = UICollectionView.CellRegistration<HomeOnboardingCell, HomeCollectionView.Item> { [weak self] cell,indexPath,item in
@@ -171,7 +176,7 @@ extension HomeView {
                 return section
                 
             case .recommend:
-                let section = self?.horizontalGroupItemSectionLayout(height: 130)
+                let section = self?.horizontalGroupItemSectionLayout(width: 100, height: 130)
                 section?.boundarySupplementaryItems = [headerItem]
                 section?.contentInsets = .init(top: 12, leading: 0, bottom: 0, trailing: 0)
                 return section
@@ -181,7 +186,7 @@ extension HomeView {
                 return section
                 
             case .program:
-                let section = self?.horizontalGroupItemSectionLayout(height: 202)
+                let section = self?.horizontalGroupItemSectionLayout(width: 130, height: 202)
                 section?.boundarySupplementaryItems = [headerItem]
                 section?.contentInsets = .init(top: 12, leading: 0, bottom: 0, trailing: 0)
                 return section
@@ -213,10 +218,10 @@ extension HomeView {
     }
     
     // horizontal multiple item section - recommend, program
-    private func horizontalGroupItemSectionLayout(height: CGFloat) -> NSCollectionLayoutSection {
+    private func horizontalGroupItemSectionLayout(width: CGFloat, height: CGFloat) -> NSCollectionLayoutSection {
         let item = NSCollectionLayoutItem(
             layoutSize: NSCollectionLayoutSize(
-                widthDimension: .fractionalWidth(1),
+                widthDimension: .absolute(width),
                 heightDimension: .absolute(height)
             ))
         
