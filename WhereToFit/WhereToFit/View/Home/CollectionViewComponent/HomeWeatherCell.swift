@@ -72,7 +72,8 @@ extension HomeWeatherCell {
         case .snow: .snow
         case .unknown: .sun
         }
-        weatherLabel.text = "\(item.weather.temperature)º"
+        
+        weatherLabel.text = "\(String(format: "%.1f", item.weather.temperature))º"
         weatherDescriptionLabel.text = item.weather.description
         
         //TODO: 문구 연동 필요
