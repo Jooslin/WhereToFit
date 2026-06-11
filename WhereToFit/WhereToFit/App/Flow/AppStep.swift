@@ -25,4 +25,7 @@ enum AppStep: Step {
     case profileManagement
     case notificationSetting
     case pageBack
+    
+    // Home
+    case locationSetting
 }

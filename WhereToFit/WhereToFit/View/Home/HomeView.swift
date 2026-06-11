@@ -11,7 +11,7 @@ import RxCocoa
 import RxSwift
 
 final class HomeView: UIView {
-    private let titleView = HomeTitleView()
+    fileprivate let titleView = HomeTitleView()
     private lazy var collectionView = HomeCollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout())
     private lazy var dataSource = makeCollectionViewDiffableDataSource(collectionView)
     
@@ -253,6 +253,10 @@ extension HomeView {
 }
 
 extension Reactive where Base: HomeView {
+    var locationButtonTap: ControlEvent<Void> {
+        base.titleView.rx.leftButtonTap
+    }
+    
     var registerButtonTap: PublishRelay<Void> {
         base.registerButtonTap
     }

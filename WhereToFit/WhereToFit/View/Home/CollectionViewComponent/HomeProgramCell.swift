@@ -81,6 +81,7 @@ extension HomeProgramCell {
         
         imageView.snp.makeConstraints {
             $0.top.horizontalEdges.equalToSuperview()
+            $0.width.height.equalTo(130)
         }
         
         coloredLabelStackView.snp.makeConstraints {

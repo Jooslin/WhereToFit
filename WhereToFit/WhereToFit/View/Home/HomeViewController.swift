@@ -31,6 +31,11 @@ final class HomeViewController: BaseViewController<HomeReactor> {
             .map { HomeReactor.Action.viewWillAppear }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
+        
+        homeView.rx.locationButtonTap
+            .map { AppStep.locationSetting }
+            .bind(to: steps)
+            .disposed(by: disposeBag)
     }
     
     private func bindState(reactor: HomeReactor) {
