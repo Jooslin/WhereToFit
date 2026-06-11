@@ -45,7 +45,7 @@ final class MyView: UIView {
     )
     private let favoriteProgramsRow = MyPageMenuRow(
         title: "찜한 시설 및 프로그램",
-        leadingIcon: UIImage(resource: .heartFilled)
+        leadingIcon: UIImage(resource: .favoriteFacility)
     )
     private let exerciseResultRow = MyPageMenuRow(
         title: "운동 검사 결과",
@@ -117,7 +117,8 @@ final class MyView: UIView {
     ])
 
     private lazy var accountGroup = MenuGroupView(rows: [
-        MyPageMenuRow(title: "iCloud 동기화", accessory: .toggle)
+        MyPageMenuRow(title: "iCloud 동기화", accessory: .toggle),
+        MyPageMenuRow(title: "Apple 건강 연동", accessory: .toggle)
     ])
 
     override init(frame: CGRect) {
