@@ -33,7 +33,7 @@ private extension RegisteredProgramsView {
         addSubview(titleView)
 
         titleView.snp.makeConstraints {
-            $0.top.equalTo(safeAreaLayoutGuide).offset(11)
+            $0.top.equalTo(safeAreaLayoutGuide)
             $0.horizontalEdges.equalToSuperview()
         }
     }
