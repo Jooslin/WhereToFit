@@ -15,6 +15,7 @@ struct Program: Hashable {
     
     let className: String? // 프로그램 이름
     let sport: String? // 종목
+    let sportsCategory: SportsCategory // 종목 카테고리
     let classDescription: String? // 프로그램 설명
     
     let targetAges: [ProgramTargetAge] // 대상 연령
@@ -42,6 +43,7 @@ extension Program {
         
         self.className = dto.className
         self.sport = dto.sport
+        self.sportsCategory = SportsCategory(sport: dto.sport)
         self.classDescription = dto.classDescription
         
         self.targetAges = dto.targetAges?.map(ProgramTargetAge.init) ?? []

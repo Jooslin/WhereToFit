@@ -26,6 +26,7 @@ final class OnboardingViewController: BaseViewController<OnboardingReactor> {
 
             className: "성인 초급 배드민턴 교실",
             sport: "배드민턴",
+            sportsCategory: .ballSports,
             classDescription: "배드민턴의 기본 자세와 규칙을 배우는 입문 과정입니다.",
 
             targetAges: [.adult],

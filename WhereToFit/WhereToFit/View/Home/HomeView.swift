@@ -57,7 +57,8 @@ extension HomeView {
             case .recommend:
                 supplementaryView.titleLabel.text = "오늘의 맞춤 운동 AI 추천"
             case .program:
-                supplementaryView.titleLabel.text = "주변 프로그램"
+                //TODO: (유저정보) 부분 변경 필요
+                supplementaryView.titleLabel.text = "(유저정보) 추천 프로그램"
             default:
                 break
             }
