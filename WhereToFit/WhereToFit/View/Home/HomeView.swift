@@ -154,6 +154,7 @@ extension HomeView {
     private func makeCompositionalLayout() -> UICollectionViewLayout {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
         configuration.contentInsetsReference = .layoutMargins
+        configuration.interSectionSpacing = 28
         
         let layout = UICollectionViewCompositionalLayout(sectionProvider: { [weak self] sectionIndex, environment in
             guard let section = self?.dataSource.sectionIdentifier(for: sectionIndex) else { return nil }
@@ -227,7 +228,7 @@ extension HomeView {
         
         let group = NSCollectionLayoutGroup.horizontal(
             layoutSize: NSCollectionLayoutSize(
-                widthDimension: .fractionalWidth(1),
+                widthDimension: .absolute(width),
                 heightDimension: .absolute(height)),
             subitems: [item]
         )
