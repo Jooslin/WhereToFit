@@ -102,7 +102,12 @@ extension HomeView {
         }
         
         let programCellRegistration = UICollectionView.CellRegistration<HomeProgramCell, HomeCollectionView.Item> { cell, indexPath, item in
-            cell.configure(image: .alarm, text: "더미")
+            switch item {
+            case .program(let item):
+                cell.configure(item)
+            default:
+                break
+            }
         }
         
         let dataSource = UICollectionViewDiffableDataSource<HomeCollectionView.Section, HomeCollectionView.Item>(collectionView: collectionView) { [weak self] collectionView, indexPath, item in

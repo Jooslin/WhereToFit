@@ -36,7 +36,7 @@ extension HomeCollectionView {
         case weather(WeatherSectionItem)
         case recommend(SportsCategory)
         case onboarding
-        case program
+        case program(ProgramSectionItem)
 //        case notice
     }
 }
@@ -54,5 +54,13 @@ extension HomeCollectionView {
             hasher.combine(weather)
             hasher.combine(isNight)
         }
+    }
+    
+    struct ProgramSectionItem: Hashable {
+        let image: UIImage
+        let matchRate: Double
+        let place: String
+        let name: String
+        let facility: Facility
     }
 }

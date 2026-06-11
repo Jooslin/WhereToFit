@@ -10,6 +10,7 @@ import SnapKit
 import Then
 import RxCocoa
 import RxSwift
+import Kingfisher
 
 final class HomeProgramCell: UICollectionViewCell {
     private(set) var disposeBag = DisposeBag()
@@ -35,14 +36,29 @@ final class HomeProgramCell: UICollectionViewCell {
         disposeBag = DisposeBag()
         
         // 이미지 초기화
+        imageView.kf.cancelDownloadTask()
         imageView.image = nil
     }
 }
 
 //MARK: Configure
 extension HomeProgramCell {
-    func configure(image: UIImage?, text: String) {
+    func configure(_ item: HomeCollectionView.ProgramSectionItem) {
+        if let imageURL = item.facility.facilityImage?.trimmingCharacters(in: .whitespacesAndNewlines),
+           let url = URL(string: imageURL) {
+            imageView.kf.setImage(with: url, placeholder: item.image) { [weak imageView] result in
+                if case .failure = result {
+                    imageView?.image = item.image
+                }
+            }
+        } else {
+            imageView.image = item.image
+        }
         
+        matchLabel.text = "\(Int(item.matchRate))% 일치"
+        placeLabel.text = item.place
+        nameLabel.text = item.name
+        facilityLabel.text = item.facility.facilityName
     }
 }
 

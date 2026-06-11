@@ -20,6 +20,7 @@ final class HomeReactor: BaseReactor {
         case setWeatherSectionItem([HomeCollectionView.Item])
         case setRecommendSectionItem([HomeCollectionView.Item])
         case setOnboardingSectionItem([HomeCollectionView.Item])
+        case setProgramSectionItem([HomeCollectionView.Item])
     }
     
     struct State {
@@ -50,6 +51,7 @@ final class HomeReactor: BaseReactor {
                 makeWeatherSection(),
                 makeRecommendSection(),
                 makeOnboardingSection(),
+                makeProgramSection(),
                 .just(.setLoading(false))
             ])
         }
@@ -67,6 +69,8 @@ final class HomeReactor: BaseReactor {
             newState.data[.recommend] = item
         case .setOnboardingSectionItem(let item):
             newState.data[.onboarding] = item
+        case .setProgramSectionItem(let item):
+            newState.data[.program] = item
         }
         
         return newState
@@ -98,7 +102,8 @@ extension HomeReactor {
         return sportsRepository.fetchPrograms(limit: 5, offset: 0, order: .ascending)
             .map { page in
                 let programs = page.items
-                let categories = programs.map { $0.sportsCategory }
+//                let categories = programs.map { $0.sportsCategory }
+                let categories = [SportsCategory.ballSports, SportsCategory.dance, SportsCategory.aquaticSports]
                 let items = categories.reduce([HomeCollectionView.Item]()) {
                     $0 + [HomeCollectionView.Item.recommend($1)]
                 }
@@ -119,6 +124,61 @@ extension HomeReactor {
             
             return Disposables.create()
         }
+    }
+    
+    private func makeProgramSection() -> Observable<Mutation> {
+        sportsRepository.fetchPrograms(limit: 5, offset: 0, order: .ascending)
+            .asObservable()
+            .flatMap { [sportsRepository] page -> Observable<Mutation> in
+                let itemObservables = page.items.map { program -> Observable<HomeCollectionView.Item?> in
+                    guard let facilityName = program.facilityName?.trimmingCharacters(in: .whitespacesAndNewlines),
+                          !facilityName.isEmpty else {
+                        return .just(nil)
+                    }
+                    
+                    return sportsRepository.searchFacilities(keyword: facilityName, limit: 1, offset: 0, order: .ascending)
+                        .map { page -> HomeCollectionView.Item? in
+                            guard let facility = page.items.first else {
+                                return nil
+                            }
+                            
+                            let item = HomeCollectionView.ProgramSectionItem(
+                                image: program.sportsCategory.image,
+                                matchRate: 0,
+                                place: Self.place(for: facility),
+                                name: program.className ?? program.sport ?? "",
+                                facility: facility
+                            )
+                            
+                            return .program(item)
+                        }
+                        .asObservable()
+                }
+                
+                guard !itemObservables.isEmpty else {
+                    return .just(.setProgramSectionItem([]))
+                }
+                
+                return Observable.zip(itemObservables)
+                    .map { items in
+                        Mutation.setProgramSectionItem(items.compactMap { $0 })
+                    }
+            }
+    }
+    
+    private static func place(for facility: Facility) -> String {
+        let text = [
+            facility.facilityName,
+            facility.locationName,
+            facility.facilityType,
+            facility.extraFacilityInfo
+        ]
+            .compactMap { $0 }
+            .joined(separator: " ")
+        
+        let outdoorKeywords = ["운동장", "축구장", "풋살장", "야구장", "테니스장", "게이트볼장", "파크골프", "국궁장"]
+        
+        return outdoorKeywords.contains { text.contains($0) } ? "실외" : "실내"
     }
 }
 
@@ -252,12 +312,26 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
         )
     ]
     
+    private let sampleFacilities: [Facility] = [
+        SportsRepositoryExample.facility(name: "구미시민운동장", type: "운동장"),
+        SportsRepositoryExample.facility(name: "구미국민체육센터", type: "수영장"),
+        SportsRepositoryExample.facility(name: "구미생활체육관", type: "체육관"),
+        SportsRepositoryExample.facility(name: "구미청소년문화센터", type: "문화센터"),
+        SportsRepositoryExample.facility(name: "구미복합스포츠센터", type: "스포츠센터"),
+        SportsRepositoryExample.facility(name: "구미시니어체육센터", type: "체육센터")
+    ]
+    
     func fetchFacilities(limit: Int, offset: Int, order: SearchOrder) -> RxSwift.Single<SupabasePage<Facility>> {
-        return Single.just(.init(items: [], nextOffset: nil))
+        return Single.just(page(from: sampleFacilities, limit: limit, offset: offset, order: order))
     }
     
     func searchFacilities(keyword: String, limit: Int, offset: Int, order: SearchOrder) -> RxSwift.Single<SupabasePage<Facility>> {
-        return Single.just(.init(items: [], nextOffset: nil))
+        let trimmedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
+        let filteredFacilities = trimmedKeyword.isEmpty ? sampleFacilities : sampleFacilities.filter { facility in
+            facility.facilityName?.localizedCaseInsensitiveContains(trimmedKeyword) == true
+        }
+        
+        return Single.just(page(from: filteredFacilities, limit: limit, offset: offset, order: order))
     }
     
     func fetchPrograms(limit: Int = 50, offset: Int = 0 , order: SearchOrder = .ascending) -> RxSwift.Single<SupabasePage<Program>> {
@@ -291,5 +365,55 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
         let nextOffset = endIndex < sortedPrograms.count ? endIndex : nil
         
         return SupabasePage(items: items, nextOffset: nextOffset)
+    }
+    
+    private func page(from facilities: [Facility], limit: Int, offset: Int, order: SearchOrder) -> SupabasePage<Facility> {
+        let sortedFacilities = facilities.sorted { lhs, rhs in
+            switch order {
+            case .ascending:
+                return (lhs.id ?? "") < (rhs.id ?? "")
+            case .descending:
+                return (lhs.id ?? "") > (rhs.id ?? "")
+            }
+        }
+        
+        let startIndex = max(0, offset)
+        let endIndex = min(startIndex + max(0, limit), sortedFacilities.count)
+        let items = startIndex < endIndex ? Array(sortedFacilities[startIndex..<endIndex]) : []
+        let nextOffset = endIndex < sortedFacilities.count ? endIndex : nil
+        
+        return SupabasePage(items: items, nextOffset: nextOffset)
+    }
+    
+    private static func facility(name: String, type: String) -> Facility {
+        Facility(
+            id: name,
+            facilityName: name,
+            locationName: nil,
+            facilityType: type,
+            closeDays: nil,
+            weekdayOpenTime: nil,
+            weekdayCloseTime: nil,
+            weekendOpenTime: nil,
+            weekendCloseTime: nil,
+            isPaid: false,
+            usageStandardTime: nil,
+            rentalFee: nil,
+            excessUseUnitTime: nil,
+            excessRentalFee: nil,
+            capacity: nil,
+            area: nil,
+            extraFacilityInfo: nil,
+            reservationMethods: [],
+            facilityImage: nil,
+            roadAddress: nil,
+            lotNumberAddress: nil,
+            latitude: nil,
+            longitude: nil,
+            institution: nil,
+            chargeDepartment: nil,
+            phoneNumber: nil,
+            homepageUrl: nil
+        )
     }
 }
