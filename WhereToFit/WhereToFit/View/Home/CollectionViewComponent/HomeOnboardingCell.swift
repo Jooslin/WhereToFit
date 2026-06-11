@@ -43,8 +43,7 @@ final class HomeOnboardingCell: UICollectionViewCell {
 //MARK: Layout
 extension HomeOnboardingCell {
     private func setLayout() {
-        //TODO: 이미지 변경 필요
-        let imageView = UIImageView(image: .alarmOn)
+        let imageView = UIImageView(image: .gym)
         let titleLabel = UILabel(text: "나에게 맞는 운동 찾기", config: .body16Medium)
         let subLabel = UILabel(text: "무료 검사를 받아보세요!", config: .body13Regular, color: .gray500)
              

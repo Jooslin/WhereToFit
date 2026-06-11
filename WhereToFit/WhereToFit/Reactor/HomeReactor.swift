@@ -19,6 +19,7 @@ final class HomeReactor: BaseReactor {
         case setLoading(Bool)
         case setWeatherSectionItem([HomeCollectionView.Item])
         case setRecommendSectionItem([HomeCollectionView.Item])
+        case setOnboardingSectionItem([HomeCollectionView.Item])
     }
     
     struct State {
@@ -48,6 +49,7 @@ final class HomeReactor: BaseReactor {
                 .just(.setLoading(true)),
                 makeWeatherSection(),
                 makeRecommendSection(),
+                makeOnboardingSection(),
                 .just(.setLoading(false))
             ])
         }
@@ -63,6 +65,8 @@ final class HomeReactor: BaseReactor {
             newState.data[.weather] = item
         case .setRecommendSectionItem(let item):
             newState.data[.recommend] = item
+        case .setOnboardingSectionItem(let item):
+            newState.data[.onboarding] = item
         }
         
         return newState
@@ -89,6 +93,7 @@ extension HomeReactor {
             .asObservable()
     }
     
+    //TODO: 온보딩 추천 결과로 수정 필요
     private func makeRecommendSection() -> Observable<Mutation> {
         return sportsRepository.fetchPrograms(limit: 5, offset: 0, order: .ascending)
             .map { page in
@@ -100,6 +105,20 @@ extension HomeReactor {
                 return Mutation.setRecommendSectionItem(items)
             }
             .asObservable()
+    }
+    
+    private func makeOnboardingSection() -> Observable<Mutation> {
+        Observable.create { observer in
+            let didOnboarding: Bool = false //TODO: 수정 필요
+            
+            let item = didOnboarding ? [] :
+            [HomeCollectionView.Item.onboarding]
+            
+            observer.onNext(.setOnboardingSectionItem(item))
+            observer.onCompleted()
+            
+            return Disposables.create()
+        }
     }
 }
 
