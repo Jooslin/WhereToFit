@@ -115,17 +115,23 @@ private final class NotificationTimeRow: UIView {
     private let titleLabel = UILabel(text: "알림 시간 설정", config: .body14Regular)
     private let optionLabel = UILabel(text: "프로그램 시작", config: .body13Medium, color: .gray500)
     let timeButton = UIButton(type: .system).then {
-        $0.setTitle("30분 전", for: .normal)
-        $0.setTitleColor(.primary600, for: .normal)
-        $0.titleLabel?.font = .systemFont(ofSize: 13, weight: .medium)
-        $0.layer.borderWidth = 1
-        $0.layer.borderColor = UIColor.primary400.cgColor
-        $0.layer.cornerRadius = 17
-        $0.contentEdgeInsets = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 12)
-        $0.setImage(UIImage(systemName: "chevron.down"), for: .normal)
-        $0.tintColor = .primary600
-        $0.semanticContentAttribute = .forceRightToLeft
-        $0.imageEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: -4)
+        var configuration = UIButton.Configuration.plain()
+        configuration.title = "30분 전"
+        configuration.image = UIImage(systemName: "chevron.down")
+        configuration.imagePlacement = .trailing
+        configuration.imagePadding = 4
+        configuration.baseForegroundColor = .primary600
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12)
+        configuration.background.strokeColor = .primary400
+        configuration.background.strokeWidth = 1
+        configuration.background.cornerRadius = 17
+        configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+            var attributes = attributes
+            attributes.font = .systemFont(ofSize: 13, weight: .medium)
+            return attributes
+        }
+
+        $0.configuration = configuration
     }
 
     override init(frame: CGRect) {
