@@ -22,9 +22,27 @@ enum SportsCategory: String, Hashable {
     case adaptivePhysicalEducation = "특수체육"
     case other = "기타"
     
-    var image: UIImage {
+    var icon: UIImage {
         switch self {
         case .health: .weightTraining
+        case .fitness: .fitness
+        case .yogaPilates: .yogaPilates
+        case .gymnastics: .gymnastics
+        case .dance: .dance
+        case .aquaticSports: .aquaticSports
+        case .ballSports: .ballSports
+        case .iceSports: .iceSports
+        case .martialArts: .martialArts
+        case .runningCycle: .runningCycle
+        case .recreationalSports: .recreationalSports
+        case .adaptivePhysicalEducation: .adaptivePhysicalEducation
+        case .other: .other
+        }
+    }
+    
+    var image: UIImage {
+        switch self {
+        case .health: .airobic
         case .fitness: .fitness
         case .yogaPilates: .yogaPilates
         case .gymnastics: .gymnastics
