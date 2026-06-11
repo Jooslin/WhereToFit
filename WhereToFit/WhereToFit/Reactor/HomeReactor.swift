@@ -31,7 +31,11 @@ final class HomeReactor: BaseReactor {
     private let weatherRepository: WeatherRepositoryProtocol
     private let sportsRepository: SportsRepositoryProtocol
     
-    init(dateService: DateService, weatherRepository: WeatherRepository, sportsRepository: SportsRepository) {
+    init(
+        dateService: DateService,
+        weatherRepository: WeatherRepositoryProtocol,
+        sportsRepository: SportsRepositoryProtocol
+    ) {
         self.dateService = dateService
         self.weatherRepository = weatherRepository
         self.sportsRepository = sportsRepository
@@ -43,6 +47,7 @@ final class HomeReactor: BaseReactor {
             return Observable.concat([
                 .just(.setLoading(true)),
                 makeWeatherSection(),
+                makeRecommendSection(),
                 .just(.setLoading(false))
             ])
         }
@@ -90,10 +95,7 @@ extension HomeReactor {
                 let programs = page.items
                 let categories = programs.map { $0.sportsCategory }
                 let items = categories.reduce([HomeCollectionView.Item]()) {
-                    let sectionItem = HomeCollectionView.RecommendSectionItem($1)
-                    let item = HomeCollectionView.Item.recommend(sectionItem)
-                    
-                    return $0 + [item]
+                    $0 + [HomeCollectionView.Item.recommend($1)]
                 }
                 return Mutation.setRecommendSectionItem(items)
             }

@@ -31,7 +31,12 @@ final class HomeFlow: Flow {
         
         switch step {
         case .homeTab:
-            let vc = HomeViewController(reactor: HomeReactor(dateService: dateService, repository: weatherRepository))
+            let vc = HomeViewController(
+                reactor: HomeReactor(
+                    dateService: dateService,
+                    weatherRepository: weatherRepository,
+                    sportsRepository: sportsRepository
+                ))
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
             
