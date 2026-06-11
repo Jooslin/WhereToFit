@@ -116,7 +116,6 @@ private extension ExerciseResultView {
         summaryCardView.snp.makeConstraints {
             $0.top.equalToSuperview().offset(32)
             $0.horizontalEdges.equalToSuperview().inset(16)
-            $0.height.equalTo(182)
         }
 
         summaryStackView.snp.makeConstraints {
@@ -125,6 +124,7 @@ private extension ExerciseResultView {
         }
 
         retryButton.snp.makeConstraints {
+            $0.top.equalTo(summaryStackView.snp.bottom).offset(18)
             $0.bottom.equalTo(summaryCardView).inset(8)
             $0.centerX.equalToSuperview()
             $0.width.equalTo(118)
