@@ -45,7 +45,7 @@ final class ExerciseRecommendationCell: UICollectionViewCell {
 extension ExerciseRecommendationCell {
     func configure(item: ExerciseResultReactor.RecommendationItem, hidesDivider: Bool) {
         titleLabel.text = item.title
-        exerciseImageView.image = item.image
+        exerciseImageView.image = item.icon.image
         divider.isHidden = hidesDivider
 
         tagStackView.arrangedSubviews.forEach {
@@ -55,6 +55,15 @@ extension ExerciseRecommendationCell {
 
         item.tags.forEach {
             tagStackView.addArrangedSubview(ExerciseTagLabel(text: $0))
+        }
+    }
+}
+
+private extension ExerciseResultReactor.RecommendationIcon {
+    var image: UIImage {
+        switch self {
+        case .aquaticSports:
+            return UIImage(resource: .aquaticSports)
         }
     }
 }
