@@ -19,6 +19,7 @@ final class HomeView: UIView {
     fileprivate let registerButtonTap = PublishRelay<Void>()
     fileprivate let recordButtonTap = PublishRelay<Void>()
     fileprivate let surveyButtonTap = PublishRelay<Void>()
+    fileprivate let favoriteButtonTap = PublishRelay<Void>()
     
     init() {
         super.init(frame: .zero)
@@ -101,7 +102,12 @@ extension HomeView {
                 .disposed(by: cell.disposeBag)
         }
         
-        let programCellRegistration = UICollectionView.CellRegistration<HomeProgramCell, HomeCollectionView.Item> { cell, indexPath, item in
+        let programCellRegistration = UICollectionView.CellRegistration<HomeProgramCell, HomeCollectionView.Item> { [weak self] cell, indexPath, item in
+            guard let self else { return }
+            cell.rx.favoriteButtonTap
+                .bind(to: self.favoriteButtonTap)
+                .disposed(by: cell.disposeBag)
+            
             switch item {
             case .program(let item):
                 cell.configure(item)
@@ -257,5 +263,9 @@ extension Reactive where Base: HomeView {
     
     var surveyButtonTap: PublishRelay<Void> {
         base.surveyButtonTap
+    }
+    
+    var favoriteButtonTap: PublishRelay<Void> {
+        base.favoriteButtonTap
     }
 }
