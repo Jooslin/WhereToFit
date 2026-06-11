@@ -11,7 +11,9 @@ import Then
 
 final class HomeRecommendCell: UICollectionViewCell {
     private let imageView = RoundImageView(image: nil, type: .circle)
-    private let label = UILabel(config: .body16Medium)
+    private let label = UILabel(config: .body16Medium).then {
+        $0.textAlignment = .center
+    }
     
     override init(frame: CGRect) {
         super.init(frame: .zero)
@@ -47,11 +49,12 @@ extension HomeRecommendCell {
         
         imageView.snp.makeConstraints {
             $0.top.horizontalEdges.equalToSuperview()
+            $0.width.height.equalTo(100)
         }
         
         label.snp.makeConstraints {
             $0.top.equalTo(imageView.snp.bottom).offset(8)
-            $0.centerX.bottom.equalToSuperview()
+            $0.horizontalEdges.bottom.equalToSuperview()
         }
     }
 }

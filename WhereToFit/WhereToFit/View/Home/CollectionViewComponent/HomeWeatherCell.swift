@@ -87,12 +87,18 @@ extension HomeWeatherCell {
             $0.axis = .horizontal
             $0.spacing = 2
             $0.alignment = .center
+            
+            weatherImageView.setContentHuggingPriority(.required, for: .horizontal)
+            weatherImageView.setContentCompressionResistancePriority(.required, for: .horizontal)
         }
         
         let weatherStackView = UIStackView(arrangedSubviews: [weatherLabelStackView, weatherDescriptionLabel]).then {
             $0.axis = .vertical
             $0.spacing = 8
             $0.alignment = .center
+            
+            weatherLabelStackView.setContentHuggingPriority(.required, for: .vertical)
+            weatherLabelStackView.setContentCompressionResistancePriority(.required, for: .vertical)
         }
         
         let buttonStackView = UIStackView(arrangedSubviews: [registrationButton, recordButton]).then {
@@ -109,6 +115,7 @@ extension HomeWeatherCell {
         weeklyDateView.snp.makeConstraints {
             $0.top.equalToSuperview()
             $0.horizontalEdges.equalToSuperview().inset(4)
+            $0.height.equalTo(57)
         }
         
         weatherStackView.snp.makeConstraints {
@@ -125,6 +132,21 @@ extension HomeWeatherCell {
             $0.top.equalTo(reservationLabel.snp.bottom).offset(36)
             $0.bottom.equalToSuperview().inset(36)
             $0.centerX.equalToSuperview()
+            $0.height.equalTo(38)
+        }
+        
+        weatherImageView.snp.makeConstraints {
+            $0.width.height.equalTo(24)
+        }
+        
+        registrationButton.snp.makeConstraints {
+            $0.width.equalTo(118)
+            $0.height.equalTo(38)
+        }
+        
+        recordButton.snp.makeConstraints {
+            $0.width.equalTo(118)
+            $0.height.equalTo(38)
         }
     }
     
@@ -136,7 +158,7 @@ extension HomeWeatherCell {
         
         let stackView = UIStackView(arrangedSubviews: dates).then {
             $0.axis = .horizontal
-            $0.distribution = .equalSpacing
+            $0.distribution = .fillEqually
             $0.alignment = .center
         }
         
@@ -147,9 +169,13 @@ extension HomeWeatherCell {
 //MARK: Component
 extension HomeWeatherCell {
     class OneDayView: UIStackView {
-        let weekdayLabel = UILabel(config: .body12Regular)
+        let weekdayLabel = UILabel(config: .body12Regular).then {
+            $0.textAlignment = .center
+        }
         let dateImageView = RoundImageView(image: nil, type: .circle)
-        let dateLabel = UILabel(config: .body14Regular)
+        let dateLabel = UILabel(config: .body14Regular).then {
+            $0.textAlignment = .center
+        }
         
         
         init() {
@@ -162,6 +188,9 @@ extension HomeWeatherCell {
             alignment = .center
             
             setLayout()
+            
+            dateImageView.setContentHuggingPriority(.required, for: .vertical)
+            dateImageView.setContentCompressionResistancePriority(.required, for: .vertical)
         }
         
         @available(*, unavailable)
