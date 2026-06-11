@@ -61,7 +61,7 @@ final class MainFlow: Flow {
 
 extension MainFlow {
     private func navigateToMain() -> FlowContributors {
-        let homeFlow = HomeFlow(dateService: dateService, weatherRepository: weatherRepository)
+        let homeFlow = HomeFlow(dateService: dateService, weatherRepository: weatherRepository, sportsRepository: SportsRepositoryExample())
         let mapFlow = MapFlow()
         let calendarFlow = CalendarFlow()
         let myFlow = MyFlow()

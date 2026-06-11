@@ -14,11 +14,13 @@ final class HomeFlow: Flow {
     var root: any RxFlow.Presentable { navigationController }
     
     private let dateService: DateService
-    private let weatherRepository: WeatherRepository
+    private let weatherRepository: WeatherRepositoryProtocol
+    private let sportsRepository: SportsRepositoryProtocol
     
-    init(dateService: DateService, weatherRepository: WeatherRepository) {
+    init(dateService: DateService, weatherRepository: WeatherRepositoryProtocol, sportsRepository: SportsRepositoryProtocol) {
         self.dateService = dateService
         self.weatherRepository = weatherRepository
+        self.sportsRepository = sportsRepository
     }
     
     func navigate(to step: any RxFlow.Step) -> RxFlow.FlowContributors {
