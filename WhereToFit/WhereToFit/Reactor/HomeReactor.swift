@@ -178,7 +178,7 @@ extension HomeReactor {
         
         let outdoorKeywords = ["운동장", "축구장", "풋살장", "야구장", "테니스장", "게이트볼장", "파크골프", "국궁장"]
         
-        return outdoorKeywords.contains { text.contains($0) } ? "실외" : "실내"
+        return outdoorKeywords.contains { text.contains($0) } ? "야외" : "실내"
     }
 }
 

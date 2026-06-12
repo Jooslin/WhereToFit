@@ -9,6 +9,7 @@ import UIKit
 import SnapKit
 import RxCocoa
 import RxSwift
+import Then
 
 final class HomeView: UIView {
     fileprivate let titleView = HomeTitleView()
@@ -21,8 +22,25 @@ final class HomeView: UIView {
     fileprivate let surveyButtonTap = PublishRelay<Void>()
     fileprivate let favoriteButtonTap = PublishRelay<Void>()
     
+    private let collectionTopFadeLayer = CAGradientLayer().then {
+        $0.locations = [0, 1]
+        $0.colors = [
+            UIColor.white.cgColor,
+            UIColor.white.withAlphaComponent(0.0).cgColor
+        ]
+    }
+    
+    private let collectionTopFaceView = UIView().then {
+        $0.isUserInteractionEnabled = false
+    }
+    
     init() {
         super.init(frame: .zero)
+        
+        if collectionTopFadeLayer.superlayer == nil {
+            collectionTopFaceView.layer.addSublayer(collectionTopFadeLayer)
+        }
+        
         setLayout()
     }
     
@@ -31,9 +49,15 @@ final class HomeView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        collectionTopFadeLayer.frame = collectionTopFaceView.bounds
+    }
+    
     private func setLayout() {
         addSubview(titleView)
         addSubview(collectionView)
+        addSubview(collectionTopFaceView)
         
         titleView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
@@ -44,6 +68,12 @@ final class HomeView: UIView {
             $0.top.equalTo(titleView.snp.bottom)
             $0.horizontalEdges.equalToSuperview()
             $0.bottom.equalTo(safeAreaLayoutGuide)
+        }
+        
+        collectionTopFaceView.snp.makeConstraints {
+            $0.top.equalTo(collectionView.snp.top)
+            $0.horizontalEdges.equalTo(collectionView)
+            $0.height.equalTo(5)
         }
     }
 }

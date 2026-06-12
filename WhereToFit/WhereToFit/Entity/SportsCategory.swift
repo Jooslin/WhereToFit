@@ -43,7 +43,7 @@ enum SportsCategory: String, Hashable {
     }
 
     var icon: UIImage {
-        switch self {
+        switch self { 
         case .health: .weightTraining
         case .fitness: .fitness
         case .yogaPilates: .yogaPilates
