@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Facility {
+struct Facility: Hashable {
     let id: String?
     let facilityName: String? // 시설 이름
     let locationName: String? // 장소 이름 - ex. 증산동 자치회관

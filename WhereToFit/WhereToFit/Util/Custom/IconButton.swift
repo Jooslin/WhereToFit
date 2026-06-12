@@ -125,8 +125,8 @@ class IconButton: UIControl {
         self.selectedImage = selectedImage
         self.normalRightImage = rightImage
         self.selectedRightImage = selectedRightImage
-        self.spacing = spacing
         self.iconSize = iconSize
+        self.spacing = spacing
         
         // set attributes
         iconImageView = UIImageView(image: image).then {

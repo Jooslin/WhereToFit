@@ -9,6 +9,7 @@ import Foundation
 
 nonisolated struct ClassInformationDTO: Decodable, Sendable {
     let id: Int? // Supabase class_information 테이블의 기본 키
+    let publicFacilityID: String? // Supabase public_facilities 테이블의 외래 키
     let facilityName: String? // 시설명
     let facilityLocation: String? // 시설소재지
     
@@ -42,6 +43,7 @@ nonisolated struct ClassInformationDTO: Decodable, Sendable {
 
     enum CodingKeys: String, CodingKey {
         case id
+        case publicFacilityID = "public_facility_id"
         case facilityName = "facility_name"
         case facilityLocation = "facility_location"
         

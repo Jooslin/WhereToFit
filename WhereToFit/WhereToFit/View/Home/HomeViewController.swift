@@ -6,6 +6,9 @@
 //
 
 import UIKit
+import RxSwift
+import ReactorKit
+import RxCocoa
 
 final class HomeViewController: BaseViewController<HomeReactor> {
     private let homeView = HomeView()
@@ -24,11 +27,27 @@ final class HomeViewController: BaseViewController<HomeReactor> {
     }
     
     private func bindAction(reactor: HomeReactor) {
+        self.rx.viewWillAppear
+            .map { HomeReactor.Action.viewWillAppear }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
         
+        homeView.rx.locationButtonTap
+            .map { AppStep.locationSetting }
+            .bind(to: steps)
+            .disposed(by: disposeBag)
     }
     
     private func bindState(reactor: HomeReactor) {
+        let state = reactor.state
+            .asDriver(onErrorJustReturn: .init())
         
+        state.map(\.data)
+            .drive(with: homeView,
+                   onNext: { homeView, data in
+                homeView.setSnapshot(data)
+            })
+            .disposed(by: disposeBag)
     }
 }
 

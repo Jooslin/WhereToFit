@@ -10,11 +10,13 @@ import Foundation
 nonisolated
 struct Program: Hashable {
     let id: Int?
+    let publicFacilityID: String?
     let facilityName: String? // 시설 이름
     let facilityLocation: String? // 시설 소재지
     
     let className: String? // 프로그램 이름
     let sport: String? // 종목
+    let sportsCategory: SportsCategory // 종목 카테고리
     let classDescription: String? // 프로그램 설명
     
     let targetAges: [ProgramTargetAge] // 대상 연령
@@ -37,11 +39,13 @@ struct Program: Hashable {
 extension Program {
     init(dto: ClassInformationDTO) {
         self.id = dto.id
+        self.publicFacilityID = dto.publicFacilityID
         self.facilityName = dto.facilityName
         self.facilityLocation = dto.facilityLocation
         
         self.className = dto.className
         self.sport = dto.sport
+        self.sportsCategory = SportsCategory(sport: dto.sport)
         self.classDescription = dto.classDescription
         
         self.targetAges = dto.targetAges?.map(ProgramTargetAge.init) ?? []

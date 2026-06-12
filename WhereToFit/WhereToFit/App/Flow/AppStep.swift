@@ -28,4 +28,7 @@ enum AppStep: Step {
     case registeredPrograms
     case exerciseResult
     case pageBack
+    
+    // Home
+    case locationSetting
 }

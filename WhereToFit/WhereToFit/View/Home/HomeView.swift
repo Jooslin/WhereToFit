@@ -9,9 +9,10 @@ import UIKit
 import SnapKit
 import RxCocoa
 import RxSwift
+import Then
 
 final class HomeView: UIView {
-    private let titleView = HomeTitleView()
+    fileprivate let titleView = HomeTitleView()
     private lazy var collectionView = HomeCollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout())
     private lazy var dataSource = makeCollectionViewDiffableDataSource(collectionView)
     
@@ -19,9 +20,27 @@ final class HomeView: UIView {
     fileprivate let registerButtonTap = PublishRelay<Void>()
     fileprivate let recordButtonTap = PublishRelay<Void>()
     fileprivate let surveyButtonTap = PublishRelay<Void>()
+    fileprivate let favoriteButtonTap = PublishRelay<HomeCollectionView.ProgramSectionItem>()
+    
+    private let collectionTopFadeLayer = CAGradientLayer().then {
+        $0.locations = [0, 1]
+        $0.colors = [
+            UIColor.white.cgColor,
+            UIColor.white.withAlphaComponent(0.0).cgColor
+        ]
+    }
+    
+    private let collectionTopFaceView = UIView().then {
+        $0.isUserInteractionEnabled = false
+    }
     
     init() {
         super.init(frame: .zero)
+        
+        if collectionTopFadeLayer.superlayer == nil {
+            collectionTopFaceView.layer.addSublayer(collectionTopFadeLayer)
+        }
+        
         setLayout()
     }
     
@@ -30,12 +49,31 @@ final class HomeView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        collectionTopFadeLayer.frame = collectionTopFaceView.bounds
+    }
+    
     private func setLayout() {
         addSubview(titleView)
+        addSubview(collectionView)
+        addSubview(collectionTopFaceView)
         
         titleView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
             $0.horizontalEdges.equalToSuperview()
+        }
+        
+        collectionView.snp.makeConstraints {
+            $0.top.equalTo(titleView.snp.bottom)
+            $0.horizontalEdges.equalToSuperview()
+            $0.bottom.equalTo(safeAreaLayoutGuide)
+        }
+        
+        collectionTopFaceView.snp.makeConstraints {
+            $0.top.equalTo(collectionView.snp.top)
+            $0.horizontalEdges.equalTo(collectionView)
+            $0.height.equalTo(5)
         }
     }
 }
@@ -50,7 +88,8 @@ extension HomeView {
             case .recommend:
                 supplementaryView.titleLabel.text = "오늘의 맞춤 운동 AI 추천"
             case .program:
-                supplementaryView.titleLabel.text = "주변 프로그램"
+                //TODO: (유저정보) 부분 변경 필요
+                supplementaryView.titleLabel.text = "(유저정보) 추천 프로그램"
             default:
                 break
             }
@@ -67,10 +106,22 @@ extension HomeView {
             cell.rx.recordButtonTap
                 .bind(to: self.recordButtonTap)
                 .disposed(by: cell.disposeBag)
+            
+            switch item {
+            case .weather(let item):
+                cell.configure(item)
+            default:
+                break
+            }
         }
         
         let recommendCellRegistration = UICollectionView.CellRegistration<HomeRecommendCell, HomeCollectionView.Item> { cell, indexPath, item in
-            cell.configure(image: .alarm, text: "더미")
+            switch item {
+            case .recommend(let item):
+                cell.configure(item)
+            default:
+                break
+            }
         }
         
         let onboardingCellRegistration = UICollectionView.CellRegistration<HomeOnboardingCell, HomeCollectionView.Item> { [weak self] cell,indexPath,item in
@@ -81,8 +132,20 @@ extension HomeView {
                 .disposed(by: cell.disposeBag)
         }
         
-        let programCellRegistration = UICollectionView.CellRegistration<HomeProgramCell, HomeCollectionView.Item> { cell, indexPath, item in
-            cell.configure(image: .alarm, text: "더미")
+        let programCellRegistration = UICollectionView.CellRegistration<HomeProgramCell, HomeCollectionView.Item> { [weak self] cell, indexPath, item in
+            guard let self else { return }
+                        
+            switch item {
+            case .program(let item):
+                cell.rx.favoriteButtonTap
+                    .map { item }
+                    .bind(to: self.favoriteButtonTap)
+                    .disposed(by: cell.disposeBag)
+                
+                cell.configure(item)
+            default:
+                break
+            }
         }
         
         let dataSource = UICollectionViewDiffableDataSource<HomeCollectionView.Section, HomeCollectionView.Item>(collectionView: collectionView) { [weak self] collectionView, indexPath, item in
@@ -134,6 +197,7 @@ extension HomeView {
     private func makeCompositionalLayout() -> UICollectionViewLayout {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
         configuration.contentInsetsReference = .layoutMargins
+        configuration.interSectionSpacing = 28
         
         let layout = UICollectionViewCompositionalLayout(sectionProvider: { [weak self] sectionIndex, environment in
             guard let section = self?.dataSource.sectionIdentifier(for: sectionIndex) else { return nil }
@@ -148,6 +212,7 @@ extension HomeView {
             )
             
             let weatherBackgroundItem = NSCollectionLayoutDecorationItem.background(elementKind: "weatherBackground")
+            weatherBackgroundItem.contentInsets = .init(top: 0, leading: -16, bottom: 0, trailing: -16)
             
             switch section {
             case .weather:
@@ -156,7 +221,7 @@ extension HomeView {
                 return section
                 
             case .recommend:
-                let section = self?.horizontalGroupItemSectionLayout(height: 130)
+                let section = self?.horizontalGroupItemSectionLayout(width: 100, height: 130)
                 section?.boundarySupplementaryItems = [headerItem]
                 section?.contentInsets = .init(top: 12, leading: 0, bottom: 0, trailing: 0)
                 return section
@@ -166,7 +231,7 @@ extension HomeView {
                 return section
                 
             case .program:
-                let section = self?.horizontalGroupItemSectionLayout(height: 202)
+                let section = self?.horizontalGroupItemSectionLayout(width: 130, height: 202)
                 section?.boundarySupplementaryItems = [headerItem]
                 section?.contentInsets = .init(top: 12, leading: 0, bottom: 0, trailing: 0)
                 return section
@@ -198,17 +263,17 @@ extension HomeView {
     }
     
     // horizontal multiple item section - recommend, program
-    private func horizontalGroupItemSectionLayout(height: CGFloat) -> NSCollectionLayoutSection {
+    private func horizontalGroupItemSectionLayout(width: CGFloat, height: CGFloat) -> NSCollectionLayoutSection {
         let item = NSCollectionLayoutItem(
             layoutSize: NSCollectionLayoutSize(
-                widthDimension: .fractionalWidth(1),
-                heightDimension: .absolute(height)
+                widthDimension: .absolute(width),
+                heightDimension: .estimated(height)
             ))
         
         let group = NSCollectionLayoutGroup.horizontal(
             layoutSize: NSCollectionLayoutSize(
-                widthDimension: .fractionalWidth(1),
-                heightDimension: .absolute(height)),
+                widthDimension: .absolute(width),
+                heightDimension: .estimated(height)),
             subitems: [item]
         )
         
@@ -221,6 +286,10 @@ extension HomeView {
 }
 
 extension Reactive where Base: HomeView {
+    var locationButtonTap: ControlEvent<Void> {
+        base.titleView.rx.leftButtonTap
+    }
+    
     var registerButtonTap: PublishRelay<Void> {
         base.registerButtonTap
     }
@@ -231,5 +300,9 @@ extension Reactive where Base: HomeView {
     
     var surveyButtonTap: PublishRelay<Void> {
         base.surveyButtonTap
+    }
+    
+    var favoriteButtonTap: PublishRelay<HomeCollectionView.ProgramSectionItem> {
+        base.favoriteButtonTap
     }
 }

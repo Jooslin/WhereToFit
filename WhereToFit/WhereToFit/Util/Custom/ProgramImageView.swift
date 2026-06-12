@@ -34,6 +34,8 @@ final class ProgramImageView: RoundImageView {
             $0.width.height.equalTo(20)
             $0.bottom.trailing.equalToSuperview().inset(8)
         }
+        
+        favoriteButton.applyColor(.white)
     }
     
     override func layoutSubviews() {

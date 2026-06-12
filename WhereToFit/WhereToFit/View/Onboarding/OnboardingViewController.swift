@@ -21,11 +21,13 @@ final class OnboardingViewController: BaseViewController<OnboardingReactor> {
         
         let program = Program(
             id: 1,
+            publicFacilityID: nil,
             facilityName: "구미시민운동장",
             facilityLocation: "경상북도 구미시 박정희로 375",
 
             className: "성인 초급 배드민턴 교실",
             sport: "배드민턴",
+            sportsCategory: .ballSports,
             classDescription: "배드민턴의 기본 자세와 규칙을 배우는 입문 과정입니다.",
 
             targetAges: [.adult],
