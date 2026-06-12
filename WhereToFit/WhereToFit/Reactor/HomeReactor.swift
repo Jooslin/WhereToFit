@@ -131,12 +131,18 @@ extension HomeReactor {
             .asObservable()
             .flatMap { [sportsRepository] page -> Observable<Mutation> in
                 let itemObservables = page.items.map { program -> Observable<HomeCollectionView.Item?> in
-                    guard let facilityName = program.facilityName?.trimmingCharacters(in: .whitespacesAndNewlines),
-                          !facilityName.isEmpty else {
+                    guard let publicFacilityID = program.publicFacilityID?.trimmingCharacters(in: .whitespacesAndNewlines),
+                          !publicFacilityID.isEmpty else {
                         return .just(nil)
                     }
                     
-                    return sportsRepository.searchFacilities(keyword: facilityName, limit: 1, offset: 0, order: .ascending)
+                    return sportsRepository.searchFacilities(
+                        keyword: publicFacilityID,
+                        limit: 1,
+                        offset: 0,
+                        order: .ascending,
+                        searchType: .facilityID
+                    )
                         .map { page -> HomeCollectionView.Item? in
                             guard let facility = page.items.first else {
                                 return nil
@@ -176,7 +182,7 @@ extension HomeReactor {
             .compactMap { $0 }
             .joined(separator: " ")
         
-        let outdoorKeywords = ["운동장", "축구장", "풋살장", "야구장", "테니스장", "게이트볼장", "파크골프", "국궁장"]
+        let outdoorKeywords = ["축구장", "풋살장", "야구장", "테니스장", "게이트볼장", "파크골프", "국궁장"]
         
         return outdoorKeywords.contains { text.contains($0) } ? "야외" : "실내"
     }
@@ -186,6 +192,7 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
     private let samplePrograms: [Program] = [
         Program(
             id: 1,
+            publicFacilityID: "facility-1",
             facilityName: "구미시민운동장",
             facilityLocation: "경상북도 구미시 박정희로 375",
             className: "성인 초급 배드민턴 교실",
@@ -207,6 +214,7 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
         ),
         Program(
             id: 2,
+            publicFacilityID: "facility-2",
             facilityName: "구미국민체육센터",
             facilityLocation: "경상북도 구미시 산책길 105",
             className: "아침 자유수영",
@@ -228,6 +236,7 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
         ),
         Program(
             id: 3,
+            publicFacilityID: "facility-3",
             facilityName: "구미생활체육관",
             facilityLocation: "경상북도 구미시 체육공원로 45",
             className: "저녁 필라테스",
@@ -249,6 +258,7 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
         ),
         Program(
             id: 4,
+            publicFacilityID: "facility-4",
             facilityName: "구미청소년문화센터",
             facilityLocation: "경상북도 구미시 문화로 12",
             className: "청소년 방송댄스",
@@ -270,6 +280,7 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
         ),
         Program(
             id: 5,
+            publicFacilityID: "facility-5",
             facilityName: "구미복합스포츠센터",
             facilityLocation: "경상북도 구미시 복합로 70",
             className: "직장인 헬스PT",
@@ -291,6 +302,7 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
         ),
         Program(
             id: 6,
+            publicFacilityID: "facility-6",
             facilityName: "구미시니어체육센터",
             facilityLocation: "경상북도 구미시 시니어로 20",
             className: "시니어 생활체조",
@@ -313,22 +325,35 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
     ]
     
     private let sampleFacilities: [Facility] = [
-        SportsRepositoryExample.facility(name: "구미시민운동장", type: "운동장"),
-        SportsRepositoryExample.facility(name: "구미국민체육센터", type: "수영장"),
-        SportsRepositoryExample.facility(name: "구미생활체육관", type: "체육관"),
-        SportsRepositoryExample.facility(name: "구미청소년문화센터", type: "문화센터"),
-        SportsRepositoryExample.facility(name: "구미복합스포츠센터", type: "스포츠센터"),
-        SportsRepositoryExample.facility(name: "구미시니어체육센터", type: "체육센터")
+        SportsRepositoryExample.facility(id: "facility-1", name: "구미시민운동장", type: "운동장"),
+        SportsRepositoryExample.facility(id: "facility-2", name: "구미국민체육센터", type: "수영장"),
+        SportsRepositoryExample.facility(id: "facility-3", name: "구미생활체육관", type: "체육관"),
+        SportsRepositoryExample.facility(id: "facility-4", name: "구미청소년문화센터", type: "문화센터"),
+        SportsRepositoryExample.facility(id: "facility-5", name: "구미복합스포츠센터", type: "스포츠센터"),
+        SportsRepositoryExample.facility(id: "facility-6", name: "구미시니어체육센터", type: "체육센터")
     ]
     
     func fetchFacilities(limit: Int, offset: Int, order: SearchOrder) -> RxSwift.Single<SupabasePage<Facility>> {
         return Single.just(page(from: sampleFacilities, limit: limit, offset: offset, order: order))
     }
     
-    func searchFacilities(keyword: String, limit: Int, offset: Int, order: SearchOrder) -> RxSwift.Single<SupabasePage<Facility>> {
+    func searchFacilities(
+        keyword: String,
+        limit: Int,
+        offset: Int,
+        order: SearchOrder,
+        searchType: NetworkService.SearchType
+    ) -> RxSwift.Single<SupabasePage<Facility>> {
         let trimmedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
         let filteredFacilities = trimmedKeyword.isEmpty ? sampleFacilities : sampleFacilities.filter { facility in
-            facility.facilityName?.localizedCaseInsensitiveContains(trimmedKeyword) == true
+            switch searchType {
+            case .facilityID:
+                return facility.id == trimmedKeyword
+            case .facilityName:
+                return facility.facilityName?.localizedCaseInsensitiveContains(trimmedKeyword) == true
+            case .className:
+                return false
+            }
         }
         
         return Single.just(page(from: filteredFacilities, limit: limit, offset: offset, order: order))
@@ -385,9 +410,9 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
         return SupabasePage(items: items, nextOffset: nextOffset)
     }
     
-    private static func facility(name: String, type: String) -> Facility {
+    private static func facility(id: String, name: String, type: String) -> Facility {
         Facility(
-            id: name,
+            id: id,
             facilityName: name,
             locationName: nil,
             facilityType: type,

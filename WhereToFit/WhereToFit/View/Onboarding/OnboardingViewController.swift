@@ -21,6 +21,7 @@ final class OnboardingViewController: BaseViewController<OnboardingReactor> {
         
         let program = Program(
             id: 1,
+            publicFacilityID: nil,
             facilityName: "구미시민운동장",
             facilityLocation: "경상북도 구미시 박정희로 375",
 

@@ -10,6 +10,7 @@ import Foundation
 nonisolated
 struct Program: Hashable {
     let id: Int?
+    let publicFacilityID: String?
     let facilityName: String? // 시설 이름
     let facilityLocation: String? // 시설 소재지
     
@@ -38,6 +39,7 @@ struct Program: Hashable {
 extension Program {
     init(dto: ClassInformationDTO) {
         self.id = dto.id
+        self.publicFacilityID = dto.publicFacilityID
         self.facilityName = dto.facilityName
         self.facilityLocation = dto.facilityLocation
         

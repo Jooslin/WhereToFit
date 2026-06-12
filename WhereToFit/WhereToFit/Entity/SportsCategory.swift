@@ -67,14 +67,14 @@ enum SportsCategory: String, Hashable {
         case .fitness: .sportsFitness
         case .yogaPilates: .sportsYoga
         case .gymnastics: .sportsGymnastic
-        case .dance: .dance
+        case .dance: .sportsDance
         case .aquaticSports: .sportsAqua
         case .ballSports: .sportsBall
         case .iceSports: .sportsIce
         case .martialArts: .sportsMartial
         case .runningCycle: .sportsRunning
-        case .recreationalSports: .recreationalSports
-        case .adaptivePhysicalEducation: .adaptivePhysicalEducation
+        case .recreationalSports: .sportsRecreational
+        case .adaptivePhysicalEducation: .sportsAdaptive
         case .other: .sportsOthers
         }
     }
