@@ -20,7 +20,7 @@ final class HomeView: UIView {
     fileprivate let registerButtonTap = PublishRelay<Void>()
     fileprivate let recordButtonTap = PublishRelay<Void>()
     fileprivate let surveyButtonTap = PublishRelay<Void>()
-    fileprivate let favoriteButtonTap = PublishRelay<Void>()
+    fileprivate let favoriteButtonTap = PublishRelay<HomeCollectionView.ProgramSectionItem>()
     
     private let collectionTopFadeLayer = CAGradientLayer().then {
         $0.locations = [0, 1]
@@ -134,12 +134,14 @@ extension HomeView {
         
         let programCellRegistration = UICollectionView.CellRegistration<HomeProgramCell, HomeCollectionView.Item> { [weak self] cell, indexPath, item in
             guard let self else { return }
-            cell.rx.favoriteButtonTap
-                .bind(to: self.favoriteButtonTap)
-                .disposed(by: cell.disposeBag)
-            
+                        
             switch item {
             case .program(let item):
+                cell.rx.favoriteButtonTap
+                    .map { item }
+                    .bind(to: self.favoriteButtonTap)
+                    .disposed(by: cell.disposeBag)
+                
                 cell.configure(item)
             default:
                 break
@@ -300,7 +302,7 @@ extension Reactive where Base: HomeView {
         base.surveyButtonTap
     }
     
-    var favoriteButtonTap: PublishRelay<Void> {
+    var favoriteButtonTap: PublishRelay<HomeCollectionView.ProgramSectionItem> {
         base.favoriteButtonTap
     }
 }

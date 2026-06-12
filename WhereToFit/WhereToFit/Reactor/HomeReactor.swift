@@ -95,6 +95,7 @@ extension HomeReactor {
                 return Mutation.setWeatherSectionItem([HomeCollectionView.Item.weather(item)])
             }
             .asObservable()
+            .catch { _ in .just(.setWeatherSectionItem([])) }
     }
     
     //TODO: 온보딩 추천 결과로 수정 필요
@@ -110,6 +111,7 @@ extension HomeReactor {
                 return Mutation.setRecommendSectionItem(items)
             }
             .asObservable()
+            .catch { _ in .just(.setRecommendSectionItem([])) }
     }
     
     private func makeOnboardingSection() -> Observable<Mutation> {
@@ -130,7 +132,8 @@ extension HomeReactor {
         sportsRepository.fetchPrograms(limit: 5, offset: 0, order: .ascending)
             .asObservable()
             .flatMap { [sportsRepository] page -> Observable<Mutation> in
-                let itemObservables = page.items.map { program -> Observable<HomeCollectionView.Item?> in
+                let itemObservables: [Observable<HomeCollectionView.Item?>] = page.items
+                    .map { program -> Observable<HomeCollectionView.Item?> in
                     guard let publicFacilityID = program.publicFacilityID?.trimmingCharacters(in: .whitespacesAndNewlines),
                           !publicFacilityID.isEmpty else {
                         return .just(nil)
@@ -159,17 +162,19 @@ extension HomeReactor {
                             return .program(item)
                         }
                         .asObservable()
+                        .catch { _ in .just(nil) }
                 }
                 
                 guard !itemObservables.isEmpty else {
                     return .just(.setProgramSectionItem([]))
                 }
                 
-                return Observable.zip(itemObservables)
+                return Observable.zip(itemObservables) // Observable<[HomeCollectionView.Item?]>
                     .map { items in
                         Mutation.setProgramSectionItem(items.compactMap { $0 })
                     }
             }
+            .catch { _ in .just(.setProgramSectionItem([])) }
     }
     
     private static func place(for facility: Facility) -> String {
