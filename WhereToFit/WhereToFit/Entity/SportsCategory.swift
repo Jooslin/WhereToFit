@@ -60,7 +60,6 @@ enum SportsCategory: String, Hashable {
         }
     }
     
-    //TODO: 이미지 수정 필요 - dance, recreational, adaptivePhysicalEducation
     var image: UIImage {
         switch self {
         case .health: .sportsHealth
