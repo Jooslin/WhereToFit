@@ -210,6 +210,7 @@ extension HomeView {
             )
             
             let weatherBackgroundItem = NSCollectionLayoutDecorationItem.background(elementKind: "weatherBackground")
+            weatherBackgroundItem.contentInsets = .init(top: 0, leading: -16, bottom: 0, trailing: -16)
             
             switch section {
             case .weather:
