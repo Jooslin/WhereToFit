@@ -10,11 +10,7 @@ import SnapKit
 import Then
 
 final class ProgramImageView: RoundImageView {
-    let favoriteButton = IconButton(
-        image: .heart,
-        selectedImage: .heartFilled,
-        iconSize: CGSize(width: 20, height: 20)
-    )
+    let favoriteButton = IconButton(image: .heart, selectedImage: .heartFilled, iconSize: .compact)
     private let gradientLayer = CAGradientLayer()
     
     init(image: UIImage?) {

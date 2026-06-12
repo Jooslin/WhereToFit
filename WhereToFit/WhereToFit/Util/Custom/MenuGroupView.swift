@@ -19,7 +19,7 @@ final class MenuGroupView: UIView {
     init(rows: [UIView]) {
         super.init(frame: .zero)
 
-        backgroundColor = UIColor(red: 0.979, green: 0.98, blue: 0.981, alpha: 1)
+        backgroundColor = .gray50
         layer.cornerRadius = 12
         clipsToBounds = true
 
