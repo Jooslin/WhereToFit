@@ -64,7 +64,6 @@ class IconButton: UIControl {
     private var selectedImage: UIImage?
     private var normalRightImage: UIImage?
     private var selectedRightImage: UIImage?
-    private let iconSize: CGSize
     private let spacing: CGFloat
     private let iconSize: IconSize
     private var touchSize = Metric.hitSize
@@ -128,7 +127,6 @@ class IconButton: UIControl {
         self.selectedRightImage = selectedRightImage
         self.iconSize = iconSize
         self.spacing = spacing
-        self.iconSize = iconSize
         
         // set attributes
         iconImageView = UIImageView(image: image).then {
