@@ -51,6 +51,7 @@ class IconButton: UIControl {
     private var selectedImage: UIImage?
     private var normalRightImage: UIImage?
     private var selectedRightImage: UIImage?
+    private let iconSize: CGSize
     private let spacing: CGFloat
     private var touchSize = Metric.hitSize
     
@@ -60,8 +61,8 @@ class IconButton: UIControl {
         var heights: [CGFloat] = []
         
         if !iconImageView.isHidden {
-            widths.append(Metric.iconSize.width)
-            heights.append(Metric.iconSize.height)
+            widths.append(iconSize.width)
+            heights.append(iconSize.height)
         }
         
         if !titleLabel.isHidden {
@@ -71,8 +72,8 @@ class IconButton: UIControl {
         }
         
         if !rightIconImageView.isHidden {
-            widths.append(Metric.iconSize.width)
-            heights.append(Metric.iconSize.height)
+            widths.append(iconSize.width)
+            heights.append(iconSize.height)
         }
         
         guard !widths.isEmpty else { return .zero }
@@ -104,12 +105,14 @@ class IconButton: UIControl {
         labelConfig: LabelConfiguration = .body14Medium,
         rightImage: UIImage? = nil,
         selectedRightImage: UIImage? = nil,
+        iconSize: CGSize = Metric.iconSize,
         spacing: CGFloat = 4
     ) {
         self.normalImage = image
         self.selectedImage = selectedImage
         self.normalRightImage = rightImage
         self.selectedRightImage = selectedRightImage
+        self.iconSize = iconSize
         self.spacing = spacing
         
         // set attributes
@@ -154,7 +157,7 @@ class IconButton: UIControl {
         
         [iconImageView, rightIconImageView].forEach {
             $0.snp.makeConstraints {
-                $0.width.height.equalTo(Metric.iconSize)
+                $0.width.height.equalTo(iconSize)
             }
         }
     }
