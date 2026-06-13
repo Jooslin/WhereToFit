@@ -8,11 +8,15 @@
 import UIKit
 import Then
 import SnapKit
+import RxCocoa
+import RxSwift
 
 final class HomeLocationView: UIView {
     let titleView = TitleView(text: "위치 지정", leftButtonImage: .arrowLeft, rightButtonImage: .edit)
     let searchBar = SearchBar(placeholder: "주소로 검색하기")
-    let currentLocationButton = DesignButton(config: .largeBorderBlue)
+    let currentLocationButton = DesignButton(config: .largeBorderBlue).then {
+        $0.title = "현재 위치로 지정"
+    }
     private(set) lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout()).then {
         $0.layoutMargins = .init(top: 0, left: 16, bottom: 0, right: 16)
     }
@@ -55,6 +59,7 @@ extension HomeLocationView {
         
         collectionView.snp.makeConstraints {
             $0.top.equalTo(currentLocationButton.snp.bottom).offset(12)
+            $0.horizontalEdges.equalToSuperview()
             $0.bottom.equalTo(safeAreaLayoutGuide)
         }
     }
@@ -120,9 +125,30 @@ extension HomeLocationView {
     
 }
 
+extension Reactive where Base: HomeLocationView {
+    var backButtonTap: ControlEvent<Void> {
+        base.titleView.rx.leftButtonTap
+    }
+    
+    var currentLocationButtonTap: ControlEvent<Void> {
+        base.currentLocationButton.rx.tap
+    }
+    
+    var listCellSelected: Observable<Location> {
+        base.collectionView.rx.itemSelected
+            .compactMap { indexPath in
+                base.dataSource.itemIdentifier(for: indexPath)
+            }
+            .asObservable()
+    }
+}
+
 nonisolated
 struct Location: Hashable {
+    let icon: UIImage
     let name: String
     let address: String
     let isSelected: Bool
+    let latitude: Double
+    let longitude: Double
 }

@@ -10,7 +10,9 @@ import SnapKit
 import Then
 
 final class HomeLocationListCell: UICollectionViewListCell {
-    let imageView = UIImageView()
+    let imageView = UIImageView().then {
+        $0.tintColor = .gray900
+    }
     let nameLabel = UILabel(config: .body15)
     let addressLabel = UILabel(config: .body13Regular)
     let checkImageView = UIImageView(image: .check).then {
@@ -39,8 +41,11 @@ final class HomeLocationListCell: UICollectionViewListCell {
 }
 
 extension HomeLocationListCell {
-    func configure(_ lcoation: Location) {
-        
+    func configure(_ location: Location) {
+        imageView.image = location.icon
+        nameLabel.text = location.name
+        addressLabel.text = location.address
+        checkImageView.isHidden = !location.isSelected
     }
 }
 
