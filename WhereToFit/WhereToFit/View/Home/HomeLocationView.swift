@@ -62,45 +62,23 @@ extension HomeLocationView {
 
 //MARK: CollectionView DataSource
 extension HomeLocationView {
-    private func makeDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<OnboardingFacilityView.Section, OnboardingFacilityView.Item> {
-        let listCellRegistration = UICollectionView.CellRegistration<OnboardingProgramListCell, OnboardingFacilityView.Item> { cell, indexPath, item in
+    private func makeDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, Location> {
+        let listCellRegistration = UICollectionView.CellRegistration<HomeLocationListCell, Location> { cell, indexPath, item in
             
-            switch item {
-            case .list(let program):
-                cell.configure(program)
-            case .button:
-                break
-            }
-        }
-        
-        let addCellRegistration = UICollectionView.CellRegistration<OnboardingProgramAddCell, OnboardingFacilityView.Item> { cell, indexPath, item in
+            cell.configure(item)
         }
 
-        let dataSource = UICollectionViewDiffableDataSource<OnboardingFacilityView.Section, OnboardingFacilityView.Item>(collectionView: collectionView) { [weak self] collectionView, indexPath, item in
-            
-            guard let section = self?.dataSource.sectionIdentifier(for: indexPath.section) else {
-                fatalError("OnboardingCollectionView: 유효하지 않은 섹션입니다.")
-            }
-            
-            return switch section {
-            case .list:
-                collectionView.dequeueConfiguredReusableCell(using: listCellRegistration, for: indexPath, item: item)
-            case .button:
-                collectionView.dequeueConfiguredReusableCell(using: addCellRegistration, for: indexPath, item: item)
-            }
+        let dataSource = UICollectionViewDiffableDataSource<Int, Location>(collectionView: collectionView) { collectionView, indexPath, item in
+            collectionView.dequeueConfiguredReusableCell(using: listCellRegistration, for: indexPath, item: item)
         }
         
         return dataSource
     }
     
-    func setSnapshot(with data: [OnboardingFacilityView.Section: [OnboardingFacilityView.Item]]) {
-        var snapshot = NSDiffableDataSourceSnapshot<OnboardingFacilityView.Section, OnboardingFacilityView.Item>()
-        snapshot.appendSections([.list, .button])
-        
-        let listItem = data[.list] ?? []
-        let buttonItem = data[.button] ?? []
-        snapshot.appendItems(listItem, toSection: .list)
-        snapshot.appendItems(buttonItem, toSection: .button)
+    func setSnapshot(with data: [Location]) {
+        var snapshot = NSDiffableDataSourceSnapshot<Int, Location>()
+        snapshot.appendSections([0])
+        snapshot.appendItems(data, toSection: 0)
         
         dataSource.apply(snapshot, animatingDifferences: false)
     }
@@ -111,16 +89,10 @@ extension HomeLocationView {
 extension HomeLocationView {
     private func makeCompositionalLayout() -> UICollectionViewCompositionalLayout {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
-        configuration.interSectionSpacing = 16
         configuration.contentInsetsReference = .layoutMargins
         
         return UICollectionViewCompositionalLayout(sectionProvider: { [weak self] sectionIndex, environment in
-            guard let section = self?.dataSource.sectionIdentifier(for: sectionIndex) else { return nil }
-            
-            switch section {
-            case .list:
-                return self?.listSectionLayout()
-            }
+            self?.listSectionLayout()
         }, configuration: configuration)
     }
     
@@ -128,22 +100,29 @@ extension HomeLocationView {
         let item = NSCollectionLayoutItem(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
-                heightDimension: .absolute(73)
+                heightDimension: .absolute(81)
             )
         )
         
         let group = NSCollectionLayoutGroup.vertical(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
-                heightDimension: .absolute(73)
+                heightDimension: .absolute(81)
             ),
             subitems: [item]
         )
         
         let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = 16
+        section.interGroupSpacing = 4
         
         return section
     }
     
+}
+
+nonisolated
+struct Location: Hashable {
+    let name: String
+    let address: String
+    let isSelected: Bool
 }

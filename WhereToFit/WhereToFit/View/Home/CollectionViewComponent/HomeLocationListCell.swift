@@ -39,7 +39,7 @@ final class HomeLocationListCell: UICollectionViewListCell {
 }
 
 extension HomeLocationListCell {
-    func configure(_ program: Program) {
+    func configure(_ lcoation: Location) {
         
     }
 }
