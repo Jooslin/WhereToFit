@@ -11,7 +11,7 @@ import SnapKit
 final class KakaoPostCodeViewController: BaseViewController<TempReactor> {
     var webView: WKWebView?
     let indicator = UIActivityIndicatorView(style: .medium) // webView 로딩시 보여줄 뷰
-    var address = "" // 사용자가 선택한 주소를 저장할 변수
+    var onSelectAddress: ((String) -> Void)? // 사용자가 선택한 주소를 전달할 클로저
     
     let contentController = WKUserContentController() // JavaScript가 메세지를 post하고 유저의 스크립트를 webview에 주입할 수 있도록 함
     
@@ -48,7 +48,13 @@ final class KakaoPostCodeViewController: BaseViewController<TempReactor> {
 // JavaScript가 보내는 메세지를 수신하기 위한 프로토콜 채택
 extension KakaoPostCodeViewController: WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        var address = ""
+        if let data = message.body as? [String: Any] {
+            address = data["roadAddress"] as? String ?? ""
+        }
         
+        onSelectAddress?(address)
+        self.dismiss(animated: true)
     }
 }
 

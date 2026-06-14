@@ -11,7 +11,7 @@ import ReactorKit
 import RxCocoa
 
 final class HomeLocationViewController: BaseViewController<HomeReactor> {
-    private let locationView = HomeLocationView()
+    let locationView = HomeLocationView()
     
     override func loadView() {
         view = locationView
@@ -43,6 +43,9 @@ final class HomeLocationViewController: BaseViewController<HomeReactor> {
     
     func present() {
         let vc = KakaoPostCodeViewController()
+        vc.onSelectAddress = { [weak self] address in
+            self?.locationView.searchBar.text = address
+        }
         self.present(vc, animated: true)
     }
 }
