@@ -11,10 +11,11 @@ import Then
 
 final class HomeTitleView: TitleView {
     init() {
-        let leftButton = IconButton(config: .locationIcon, style: .bothImage).then {
+        let leftButton = IconButton(config: .icon, style: .bothImage).then {
             $0.normalImage = .locationPinFilled
             $0.title = "지역"
             $0.normalRightImage = .arrowDown
+            $0.titleLabel.apply(font: .systemFont(ofSize: 20, weight: .semibold))
         }
         
         super.init(

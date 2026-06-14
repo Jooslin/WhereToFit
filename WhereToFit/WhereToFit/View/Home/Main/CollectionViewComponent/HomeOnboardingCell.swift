@@ -14,12 +14,13 @@ import RxCocoa
 final class HomeOnboardingCell: UICollectionViewCell {
     private(set) var disposeBag = DisposeBag()
     
-//    fileprivate let surveyButton = IconButton(title: "검사하기", labelConfig: .body13Medium, rightImage: .arrowRight, spacing: 0).then {
-//        $0.applyColor(.primary400)
-//        $0.setTouchSize(CGSize(width: 90, height: 55))
-//    }
-    
-    fileprivate let surveyButton = IconButton()
+    fileprivate let surveyButton = IconButton(config: .icon, style: .rightImage, spacing: 0).then {
+        $0.normalRightImage = .arrowRight
+        $0.title = "검사하기"
+        $0.titleLabel.apply(font: .systemFont(ofSize: 13, weight: .medium))
+        $0.applyColor(color: .primary400)
+        $0.setTouchSize(CGSize(width: 90, height: 55))
+    }
     
     override init(frame: CGRect) {
         super.init(frame: .zero)

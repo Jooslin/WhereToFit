@@ -38,8 +38,6 @@ struct ButtonConfiguration {
         
         // IconButton
         case icon
-        case compactIcon
-        case locationIcon
         
         var padding: UIEdgeInsets {
             switch self {
@@ -51,7 +49,7 @@ struct ButtonConfiguration {
                     .init(top: 16, left: 24, bottom: 16, right: 24)
             case .onboardingCard:
                     .init(top: 18, left: 0, bottom: 14, right: 0)
-            case .icon, .compactIcon, .locationIcon:
+            case .icon:
                     .init(top: 0, left: 0, bottom: 0, right: 0)
             }
         }
@@ -70,10 +68,6 @@ struct ButtonConfiguration {
                 return CGSize(width: 100, height: 100)
             case .icon:
                     return CGSize(width: 24, height: 24)
-            case .compactIcon:
-                return CGSize(width: 20, height: 20)
-            case .locationIcon:
-                return CGSize(width: 109, height: 26)
             }
         }
         
@@ -85,9 +79,7 @@ struct ButtonConfiguration {
                 return .body14Semibold
             case .onboarding, .onboardingCard:
                 return .title16
-            case .locationIcon:
-                return .title20Semibold
-            case .icon, .compactIcon:
+            case .icon:
                 return .body12Medium
             }
         }
@@ -140,5 +132,4 @@ extension ButtonConfiguration {
     
     //MARK: IconButton
     static let icon = make(size: .icon, style: .fill, color: .clear, titleColor: .gray900)
-    static let locationIcon = make(size: .locationIcon, style: .fill, color: .clear, titleColor: .gray900)
 }

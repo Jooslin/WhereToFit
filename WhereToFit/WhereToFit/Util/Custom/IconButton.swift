@@ -218,8 +218,11 @@ class IconButton: DesignButton {
         leftImageView.image = isSelected ? selectedImage ?? normalImage : normalImage
         rightImageView.image = isSelected ? selectedRightImage ?? normalRightImage : normalRightImage
         
-        leftImageView.tintColor = isSelected ? selectedConfig?.titleColor ?? config.titleColor : config.titleColor
-        rightImageView.tintColor = isSelected ? selectedConfig?.titleColor ?? config.titleColor : config.titleColor
+        let normalColor = normalTintColorOverride ?? config.titleColor
+        let selectedColor = selectedTintColorOverride ?? selectedConfig?.titleColor ?? config.titleColor
+        
+        leftImageView.tintColor = isSelected ? selectedColor : normalColor
+        rightImageView.tintColor = isSelected ? selectedColor : normalColor
     }
     
     private func invalidateLayout() {
@@ -235,6 +238,8 @@ extension IconButton {
     func applyColor(color: UIColor, selectedColor: UIColor? = nil) {
         normalTintColorOverride = color
         selectedTintColorOverride = selectedColor
+        
+        titleLabel.textColor = isSelected ? selectedColor : color
         updateImage()
     }
     
