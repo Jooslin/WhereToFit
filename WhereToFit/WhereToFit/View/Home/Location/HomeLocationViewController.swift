@@ -29,9 +29,9 @@ final class HomeLocationViewController: BaseViewController<HomeReactor> {
     
     private func bindAction(reactor: HomeReactor) {
         locationView.rx.searchBarTap
-            .bind(with: self) { _, _ in
-                // WebView presentation will be implemented here.
-            }
+            .subscribe(onNext: { [weak self] in
+                self?.present()
+            })
             .disposed(by: disposeBag)
     }
     
@@ -39,6 +39,11 @@ final class HomeLocationViewController: BaseViewController<HomeReactor> {
         let state = reactor.state
             .asDriver(onErrorJustReturn: .init())
         
+    }
+    
+    func present() {
+        let vc = KakaoPostCodeViewController()
+        self.present(vc, animated: true)
     }
 }
 
