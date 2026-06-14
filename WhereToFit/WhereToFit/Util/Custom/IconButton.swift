@@ -154,6 +154,10 @@ class IconButton: DesignButton {
         let hitFrame = bounds.insetBy(dx: widthInset, dy: heightInset)
         return hitFrame.contains(point)
     }
+    
+    override func layoutContent() {
+        stackView.frame = bounds.inset(by: config.size.padding)
+    }
 }
 
 //MARK: Layout
