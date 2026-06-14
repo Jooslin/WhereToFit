@@ -13,10 +13,16 @@ import RxSwift
 
 final class HomeLocationView: UIView {
     let titleView = TitleView(text: "위치 지정", leftButtonImage: .arrowLeft, rightButtonImage: .edit)
-    let searchBar = SearchBar(placeholder: "주소로 검색하기")
+    let searchBar = SearchBar(placeholder: "주소로 검색하기").then {
+        $0.isTextInputEnabled = false
+    }
     let currentLocationButton = DesignButton(config: .largeBorderBlue).then {
         $0.title = "현재 위치로 지정"
     }
+    
+    fileprivate let searchBarTapGesture = UITapGestureRecognizer()
+    
+    // collectionView
     private(set) lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout()).then {
         $0.layoutMargins = .init(top: 0, left: 16, bottom: 0, right: 16)
     }
@@ -24,6 +30,7 @@ final class HomeLocationView: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        searchBar.addGestureRecognizer(searchBarTapGesture)
         setLayout()
     }
     
@@ -132,6 +139,11 @@ extension Reactive where Base: HomeLocationView {
     
     var currentLocationButtonTap: ControlEvent<Void> {
         base.currentLocationButton.rx.tap
+    }
+    
+    var searchBarTap: ControlEvent<Void> {
+        let source = base.searchBarTapGesture.rx.event.map { _ in }
+        return ControlEvent(events: source)
     }
     
     var listCellSelected: Observable<Location> {
