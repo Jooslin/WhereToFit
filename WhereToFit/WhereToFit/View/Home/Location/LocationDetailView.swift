@@ -13,14 +13,81 @@ import RxSwift
 
 final class LocationDetailView: UIView {
     let titleView = TitleView(text: "위치 상세", leftButtonImage: .arrowLeft)
-    let addressLabel = UILabel(config: .body14Medium)
+    let addressLabel = UILabel(text: "주소", config: .body14Medium, color: .gray600)
     let addressTextField = DesignTextField()
-//    let myHomeButton = IconButton(image: .home, title: "우리집").then {
-//        
-//    }
-//    let officeButton = IconButton(image: .home, title: "회사")
-//    let addButton = IconButton(image: .locationPin, title: "추가")
+    let homeButton = IconButton(config: .iconAdditional, selectedConfig: .selectedIconAdditional, style: .leftImage, iconSize: .tiny).then {
+        $0.normalImage = .home
+        $0.selectedImage = .homeFilled
+        $0.title = "우리집"
+    }
+    let officeButton = IconButton(config: .iconAdditional, selectedConfig: .selectedIconAdditional, style: .leftImage, iconSize: .tiny).then {
+        $0.normalImage = .home
+        $0.selectedImage = .homeFilled
+        $0.title = "회사"
+    }
+    let addButton = IconButton(config: .iconAdditional, selectedConfig: .selectedIconAdditional, style: .leftImage, iconSize: .tiny).then {
+        $0.normalImage = .locationPin
+        $0.selectedImage = .locationPinFilled
+        $0.title = "추가"
+        $0.isSelected = true
+    }
     let nameTextField = DesignTextField().then {
         $0.placeholder = "장소 이름을 입력해주세요"
+        $0.isHidden = false
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setLayout()
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+extension LocationDetailView {
+    private func setLayout() {
+        let addressStack = UIStackView(arrangedSubviews: [addressLabel, addressTextField]).then {
+            $0.axis = .vertical
+            $0.spacing = 8
+            $0.alignment = .fill
+        }
+        
+        let buttonStack = UIStackView(arrangedSubviews: [homeButton, officeButton, addButton]).then {
+            $0.axis = .horizontal
+            $0.spacing = 8
+            $0.alignment = .center
+        }
+        
+        let stackView = UIStackView(arrangedSubviews: [addressStack, buttonStack, nameTextField]).then {
+            $0.axis = .vertical
+            $0.spacing = 12
+            $0.alignment = .leading
+        }
+        
+        addSubview(titleView)
+        addSubview(stackView)
+        
+        titleView.snp.makeConstraints {
+            $0.top.equalTo(safeAreaLayoutGuide)
+            $0.horizontalEdges.equalToSuperview()
+        }
+        
+        stackView.snp.makeConstraints {
+            $0.top.equalTo(titleView.snp.bottom).offset(12)
+            $0.horizontalEdges.equalToSuperview().inset(16)
+        }
+        
+        addressTextField.snp.makeConstraints {
+            $0.height.equalTo(48)
+            $0.width.equalTo(stackView.snp.width)
+        }
+        
+        nameTextField.snp.makeConstraints {
+            $0.height.equalTo(48)
+            $0.width.equalToSuperview()
+        }
     }
 }

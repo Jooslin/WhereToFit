@@ -105,10 +105,11 @@ class IconButton: DesignButton {
         
         guard !widths.isEmpty else { return .zero }
         
+        let padding = config.size.padding
         let totalSpacing = spacing * CGFloat(max(0, widths.count - 1))
         return CGSize(
-            width: widths.reduce(0, +) + totalSpacing,
-            height: heights.max() ?? 0
+            width: widths.reduce(0, +) + totalSpacing + padding.left + padding.right,
+            height: (heights.max() ?? 0) + padding.top + padding.bottom
         )
     }
     
@@ -154,11 +155,6 @@ class IconButton: DesignButton {
         let hitFrame = bounds.insetBy(dx: widthInset, dy: heightInset)
         return hitFrame.contains(point)
     }
-    
-    // 패딩 적용
-    override func layoutContent() {
-        stackView.frame = bounds.inset(by: config.size.padding)
-    }
 }
 
 //MARK: Layout
@@ -187,7 +183,7 @@ extension IconButton {
         addSubview(stackView)
         
         stackView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.edges.equalToSuperview().inset(config.size.padding)
         }
         
         [leftImageView, rightImageView].forEach {
@@ -236,6 +232,7 @@ extension IconButton {
     enum IconSize {
         case compact
         case regular
+        case tiny
 
         var size: CGSize {
             switch self {
@@ -243,6 +240,8 @@ extension IconButton {
                 return CGSize(width: 20, height: 20)
             case .regular:
                 return CGSize(width: 24, height: 24)
+            case .tiny:
+                return CGSize(width: 16, height: 16)
             }
         }
     }
