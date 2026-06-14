@@ -26,13 +26,19 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
 
         calendarView.rx.weightCardTap
             .bind(with: self) { owner, _ in
-                owner.presentWeightInputSheet(currentWeight: reactor.currentState.weight)
+                owner.steps.accept(AppStep.calendarWeightInput)
             }
             .disposed(by: disposeBag)
 
         calendarView.rx.conditionCardTap
             .bind(with: self) { owner, _ in
-                owner.presentConditionInputSheet(currentCondition: reactor.currentState.condition)
+                owner.steps.accept(AppStep.calendarConditionInput)
+            }
+            .disposed(by: disposeBag)
+
+        calendarView.rx.exerciseAddButtonTap
+            .bind(with: self) { owner, _ in
+                owner.steps.accept(AppStep.calendarExerciseRecordInput)
             }
             .disposed(by: disposeBag)
 
@@ -62,29 +68,5 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
                 owner.calendarView.updateExerciseItems(items)
             }
             .disposed(by: disposeBag)
-    }
-}
-
-private extension CalendarViewController {
-    func presentWeightInputSheet(currentWeight: CalendarReactor.WeightValue) {
-        let viewController = WeightInputViewController(currentWeight: currentWeight)
-        viewController.modalPresentationStyle = .overFullScreen
-        viewController.modalTransitionStyle = .crossDissolve
-        viewController.onSave = { [weak self] weight in
-            self?.reactor?.action.onNext(.updateWeight(weight))
-        }
-
-        present(viewController, animated: true)
-    }
-
-    func presentConditionInputSheet(currentCondition: CalendarReactor.ConditionValue) {
-        let viewController = ConditionInputViewController(currentCondition: currentCondition)
-        viewController.modalPresentationStyle = .overFullScreen
-        viewController.modalTransitionStyle = .crossDissolve
-        viewController.onSave = { [weak self] condition in
-            self?.reactor?.action.onNext(.updateCondition(condition))
-        }
-
-        present(viewController, animated: true)
     }
 }
