@@ -79,6 +79,7 @@ final class CalendarView: UIView {
     private var exerciseCollectionViewHeightConstraint: Constraint?
 
     fileprivate let weightCardTap = PublishRelay<Void>()
+    fileprivate let conditionCardTap = PublishRelay<Void>()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -98,6 +99,10 @@ final class CalendarView: UIView {
 extension CalendarView {
     func updateWeight(_ weight: CalendarReactor.WeightValue) {
         weightCard.updateValue(weight.displayText)
+    }
+
+    func updateCondition(_ condition: CalendarReactor.ConditionValue) {
+        conditionCard.updateValue(condition.displayText)
     }
 
     func updateExerciseItems(_ items: [CalendarReactor.ExerciseItem]) {
@@ -207,6 +212,7 @@ private extension CalendarView {
     func setAction() {
         todayButton.addTarget(self, action: #selector(todayButtonTapped), for: .touchUpInside)
         weightCard.addTarget(self, action: #selector(weightCardTapped), for: .touchUpInside)
+        conditionCard.addTarget(self, action: #selector(conditionCardTapped), for: .touchUpInside)
     }
 
     @objc func todayButtonTapped() {
@@ -223,6 +229,10 @@ private extension CalendarView {
 
     @objc func weightCardTapped() {
         weightCardTap.accept(())
+    }
+
+    @objc func conditionCardTapped() {
+        conditionCardTap.accept(())
     }
 
     func updateSelectedDateLabel(date: Date) {
@@ -282,6 +292,10 @@ extension CalendarView: UICollectionViewDataSource {
 extension Reactive where Base: CalendarView {
     var weightCardTap: PublishRelay<Void> {
         base.weightCardTap
+    }
+
+    var conditionCardTap: PublishRelay<Void> {
+        base.conditionCardTap
     }
 }
 
