@@ -32,7 +32,7 @@ import RxCocoa
     - rightSelectedImage: 선택 상태(`isSelected == true`)에서 보여줄 우측 이미지
     - spacing: 좌측 / 레이블 / 우측 각 요소간 간격
 */
-class IconButton: UIControl {
+class IconButton: DesignButton {
     private enum Metric {
         static let hitSize = CGSize(width: 44, height: 44)
     }
@@ -54,26 +54,69 @@ class IconButton: UIControl {
             }
         }
     }
-
-    private let stackView: UIStackView
-    private let iconImageView: UIImageView
-    private let titleLabel: UILabel
-    private let rightIconImageView: UIImageView
     
-    private var normalImage: UIImage?
-    private var selectedImage: UIImage?
-    private var normalRightImage: UIImage?
-    private var selectedRightImage: UIImage?
+    enum ButtonStyle {
+        case icon
+        case leftImage
+        case rightImage
+        case bothImage
+    }
+
+    let style: ButtonStyle
+    
+    private lazy var stackView =  UIStackView(arrangedSubviews: [leftImageView, titleLabel, rightImageView]).then {
+        $0.axis = .horizontal
+        $0.alignment = .center
+        $0.spacing = spacing
+        $0.isUserInteractionEnabled = false
+    }
+    private let leftImageView = UIImageView().then {
+        $0.contentMode = .scaleAspectFit
+        $0.isUserInteractionEnabled = false
+    }
+    private let rightImageView = UIImageView().then {
+        $0.contentMode = .scaleAspectFit
+        $0.isUserInteractionEnabled = false
+    }
+    
+    var normalImage: UIImage? {
+        didSet {
+            updateImage()
+        }
+    }
+    var normalRightImage: UIImage? {
+        didSet {
+            updateImage()
+        }
+    }
+    var selectedImage: UIImage? {
+        didSet {
+            updateImage()
+        }
+    }
+    var selectedRightImage: UIImage? {
+        didSet {
+            updateImage()
+        }
+    }
+    
+    private var normalTintColorOverride: UIColor?
+    private var selectedTintColorOverride: UIColor?
+    
     private let spacing: CGFloat
     private let iconSize: IconSize
     private var touchSize = Metric.hitSize
     
     // 고유 크기 계산
     override var intrinsicContentSize: CGSize {
+        if case .icon = style {
+            return iconSize.size
+        }
+        
         var widths: [CGFloat] = []
         var heights: [CGFloat] = []
         
-        if !iconImageView.isHidden {
+        if !leftImageView.isHidden {
             widths.append(iconSize.size.width)
             heights.append(iconSize.size.height)
         }
@@ -84,7 +127,7 @@ class IconButton: UIControl {
             heights.append(titleSize.height)
         }
         
-        if !rightIconImageView.isHidden {
+        if !rightImageView.isHidden {
             widths.append(iconSize.size.width)
             heights.append(iconSize.size.height)
         }
@@ -102,54 +145,41 @@ class IconButton: UIControl {
     override var isSelected: Bool {
         didSet {
             updateImage()
-        }
-    }
-    
-    override var isHighlighted: Bool {
-        didSet {
-            alpha = isHighlighted ? 0.5 : 1
+ 
+            let normalColor = normalTintColorOverride ?? config.titleColor
+            let selectedColor = selectedTintColorOverride ?? selectedConfig?.titleColor ?? config.titleColor
+            
+            leftImageView.tintColor = isSelected ? selectedColor : normalColor
+            rightImageView.tintColor = isSelected ? selectedColor : normalColor
+            titleLabel.textColor = isSelected ? selectedColor : normalColor
         }
     }
     
     init(
-        image: UIImage? = nil,
-        selectedImage: UIImage? = nil,
-        title: String? = nil,
-        labelConfig: LabelConfiguration = .body14Medium,
-        rightImage: UIImage? = nil,
-        selectedRightImage: UIImage? = nil,
+        config: ButtonConfiguration = .icon,
+        selectedConfig: ButtonConfiguration? = nil,
+        style: ButtonStyle = .icon,
         iconSize: IconSize = .regular,
         spacing: CGFloat = 4
     ) {
-        self.normalImage = image
-        self.selectedImage = selectedImage
-        self.normalRightImage = rightImage
-        self.selectedRightImage = selectedRightImage
         self.iconSize = iconSize
         self.spacing = spacing
+        self.style = style
+        
+        super.init(config: config, selectedConfig: selectedConfig)
         
         // set attributes
-        iconImageView = UIImageView(image: image).then {
-            $0.contentMode = .scaleAspectFit
-            $0.isUserInteractionEnabled = false
+        switch style {
+        case .icon:
+            titleLabel.isHidden = true
+            rightImageView.isHidden = true
+        case .leftImage:
+            rightImageView.isHidden = true
+        case .rightImage:
+            leftImageView.isHidden = true
+        case .bothImage:
+            break
         }
-        titleLabel = UILabel(text: title ?? "", config: labelConfig).then {
-            $0.textAlignment = .center
-            $0.numberOfLines = 1
-            $0.isUserInteractionEnabled = false
-        }
-        rightIconImageView = UIImageView(image: rightImage).then {
-            $0.contentMode = .scaleAspectFit
-            $0.isUserInteractionEnabled = false
-        }
-        stackView = UIStackView(arrangedSubviews: [iconImageView, titleLabel, rightIconImageView]).then {
-            $0.axis = .horizontal
-            $0.alignment = .center
-            $0.spacing = spacing
-            $0.isUserInteractionEnabled = false
-        }
-        
-        super.init(frame: .zero)
         
         // set priority
         setContentHuggingPriority(.required, for: .horizontal)
@@ -157,18 +187,14 @@ class IconButton: UIControl {
         titleLabel.setContentHuggingPriority(.required, for: .horizontal)
         titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         
-        // set Layout
-        iconImageView.isHidden = image == nil
-        titleLabel.isHidden = title == nil
-        rightIconImageView.isHidden = rightImage == nil
-        
+        // set layout
         addSubview(stackView)
         
         stackView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
         
-        [iconImageView, rightIconImageView].forEach {
+        [leftImageView, rightImageView].forEach {
             $0.snp.makeConstraints {
                 $0.width.height.equalTo(iconSize.size)
             }
@@ -189,8 +215,11 @@ class IconButton: UIControl {
     }
     
     private func updateImage() {
-        iconImageView.image = isSelected ? selectedImage ?? normalImage : normalImage
-        rightIconImageView.image = isSelected ? selectedRightImage ?? normalRightImage : normalRightImage
+        leftImageView.image = isSelected ? selectedImage ?? normalImage : normalImage
+        rightImageView.image = isSelected ? selectedRightImage ?? normalRightImage : normalRightImage
+        
+        leftImageView.tintColor = isSelected ? selectedConfig?.titleColor ?? config.titleColor : config.titleColor
+        rightImageView.tintColor = isSelected ? selectedConfig?.titleColor ?? config.titleColor : config.titleColor
     }
     
     private func invalidateLayout() {
@@ -201,47 +230,11 @@ class IconButton: UIControl {
 }
 
 //MARK: Configure
-extension IconButton {
-    // 이미지 설정
-    func setImage(_ image: UIImage?, rightImage: UIImage? = nil, for state: ButtonState) {
-        if let image {
-            switch state {
-            case .normal:
-                normalImage = image
-                iconImageView.isHidden = false
-            case .selected:
-                selectedImage = image
-            }
-        }
-        
-        if let rightImage {
-            switch state {
-            case .normal:
-                normalRightImage = rightImage
-                rightIconImageView.isHidden = false
-            case .selected:
-                selectedRightImage = rightImage
-            }
-        }
-        
-        updateImage()
-        invalidateLayout()
-    }
-    
-    // 타이틀 설정
-    func setTitle(_ text: String) {
-        titleLabel.text = text
-        titleLabel.isHidden = false
-        invalidateLayout()
-    }
-    
+extension IconButton {    
     // 색상 설정
-    func applyColor(_ color: UIColor) {
-        normalImage = normalImage?.withTintColor(color, renderingMode: .alwaysOriginal)
-        selectedImage = selectedImage?.withTintColor(color, renderingMode: .alwaysOriginal)
-        normalRightImage = normalRightImage?.withTintColor(color, renderingMode: .alwaysOriginal)
-        selectedRightImage = selectedRightImage?.withTintColor(color, renderingMode: .alwaysOriginal)
-        titleLabel.textColor = color
+    func applyColor(color: UIColor, selectedColor: UIColor? = nil) {
+        normalTintColorOverride = color
+        selectedTintColorOverride = selectedColor
         updateImage()
     }
     

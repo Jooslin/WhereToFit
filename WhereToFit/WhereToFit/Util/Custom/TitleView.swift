@@ -81,14 +81,14 @@ extension TitleView {
         }
         
         if let leftButtonImage {
-            leftButton.setImage(leftButtonImage, for: .normal)
+            leftButton.normalImage = leftButtonImage
             leftButton.isHidden = false
         } else {
             leftButton.isHidden = true
         }
         
         if let rightButtonImage {
-            rightButton.setImage(rightButtonImage, for: .normal)
+            rightButton.normalImage = rightButtonImage
             rightButton.isHidden = false
         } else {
             rightButton.isHidden = true
@@ -122,8 +122,8 @@ extension TitleView {
     // 색상 변경 메서드
     func apply(color: UIColor) {
         titleLabel.textColor = color
-        leftButton.applyColor(color)
-        rightButton.applyColor(color)
+        leftButton.applyColor(color: color)
+        rightButton.applyColor(color: color)
     }
 }
 

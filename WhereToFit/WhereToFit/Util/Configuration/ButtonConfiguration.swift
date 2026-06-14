@@ -27,11 +27,19 @@ struct ButtonConfiguration {
     }
     
     enum ButtonSize {
+        // DesignButton
         case small
         case medium
         case large
+        
+        // OnboardingButton
         case onboarding
         case onboardingCard
+        
+        // IconButton
+        case icon
+        case compactIcon
+        case locationIcon
         
         var padding: UIEdgeInsets {
             switch self {
@@ -43,24 +51,44 @@ struct ButtonConfiguration {
                     .init(top: 16, left: 24, bottom: 16, right: 24)
             case .onboardingCard:
                     .init(top: 18, left: 0, bottom: 14, right: 0)
+            case .icon, .compactIcon, .locationIcon:
+                    .init(top: 0, left: 0, bottom: 0, right: 0)
             }
         }
         
         var size: CGSize {
             switch self {
-            case .small: return CGSize(width: 80, height: 38)
-            case .medium: return CGSize(width: 222, height: 48)
-            case .large: return CGSize(width: 343, height: 48)
-            case .onboarding: return CGSize(width: 343, height: 60)
-            case .onboardingCard: return CGSize(width: 100, height: 100)
+            case .small:
+                return CGSize(width: 80, height: 38)
+            case .medium:
+                return CGSize(width: 222, height: 48)
+            case .large:
+                return CGSize(width: 343, height: 48)
+            case .onboarding:
+                return CGSize(width: 343, height: 60)
+            case .onboardingCard:
+                return CGSize(width: 100, height: 100)
+            case .icon:
+                    return CGSize(width: 24, height: 24)
+            case .compactIcon:
+                return CGSize(width: 20, height: 20)
+            case .locationIcon:
+                return CGSize(width: 109, height: 26)
             }
         }
         
         var labelConfig: LabelConfiguration {
             switch self {
-            case .small: return .body12Medium
-            case .medium, .large: return .body14Semibold
-            case .onboarding, .onboardingCard: return .title16
+            case .small:
+                return .body12Medium
+            case .medium, .large:
+                return .body14Semibold
+            case .onboarding, .onboardingCard:
+                return .title16
+            case .locationIcon:
+                return .title20Semibold
+            case .icon, .compactIcon:
+                return .body12Medium
             }
         }
     }
@@ -109,4 +137,8 @@ extension ButtonConfiguration {
     //MARK: Onboarding
     static let onboarding = make(size: .onboarding, style: .fill, color: .gray50, titleColor: .gray600)
     static let onboardingCard = make(size: .onboardingCard, style: .fill, color: .gray50, titleColor: .gray600)
+    
+    //MARK: IconButton
+    static let icon = make(size: .icon, style: .fill, color: .clear, titleColor: .gray900)
+    static let locationIcon = make(size: .locationIcon, style: .fill, color: .clear, titleColor: .gray900)
 }

@@ -10,7 +10,10 @@ import SnapKit
 import Then
 
 final class ProgramImageView: RoundImageView {
-    let favoriteButton = IconButton(image: .heart, selectedImage: .heartFilled, iconSize: .compact)
+    let favoriteButton = IconButton(iconSize: .compact).then {
+        $0.normalImage = .heart
+        $0.selectedImage = .heartFilled
+    }
     private let gradientLayer = CAGradientLayer()
     
     init(image: UIImage?) {
@@ -35,7 +38,7 @@ final class ProgramImageView: RoundImageView {
             $0.bottom.trailing.equalToSuperview().inset(8)
         }
         
-        favoriteButton.applyColor(.white)
+        favoriteButton.applyColor(color: .white)
     }
     
     override func layoutSubviews() {
