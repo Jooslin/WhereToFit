@@ -33,36 +33,13 @@ import RxCocoa
     - spacing: 좌측 / 레이블 / 우측 각 요소간 간격
 */
 class IconButton: DesignButton {
-    private enum Metric {
-        static let hitSize = CGSize(width: 44, height: 44)
-    }
+    private let style: ButtonStyle
+    private let spacing: CGFloat
+    private let iconSize: IconSize
+    private var touchSize = Metric.hitSize
     
-    enum ButtonState {
-        case normal, selected
-    }
-    
-    enum IconSize {
-        case compact
-        case regular
-
-        var size: CGSize {
-            switch self {
-            case .compact:
-                return CGSize(width: 20, height: 20)
-            case .regular:
-                return CGSize(width: 24, height: 24)
-            }
-        }
-    }
-    
-    enum ButtonStyle {
-        case icon
-        case leftImage
-        case rightImage
-        case bothImage
-    }
-
-    let style: ButtonStyle
+    private var normalTintColorOverride: UIColor?
+    private var selectedTintColorOverride: UIColor?
     
     private lazy var stackView =  UIStackView(arrangedSubviews: [leftImageView, titleLabel, rightImageView]).then {
         $0.axis = .horizontal
@@ -79,6 +56,7 @@ class IconButton: DesignButton {
         $0.isUserInteractionEnabled = false
     }
     
+    // 이미지
     var normalImage: UIImage? {
         didSet {
             updateImage()
@@ -99,13 +77,6 @@ class IconButton: DesignButton {
             updateImage()
         }
     }
-    
-    private var normalTintColorOverride: UIColor?
-    private var selectedTintColorOverride: UIColor?
-    
-    private let spacing: CGFloat
-    private let iconSize: IconSize
-    private var touchSize = Metric.hitSize
     
     // 고유 크기 계산
     override var intrinsicContentSize: CGSize {
@@ -168,7 +139,27 @@ class IconButton: DesignButton {
         
         super.init(config: config, selectedConfig: selectedConfig)
         
-        // set attributes
+        setLayout()
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    // 터치 범위 설정
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        let widthInset = min(0, bounds.width - touchSize.width) / 2
+        let heightInset = min(0, bounds.height - touchSize.height) / 2
+        let hitFrame = bounds.insetBy(dx: widthInset, dy: heightInset)
+        return hitFrame.contains(point)
+    }
+}
+
+//MARK: Layout
+extension IconButton {
+    private func setLayout() {
+        // set isHidden
         switch style {
         case .icon:
             titleLabel.isHidden = true
@@ -200,36 +191,6 @@ class IconButton: DesignButton {
             }
         }
     }
-    
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    // 터치 범위 설정
-    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        let widthInset = min(0, bounds.width - touchSize.width) / 2
-        let heightInset = min(0, bounds.height - touchSize.height) / 2
-        let hitFrame = bounds.insetBy(dx: widthInset, dy: heightInset)
-        return hitFrame.contains(point)
-    }
-    
-    private func updateImage() {
-        leftImageView.image = isSelected ? selectedImage ?? normalImage : normalImage
-        rightImageView.image = isSelected ? selectedRightImage ?? normalRightImage : normalRightImage
-        
-        let normalColor = normalTintColorOverride ?? config.titleColor
-        let selectedColor = selectedTintColorOverride ?? selectedConfig?.titleColor ?? config.titleColor
-        
-        leftImageView.tintColor = isSelected ? selectedColor : normalColor
-        rightImageView.tintColor = isSelected ? selectedColor : normalColor
-    }
-    
-    private func invalidateLayout() {
-        invalidateIntrinsicContentSize()
-        setNeedsLayout()
-        superview?.setNeedsLayout()
-    }
 }
 
 //MARK: Configure
@@ -247,8 +208,49 @@ extension IconButton {
     func setTouchSize(_ size: CGSize) {
         touchSize = size
     }
+    
+    // 이미지 업데이트
+    private func updateImage() {
+        leftImageView.image = isSelected ? selectedImage ?? normalImage : normalImage
+        rightImageView.image = isSelected ? selectedRightImage ?? normalRightImage : normalRightImage
+        
+        let normalColor = normalTintColorOverride ?? config.titleColor
+        let selectedColor = selectedTintColorOverride ?? selectedConfig?.titleColor ?? config.titleColor
+        
+        leftImageView.tintColor = isSelected ? selectedColor : normalColor
+        rightImageView.tintColor = isSelected ? selectedColor : normalColor
+    }
 }
 
+//MARK: Components
+extension IconButton {
+    private enum Metric {
+        static let hitSize = CGSize(width: 44, height: 44)
+    }
+    
+    enum IconSize {
+        case compact
+        case regular
+
+        var size: CGSize {
+            switch self {
+            case .compact:
+                return CGSize(width: 20, height: 20)
+            case .regular:
+                return CGSize(width: 24, height: 24)
+            }
+        }
+    }
+    
+    enum ButtonStyle {
+        case icon
+        case leftImage
+        case rightImage
+        case bothImage
+    }
+}
+
+//MARK: Reactive
 extension Reactive where Base: IconButton {
     var tap: ControlEvent<Void> {
         controlEvent(.touchUpInside)
