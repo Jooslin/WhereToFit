@@ -5,6 +5,8 @@
 //  Created by Yeseul Jang on 6/10/26.
 //
 
+import RxCocoa
+import RxSwift
 import SnapKit
 import Then
 import UIKit
@@ -76,6 +78,8 @@ final class CalendarView: UIView {
     private var exerciseItems: [CalendarReactor.ExerciseItem] = []
     private var exerciseCollectionViewHeightConstraint: Constraint?
 
+    fileprivate let weightCardTap = PublishRelay<Void>()
+
     override init(frame: CGRect) {
         super.init(frame: frame)
 
@@ -92,6 +96,10 @@ final class CalendarView: UIView {
 }
 
 extension CalendarView {
+    func updateWeight(_ weight: CalendarReactor.WeightValue) {
+        weightCard.updateValue(weight.displayText)
+    }
+
     func updateExerciseItems(_ items: [CalendarReactor.ExerciseItem]) {
         exerciseItems = items
         exerciseCollectionView.reloadData()
@@ -198,6 +206,7 @@ private extension CalendarView {
 
     func setAction() {
         todayButton.addTarget(self, action: #selector(todayButtonTapped), for: .touchUpInside)
+        weightCard.addTarget(self, action: #selector(weightCardTapped), for: .touchUpInside)
     }
 
     @objc func todayButtonTapped() {
@@ -210,6 +219,10 @@ private extension CalendarView {
         }
 
         updateSelectedDateLabel(date: today)
+    }
+
+    @objc func weightCardTapped() {
+        weightCardTap.accept(())
     }
 
     func updateSelectedDateLabel(date: Date) {
@@ -266,7 +279,13 @@ extension CalendarView: UICollectionViewDataSource {
     }
 }
 
-private final class CalendarInfoCardView: UIView {
+extension Reactive where Base: CalendarView {
+    var weightCardTap: PublishRelay<Void> {
+        base.weightCardTap
+    }
+}
+
+fileprivate final class CalendarInfoCardView: UIControl {
     private let titleLabel: UILabel
     private let valueLabel: UILabel
     private let unitLabel: UILabel?
@@ -285,6 +304,12 @@ private final class CalendarInfoCardView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+}
+
+fileprivate extension CalendarInfoCardView {
+    func updateValue(_ value: String) {
+        valueLabel.text = value
     }
 }
 
