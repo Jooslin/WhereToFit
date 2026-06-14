@@ -40,6 +40,7 @@ struct ButtonConfiguration {
         case icon
         
         //additional
+        case additional
         case additionalIcon
         
         var padding: UIEdgeInsets {
@@ -54,6 +55,8 @@ struct ButtonConfiguration {
                     .init(top: 18, left: 0, bottom: 14, right: 0)
             case .icon:
                     .init(top: 0, left: 0, bottom: 0, right: 0)
+            case .additional:
+                    .init(top: 4, left: 12, bottom: 4, right: 12)
             case .additionalIcon:
                     .init(top: 6, left: 10, bottom: 6, right: 12)
             }
@@ -73,6 +76,8 @@ struct ButtonConfiguration {
                 return CGSize(width: 100, height: 100)
             case .icon:
                 return CGSize(width: 24, height: 24)
+            case .additional:
+                return CGSize(width: 47, height: 25)
             case .additionalIcon:
                 return CGSize(width: 74, height: 29)
             }
@@ -80,14 +85,12 @@ struct ButtonConfiguration {
         
         var labelConfig: LabelConfiguration {
             switch self {
-            case .small:
+            case .small, .icon, .additional, .additionalIcon:
                 return .body12Medium
             case .medium, .large:
                 return .body14Semibold
             case .onboarding, .onboardingCard:
                 return .title16
-            case .icon, .additionalIcon:
-                return .body12Medium
             }
         }
     }
