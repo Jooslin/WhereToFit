@@ -11,7 +11,7 @@ import ReactorKit
 import RxCocoa
 
 final class HomeLocationViewController: BaseViewController<HomeReactor> {
-    private let locationView = HomeLocationView()
+    private let locationView = HomeLocationEditView()
     
     override func loadView() {
         view = locationView
