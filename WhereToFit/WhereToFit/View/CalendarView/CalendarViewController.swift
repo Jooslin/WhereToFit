@@ -24,12 +24,27 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
             }
             .disposed(by: disposeBag)
 
+        calendarView.rx.conditionCardTap
+            .bind(with: self) { owner, _ in
+                owner.presentConditionInputSheet(currentCondition: reactor.currentState.condition)
+            }
+            .disposed(by: disposeBag)
+
         reactor.state
             .map(\.weight)
             .distinctUntilChanged()
             .observe(on: MainScheduler.instance)
             .bind(with: self) { owner, weight in
                 owner.calendarView.updateWeight(weight)
+            }
+            .disposed(by: disposeBag)
+
+        reactor.state
+            .map(\.condition)
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind(with: self) { owner, condition in
+                owner.calendarView.updateCondition(condition)
             }
             .disposed(by: disposeBag)
 
@@ -51,6 +66,17 @@ private extension CalendarViewController {
         viewController.modalTransitionStyle = .crossDissolve
         viewController.onSave = { [weak self] weight in
             self?.reactor?.action.onNext(.updateWeight(weight))
+        }
+
+        present(viewController, animated: true)
+    }
+
+    func presentConditionInputSheet(currentCondition: CalendarReactor.ConditionValue) {
+        let viewController = ConditionInputViewController(currentCondition: currentCondition)
+        viewController.modalPresentationStyle = .overFullScreen
+        viewController.modalTransitionStyle = .crossDissolve
+        viewController.onSave = { [weak self] condition in
+            self?.reactor?.action.onNext(.updateCondition(condition))
         }
 
         present(viewController, animated: true)
