@@ -155,6 +155,7 @@ class IconButton: DesignButton {
         return hitFrame.contains(point)
     }
     
+    // 패딩 적용
     override func layoutContent() {
         stackView.frame = bounds.inset(by: config.size.padding)
     }
