@@ -33,6 +33,10 @@ final class MainFlow: Flow {
         case .main:
             return navigateToMain()
             
+        case .pageBack:
+            pop(animated: true)
+            return .none
+            
         default:
             return .one(flowContributor: .forwardToParentFlow(withStep: step))
         }
