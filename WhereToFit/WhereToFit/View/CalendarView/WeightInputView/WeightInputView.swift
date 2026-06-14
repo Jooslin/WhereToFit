@@ -20,7 +20,7 @@ final class WeightInputView: UIView {
     }
 
     private let currentWeight: CalendarReactor.WeightValue
-    private let integerValues = Array(30...200)
+    private let integerValues = Array(20...200)
     private let decimalValues = Array(0...9)
 
     private let dimmedView = UIView().then {
@@ -123,7 +123,7 @@ private extension WeightInputView {
 
         saveButton.snp.makeConstraints {
             $0.horizontalEdges.equalToSuperview().inset(16)
-            $0.bottom.equalTo(safeAreaLayoutGuide).inset(20)
+            $0.bottom.equalTo(safeAreaLayoutGuide)
             $0.height.equalTo(48)
         }
     }
@@ -205,7 +205,7 @@ extension WeightInputView: UIPickerViewDelegate {
         label.text = title(forRow: row, component: component)
         label.textAlignment = .center
         label.font = .systemFont(ofSize: 28, weight: isSelected(row: row, component: component) ? .bold : .semibold)
-        label.textColor = isSelected(row: row, component: component) ? .black : .gray300
+        label.textColor = isSelected(row: row, component: component) ? .black : .gray500
 
         if component == 3 {
             label.font = .systemFont(ofSize: 20, weight: .bold)
