@@ -51,7 +51,7 @@ final class CalendarView: UIView {
     }
 
     private let selectedDateLabel = UILabel(text: "5월 18일 월요일", config: .body16Medium)
-    private let todayButton = UIButton(type: .system).then {
+    fileprivate let todayButton = UIButton(type: .system).then {
         $0.setTitle("오늘", for: .normal)
         $0.setTitleColor(.gray600, for: .normal)
         $0.titleLabel?.font = LabelConfiguration.body12Medium.font
@@ -59,8 +59,8 @@ final class CalendarView: UIView {
         $0.layer.cornerRadius = 16
     }
 
-    private let weightCard = CalendarInfoCardView(title: "몸무게", value: "54.2", unit: "kg")
-    private let conditionCard = CalendarInfoCardView(title: "컨디션", value: "최악", unit: nil)
+    fileprivate let weightCard = CalendarInfoCardView(title: "몸무게", value: "54.2", unit: "kg")
+    fileprivate let conditionCard = CalendarInfoCardView(title: "컨디션", value: "최악", unit: nil)
 
     private let exerciseTitleLabel = UILabel(text: "운동", config: .body16Medium)
 
@@ -78,16 +78,12 @@ final class CalendarView: UIView {
     private var exerciseItems: [CalendarReactor.ExerciseItem] = []
     private var exerciseCollectionViewHeightConstraint: Constraint?
 
-    fileprivate let weightCardTap = PublishRelay<Void>()
-    fileprivate let conditionCardTap = PublishRelay<Void>()
-
     override init(frame: CGRect) {
         super.init(frame: frame)
 
         setStyle()
         setLayout()
         setCalendarSelection()
-        setAction()
     }
 
     @available(*, unavailable)
@@ -109,6 +105,18 @@ extension CalendarView {
         exerciseItems = items
         exerciseCollectionView.reloadData()
         exerciseCollectionViewHeightConstraint?.update(offset: CGFloat(items.count) * 60 + 24)
+    }
+
+    func moveToToday() {
+        let today = Date()
+        let todayComponents = calendar.dateComponents([.year, .month, .day], from: today)
+        calendarView.setVisibleDateComponents(todayComponents, animated: true)
+
+        if let selection = calendarView.selectionBehavior as? UICalendarSelectionSingleDate {
+            selection.setSelected(todayComponents, animated: true)
+        }
+
+        updateSelectedDateLabel(date: today)
     }
 }
 
@@ -209,32 +217,6 @@ private extension CalendarView {
         calendarView.selectionBehavior = selection
     }
 
-    func setAction() {
-        todayButton.addTarget(self, action: #selector(todayButtonTapped), for: .touchUpInside)
-        weightCard.addTarget(self, action: #selector(weightCardTapped), for: .touchUpInside)
-        conditionCard.addTarget(self, action: #selector(conditionCardTapped), for: .touchUpInside)
-    }
-
-    @objc func todayButtonTapped() {
-        let today = Date()
-        let todayComponents = calendar.dateComponents([.year, .month, .day], from: today)
-        calendarView.setVisibleDateComponents(todayComponents, animated: true)
-
-        if let selection = calendarView.selectionBehavior as? UICalendarSelectionSingleDate {
-            selection.setSelected(todayComponents, animated: true)
-        }
-
-        updateSelectedDateLabel(date: today)
-    }
-
-    @objc func weightCardTapped() {
-        weightCardTap.accept(())
-    }
-
-    @objc func conditionCardTapped() {
-        conditionCardTap.accept(())
-    }
-
     func updateSelectedDateLabel(date: Date) {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
@@ -289,13 +271,17 @@ extension CalendarView: UICollectionViewDataSource {
     }
 }
 
-extension Reactive where Base: CalendarView {
-    var weightCardTap: PublishRelay<Void> {
-        base.weightCardTap
+extension Reactive where Base == CalendarView {
+    var todayButtonTap: ControlEvent<Void> {
+        base.todayButton.rx.tap
     }
 
-    var conditionCardTap: PublishRelay<Void> {
-        base.conditionCardTap
+    var weightCardTap: ControlEvent<Void> {
+        base.weightCard.rx.controlEvent(.touchUpInside)
+    }
+
+    var conditionCardTap: ControlEvent<Void> {
+        base.conditionCard.rx.controlEvent(.touchUpInside)
     }
 }
 

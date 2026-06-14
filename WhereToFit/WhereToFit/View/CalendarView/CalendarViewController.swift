@@ -18,6 +18,12 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
     }
 
     override func bind(reactor: CalendarReactor) {
+        calendarView.rx.todayButtonTap
+            .bind(with: self) { owner, _ in
+                owner.calendarView.moveToToday()
+            }
+            .disposed(by: disposeBag)
+
         calendarView.rx.weightCardTap
             .bind(with: self) { owner, _ in
                 owner.presentWeightInputSheet(currentWeight: reactor.currentState.weight)
