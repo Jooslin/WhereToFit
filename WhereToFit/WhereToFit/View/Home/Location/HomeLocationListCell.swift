@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 import Then
 
-final class HomeLocationListCell: UICollectionViewListCell {
+class HomeLocationListCell: UICollectionViewListCell {
     let imageView = UIImageView().then {
         $0.tintColor = .gray900
     }
@@ -20,10 +20,14 @@ final class HomeLocationListCell: UICollectionViewListCell {
         $0.isHidden = true
     }
     
+    private(set) var labelStack = UIStackView()
+    private(set) var stackView = UIStackView()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.backgroundColor = .white
         
+        setAttributes()
         setLayout()
     }
     
@@ -38,31 +42,28 @@ final class HomeLocationListCell: UICollectionViewListCell {
         addressLabel.text = ""
         imageView.image = nil
     }
-}
-
-extension HomeLocationListCell {
-    func configure(_ location: Location) {
-        imageView.image = location.icon
-        nameLabel.text = location.name
-        addressLabel.text = location.address
-        checkImageView.isHidden = !location.isSelected
-    }
-}
-
-extension HomeLocationListCell {
-    private func setLayout() {
-        let labelStack = UIStackView(arrangedSubviews: [nameLabel, addressLabel]).then {
-            $0.axis = .vertical
-            $0.spacing = 2
-        }
+    
+    func setAttributes() {
+        stackView.addArrangedSubview(imageView)
+        stackView.addArrangedSubview(labelStack)
+        stackView.addArrangedSubview(checkImageView)
         
-        let stackView = UIStackView(arrangedSubviews: [imageView, labelStack, checkImageView]).then {
+        stackView.do {
             $0.axis = .horizontal
             $0.spacing = 12
             $0.alignment = .center
             
             imageView.setContentHuggingPriority(.required, for: .horizontal)
             imageView.setContentCompressionResistancePriority(.required, for: .horizontal)
+        }
+    }
+    
+    private func setLayout() {
+        labelStack.addArrangedSubview(nameLabel)
+        labelStack.addArrangedSubview(addressLabel)
+        labelStack.do {
+            $0.axis = .vertical
+            $0.spacing = 2
         }
         
         contentView.addSubview(stackView)
@@ -79,5 +80,14 @@ extension HomeLocationListCell {
         checkImageView.snp.makeConstraints {
             $0.height.width.equalTo(24)
         }
+    }
+}
+
+extension HomeLocationListCell {
+    func configure(_ location: Location) {
+        imageView.image = location.icon
+        nameLabel.text = location.name
+        addressLabel.text = location.address
+        checkImageView.isHidden = !location.isSelected
     }
 }

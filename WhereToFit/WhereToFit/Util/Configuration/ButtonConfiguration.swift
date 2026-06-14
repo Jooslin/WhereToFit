@@ -144,6 +144,7 @@ extension ButtonConfiguration {
     static let icon = make(size: .icon, style: .fill, color: .clear, titleColor: .gray900)
     
     //MARK: Additional Button
+    static let additional = make(size: .additional, style: .border, color: .white, titleColor: .gray800, borderColor: .gray200)
     static let iconAdditional = make(size: .additionalIcon, style: .border, color: .white, titleColor: .gray800, borderColor: .gray200)
     static let selectedIconAdditional = make(size: .additionalIcon, style: .border, color: .primary25, titleColor: .primary600, borderColor: .primary200)
 }
