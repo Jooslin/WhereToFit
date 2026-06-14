@@ -21,6 +21,11 @@ enum AppStep: Step {
     case calendarTab
     case myTab
 
+    // Calendar
+    case calendarWeightInput
+    case calendarConditionInput
+    case calendarExerciseRecordInput
+
     // My
     case profileManagement
     case notificationSetting
