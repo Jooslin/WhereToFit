@@ -63,6 +63,10 @@ final class CalendarView: UIView {
     fileprivate let conditionCard = CalendarInfoCardView(title: "컨디션", value: "최악", unit: nil)
 
     private let exerciseTitleLabel = UILabel(text: "운동", config: .body16Medium)
+    fileprivate let exerciseAddButton = UIButton(type: .system).then {
+        $0.setImage(UIImage(systemName: "plus"), for: .normal)
+        $0.tintColor = .gray700
+    }
 
     private lazy var exerciseCollectionView = UICollectionView(frame: .zero, collectionViewLayout: makeExerciseCollectionViewLayout()).then {
         $0.backgroundColor = .gray50
@@ -138,6 +142,7 @@ private extension CalendarView {
             weightCard,
             conditionCard,
             exerciseTitleLabel,
+            exerciseAddButton,
             exerciseCollectionView
         ].forEach(contentView.addSubview)
 
@@ -199,7 +204,15 @@ private extension CalendarView {
 
         exerciseTitleLabel.snp.makeConstraints {
             $0.top.equalTo(weightCard.snp.bottom).offset(18)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().offset(16)
+            $0.centerY.equalTo(exerciseAddButton)
+            $0.trailing.lessThanOrEqualTo(exerciseAddButton.snp.leading).offset(-12)
+        }
+
+        exerciseAddButton.snp.makeConstraints {
+            $0.top.equalTo(weightCard.snp.bottom).offset(10)
+            $0.trailing.equalToSuperview().inset(16)
+            $0.size.equalTo(32)
         }
 
         exerciseCollectionView.snp.makeConstraints {
@@ -282,6 +295,10 @@ extension Reactive where Base == CalendarView {
 
     var conditionCardTap: ControlEvent<Void> {
         base.conditionCard.rx.controlEvent(.touchUpInside)
+    }
+
+    var exerciseAddButtonTap: ControlEvent<Void> {
+        base.exerciseAddButton.rx.tap
     }
 }
 
