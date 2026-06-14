@@ -11,6 +11,7 @@ import RxSwift
 final class CalendarReactor: BaseReactor {
     let initialState = State(
         weight: WeightValue(integer: 54, decimal: 2),
+        condition: .worst,
         exerciseItems: [
             ExerciseItem(title: "수영", duration: "120분", calories: "00칼로리", icon: .gym),
             ExerciseItem(title: "수영", duration: "120분", calories: "00칼로리", icon: .gym),
@@ -31,6 +32,29 @@ final class CalendarReactor: BaseReactor {
         }
     }
 
+    enum ConditionValue: CaseIterable, Equatable {
+        case veryGood
+        case good
+        case normal
+        case bad
+        case worst
+
+        var displayText: String {
+            switch self {
+            case .veryGood:
+                return "매우 좋음"
+            case .good:
+                return "좋음"
+            case .normal:
+                return "보통"
+            case .bad:
+                return "안좋음"
+            case .worst:
+                return "최악"
+            }
+        }
+    }
+
     struct ExerciseItem: Equatable {
         let title: String
         let duration: String
@@ -40,14 +64,17 @@ final class CalendarReactor: BaseReactor {
 
     enum Action {
         case updateWeight(WeightValue)
+        case updateCondition(ConditionValue)
     }
 
     enum Mutation {
         case setWeight(WeightValue)
+        case setCondition(ConditionValue)
     }
 
     struct State {
         var weight: WeightValue
+        var condition: ConditionValue
         var exerciseItems: [ExerciseItem]
     }
 
@@ -55,6 +82,8 @@ final class CalendarReactor: BaseReactor {
         switch action {
         case .updateWeight(let weight):
             return .just(.setWeight(weight))
+        case .updateCondition(let condition):
+            return .just(.setCondition(condition))
         }
     }
 
@@ -64,6 +93,8 @@ final class CalendarReactor: BaseReactor {
         switch mutation {
         case .setWeight(let weight):
             newState.weight = weight
+        case .setCondition(let condition):
+            newState.condition = condition
         }
 
         return newState
