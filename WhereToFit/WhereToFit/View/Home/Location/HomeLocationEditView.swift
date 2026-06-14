@@ -18,6 +18,10 @@ final class HomeLocationEditView: UIView {
     }
     private(set) lazy var dataSource = makeDiffableDataSource(collectionView)
     
+    // Reactive
+    fileprivate let editButtonTap = PublishRelay<Void>()
+    fileprivate let deleteButtonTap = PublishRelay<Void>()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setLayout()
@@ -122,5 +126,13 @@ extension Reactive where Base: HomeLocationEditView {
                 base.dataSource.itemIdentifier(for: indexPath)
             }
             .asObservable()
+    }
+    
+    var editButtonTap: PublishRelay<Void> {
+        base.editButtonTap
+    }
+    
+    var deleteButtonTap: PublishRelay<Void> {
+        base.deleteButtonTap
     }
 }

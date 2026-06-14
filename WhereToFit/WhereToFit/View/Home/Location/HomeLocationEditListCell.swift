@@ -8,8 +8,12 @@
 import UIKit
 import SnapKit
 import Then
+import RxSwift
+import RxCocoa
 
 final class HomeLocationEditListCell: HomeLocationListCell {
+    private(set) var disposeBag = DisposeBag()
+    
     let editButton = DesignButton(config: .additional).then {
         $0.title = "수정"
     }
@@ -46,9 +50,7 @@ final class HomeLocationEditListCell: HomeLocationListCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        nameLabel.text = ""
-        addressLabel.text = ""
-        imageView.image = nil
+        disposeBag = DisposeBag()
     }
     
     override func layoutSubviews() {
@@ -89,5 +91,16 @@ final class HomeLocationEditListCell: HomeLocationListCell {
 extension HomeLocationEditListCell {
     func hideSeparateBar(_ isLast: Bool) {
         separateBar.isHidden = isLast
+    }
+}
+
+//MARK: Reactive
+extension Reactive where Base: HomeLocationEditListCell {
+    var editButtonTap: ControlEvent<Void> {
+        base.editButton.rx.tap
+    }
+    
+    var deleteButtonTap: ControlEvent<Void> {
+        base.deleteButton.rx.tap
     }
 }
