@@ -5,6 +5,8 @@
 //  Created by Yeseul Jang on 6/15/26.
 //
 
+import RxCocoa
+import RxSwift
 import SnapKit
 import Then
 import UIKit
@@ -14,31 +16,12 @@ final class DurationPickerSheetView: UIView {
         $0.title = "선택하기"
     }
 
-    var selectedDurationText: String {
-        var components: [String] = []
-
-        if selectedHour > 0 {
-            components.append("\(selectedHour)시간")
-        }
-
-        if selectedMinute > 0 {
-            components.append("\(selectedMinute)분")
-        }
-
-        if selectedSecond > 0 {
-            components.append("\(selectedSecond)초")
-        }
-
-        return components.isEmpty ? "0분" : components.joined(separator: " ")
-    }
-
+    fileprivate let durationChangedRelay = PublishRelay<ExerciseRecordInputReactor.DurationValue>()
     private let pickerView = UIPickerView()
     private let hours = Array(0...12)
     private let minutes = Array(0...59)
     private let seconds = Array(0...59)
-    private var selectedHour = 0
-    private var selectedMinute = 30
-    private var selectedSecond = 0
+    private var selectedDuration = ExerciseRecordInputReactor.DurationValue(hour: 0, minute: 30, second: 0)
 
     private let dimmedView = UIView().then {
         $0.backgroundColor = UIColor.black.withAlphaComponent(0.2)
@@ -69,6 +52,15 @@ final class DurationPickerSheetView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+}
+
+extension DurationPickerSheetView {
+    func updateSelectedDuration(_ duration: ExerciseRecordInputReactor.DurationValue) {
+        selectedDuration = duration
+        pickerView.selectRow(duration.hour, inComponent: 0, animated: false)
+        pickerView.selectRow(duration.minute, inComponent: 1, animated: false)
+        pickerView.selectRow(duration.second, inComponent: 2, animated: false)
     }
 }
 
@@ -125,9 +117,7 @@ private extension DurationPickerSheetView {
     func setPicker() {
         pickerView.dataSource = self
         pickerView.delegate = self
-        pickerView.selectRow(selectedHour, inComponent: 0, animated: false)
-        pickerView.selectRow(selectedMinute, inComponent: 1, animated: false)
-        pickerView.selectRow(selectedSecond, inComponent: 2, animated: false)
+        updateSelectedDuration(selectedDuration)
     }
 }
 
@@ -174,13 +164,36 @@ extension DurationPickerSheetView: UIPickerViewDataSource, UIPickerViewDelegate 
     }
 
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        let hour: Int
+        let minute: Int
+        let second: Int
+
         switch component {
         case 0:
-            selectedHour = hours[row]
+            hour = hours[row]
+            minute = selectedDuration.minute
+            second = selectedDuration.second
         case 1:
-            selectedMinute = minutes[row]
+            hour = selectedDuration.hour
+            minute = minutes[row]
+            second = selectedDuration.second
         default:
-            selectedSecond = seconds[row]
+            hour = selectedDuration.hour
+            minute = selectedDuration.minute
+            second = seconds[row]
         }
+
+        selectedDuration = ExerciseRecordInputReactor.DurationValue(
+            hour: hour,
+            minute: minute,
+            second: second
+        )
+        durationChangedRelay.accept(selectedDuration)
+    }
+}
+
+extension Reactive where Base == DurationPickerSheetView {
+    var durationChanged: ControlEvent<ExerciseRecordInputReactor.DurationValue> {
+        ControlEvent(events: base.durationChangedRelay)
     }
 }
