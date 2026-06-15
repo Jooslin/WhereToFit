@@ -5,6 +5,8 @@
 //  Created by Yeseul Jang on 6/15/26.
 //
 
+import RxCocoa
+import RxSwift
 import SnapKit
 import Then
 import UIKit
@@ -37,15 +39,9 @@ final class ExerciseRecordInputView: UIView {
 
     private let titleLabel = UILabel(text: "운동 기록", config: .body14Medium)
 
-    private let swimmingButton = ExerciseTypeButton(title: "수영")
-    private let pilatesButton = ExerciseTypeButton(title: "필라테스")
-    private let yogaButton = ExerciseTypeButton(title: "요가")
-    private let customButton = ExerciseTypeButton(title: "기타 입력")
+    fileprivate let customButton = ExerciseTypeButton(title: "기타 입력")
 
     private lazy var exerciseTypeStackView = UIStackView(arrangedSubviews: [
-        swimmingButton,
-        pilatesButton,
-        yogaButton,
         customButton
     ]).then {
         $0.axis = .horizontal
@@ -57,17 +53,32 @@ final class ExerciseRecordInputView: UIView {
     private let dateField = ExerciseRecordField(title: "날짜", text: "2026.05.18")
     private let durationField = ExerciseRecordField(title: "운동한 시간", text: "30분")
 
+    private lazy var fieldStackView = UIStackView(arrangedSubviews: [
+        exerciseNameField,
+        dateField,
+        durationField
+    ]).then {
+        $0.axis = .vertical
+        $0.spacing = 22
+    }
+
     override init(frame: CGRect) {
         super.init(frame: frame)
 
         setStyle()
         setLayout()
-        customButton.isSelected = true
+        setCustomInputVisible(false)
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+}
+
+extension ExerciseRecordInputView {
+    func toggleCustomInput() {
+        setCustomInputVisible(!customButton.isSelected)
     }
 }
 
@@ -85,9 +96,7 @@ private extension ExerciseRecordInputView {
             titleLabel,
             closeButton,
             exerciseTypeStackView,
-            exerciseNameField,
-            dateField,
-            durationField,
+            fieldStackView,
             saveButton
         ].forEach(sheetView.addSubview)
 
@@ -97,7 +106,7 @@ private extension ExerciseRecordInputView {
 
         sheetView.snp.makeConstraints {
             $0.horizontalEdges.bottom.equalToSuperview()
-            $0.height.equalTo(465)
+            $0.height.equalTo(474)
         }
 
         handleView.snp.makeConstraints {
@@ -108,7 +117,7 @@ private extension ExerciseRecordInputView {
         }
 
         titleLabel.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(38)
+            $0.top.equalToSuperview().offset(32)
             $0.leading.equalToSuperview().offset(16)
         }
 
@@ -119,24 +128,14 @@ private extension ExerciseRecordInputView {
         }
 
         exerciseTypeStackView.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(14)
+            $0.top.equalTo(titleLabel.snp.bottom).offset(6)
             $0.leading.equalToSuperview().offset(16)
             $0.trailing.lessThanOrEqualToSuperview().inset(16)
             $0.height.equalTo(32)
         }
 
-        exerciseNameField.snp.makeConstraints {
-            $0.top.equalTo(exerciseTypeStackView.snp.bottom).offset(18)
-            $0.horizontalEdges.equalToSuperview().inset(16)
-        }
-
-        dateField.snp.makeConstraints {
-            $0.top.equalTo(exerciseNameField.snp.bottom).offset(22)
-            $0.horizontalEdges.equalToSuperview().inset(16)
-        }
-
-        durationField.snp.makeConstraints {
-            $0.top.equalTo(dateField.snp.bottom).offset(22)
+        fieldStackView.snp.makeConstraints {
+            $0.top.equalTo(exerciseTypeStackView.snp.bottom).offset(8)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
 
@@ -145,6 +144,17 @@ private extension ExerciseRecordInputView {
             $0.bottom.equalTo(safeAreaLayoutGuide)
             $0.height.equalTo(48)
         }
+    }
+
+    func setCustomInputVisible(_ isVisible: Bool) {
+        customButton.isSelected = isVisible
+        exerciseNameField.isHidden = !isVisible
+    }
+}
+
+extension Reactive where Base == ExerciseRecordInputView {
+    var customButtonTap: ControlEvent<Void> {
+        base.customButton.rx.controlEvent(.touchUpInside)
     }
 }
 

@@ -26,6 +26,12 @@ final class ExerciseRecordInputViewController: UIViewController {
 
 private extension ExerciseRecordInputViewController {
     func bind() {
+        exerciseRecordInputView.rx.customButtonTap
+            .bind(with: self) { owner, _ in
+                owner.exerciseRecordInputView.toggleCustomInput()
+            }
+            .disposed(by: disposeBag)
+
         exerciseRecordInputView.closeButton.rx.tap
             .bind(with: self) { owner, _ in
                 owner.dismiss(animated: true)
