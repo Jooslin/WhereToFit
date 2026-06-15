@@ -19,8 +19,8 @@ final class LocationEditView: UIView {
     private(set) lazy var dataSource = makeDiffableDataSource(collectionView)
     
     // Reactive
-    fileprivate let editButtonTap = PublishRelay<Void>()
-    fileprivate let deleteButtonTap = PublishRelay<Void>()
+    fileprivate let editButtonTap = PublishRelay<Location>()
+    fileprivate let deleteButtonTap = PublishRelay<Location>()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -61,6 +61,16 @@ extension LocationEditView {
             let itemNumber = self.dataSource.snapshot().numberOfItems(inSection: 0)
             let isLast = indexPath.item == itemNumber - 1
             cell.hideSeparateBar(isLast)
+            
+            cell.editButton.rx.tap
+                .map { item }
+                .bind(to: self.editButtonTap)
+                .disposed(by: cell.disposeBag)
+            
+            cell.deleteButton.rx.tap
+                .map { item }
+                .bind(to: self.editButtonTap)
+                .disposed(by: cell.disposeBag)
         }
 
         let dataSource = UICollectionViewDiffableDataSource<Int, Location>(collectionView: collectionView) { collectionView, indexPath, item in
@@ -128,11 +138,11 @@ extension Reactive where Base: LocationEditView {
             .asObservable()
     }
     
-    var editButtonTap: PublishRelay<Void> {
+    var editButtonTap: PublishRelay<Location> {
         base.editButtonTap
     }
     
-    var deleteButtonTap: PublishRelay<Void> {
+    var deleteButtonTap: PublishRelay<Location> {
         base.deleteButtonTap
     }
 }

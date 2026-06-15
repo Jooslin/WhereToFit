@@ -37,6 +37,7 @@ final class LocationEditViewController: BaseViewController<LocationReactor> {
             .map { AppStep.pageBack }
             .bind(to: steps)
             .disposed(by: disposeBag)
+        
     }
     
     private func bindState(reactor: LocationReactor) {
