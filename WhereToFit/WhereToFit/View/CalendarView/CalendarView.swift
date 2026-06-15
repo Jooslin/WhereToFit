@@ -51,12 +51,14 @@ final class CalendarView: UIView {
     }
 
     private let selectedDateLabel = UILabel(text: "5월 18일 월요일", config: .body16Medium)
-    fileprivate let todayButton = UIButton(type: .system).then {
+    fileprivate let todayButtonContainer = UIControl()
+    private let todayButton = UIButton(type: .system).then {
         $0.setTitle("오늘", for: .normal)
         $0.setTitleColor(.gray600, for: .normal)
         $0.titleLabel?.font = LabelConfiguration.body12Medium.font
         $0.backgroundColor = .gray50
         $0.layer.cornerRadius = 16
+        $0.isUserInteractionEnabled = false
     }
 
     fileprivate let weightCard = CalendarInfoCardView(title: "몸무게", value: "54.2", unit: "kg")
@@ -138,7 +140,6 @@ private extension CalendarView {
             segmentedControl,
             calendarCardView,
             selectedDateLabel,
-            todayButton,
             weightCard,
             conditionCard,
             exerciseTitleLabel,
@@ -147,6 +148,8 @@ private extension CalendarView {
         ].forEach(contentView.addSubview)
 
         calendarCardView.addSubview(calendarView)
+        calendarCardView.addSubview(todayButtonContainer)
+        todayButtonContainer.addSubview(todayButton)
 
         scrollView.snp.makeConstraints {
             $0.leading.trailing.top.equalTo(safeAreaLayoutGuide)
@@ -177,15 +180,20 @@ private extension CalendarView {
         selectedDateLabel.snp.makeConstraints {
             $0.top.equalTo(calendarCardView.snp.bottom).offset(18)
             $0.leading.equalToSuperview().offset(16)
-            $0.centerY.equalTo(todayButton)
-            $0.trailing.lessThanOrEqualTo(todayButton.snp.leading).offset(-12)
+            $0.trailing.equalToSuperview().inset(16)
+        }
+
+        todayButtonContainer.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(18)
+            $0.trailing.equalToSuperview().inset(2)
+            $0.width.equalTo(80)
+            $0.height.equalTo(50)
         }
 
         todayButton.snp.makeConstraints {
-            $0.top.equalTo(calendarCardView.snp.bottom).offset(14)
-            $0.trailing.equalToSuperview().inset(16)
-            $0.width.equalTo(52)
-            $0.height.equalTo(32)
+            $0.center.equalToSuperview()
+            $0.width.equalTo(58)
+            $0.height.equalTo(35)
         }
 
         weightCard.snp.makeConstraints {
@@ -286,7 +294,7 @@ extension CalendarView: UICollectionViewDataSource {
 
 extension Reactive where Base == CalendarView {
     var todayButtonTap: ControlEvent<Void> {
-        base.todayButton.rx.tap
+        base.todayButtonContainer.rx.controlEvent(.touchUpInside)
     }
 
     var weightCardTap: ControlEvent<Void> {
