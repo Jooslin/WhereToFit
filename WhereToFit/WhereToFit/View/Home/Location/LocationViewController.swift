@@ -35,6 +35,7 @@ final class LocationViewController: BaseViewController<LocationReactor> {
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
+        // TitleView
         locationView.rx.backButtonTap
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { AppStep.pageBack }
@@ -47,6 +48,7 @@ final class LocationViewController: BaseViewController<LocationReactor> {
             .bind(to: steps)
             .disposed(by: disposeBag)
         
+        // 신규 위치 생성
         locationView.rx.searchBarTap
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .withUnretained(self)
@@ -60,6 +62,13 @@ final class LocationViewController: BaseViewController<LocationReactor> {
                 AppStep.locationDetail(.create(address: address))
             }
             .bind(to: steps)
+            .disposed(by: disposeBag)
+        
+        // 위치 지정
+        locationView.rx.listCellSelected
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .map { LocationReactor.Action.selected($0) }
+            .bind(to: reactor.action)
             .disposed(by: disposeBag)
     }
     
