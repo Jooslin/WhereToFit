@@ -45,6 +45,24 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
+        detailView.rx.homeButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .map { LocationDetailReactor.Action.updateButtonType(.myHome) }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+        
+        detailView.rx.officeButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .map { LocationDetailReactor.Action.updateButtonType(.office) }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+        
+        detailView.rx.addButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .map { LocationDetailReactor.Action.updateButtonType(.additional) }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+        
 //        detailView.registerButton.rx.tap
 //            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
 //            .map { }
@@ -84,12 +102,13 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             )
             .disposed(by: disposeBag)
         
-        state.compactMap(\.selectedLocation)
+        state.map(\.buttonType)
             .drive(
                 with: detailView,
-                onNext: { detailView, location in
-                    detailView.configureButton(location)
-                })
+                onNext: { detailView, buttonType in
+                    detailView.configureButtonType(buttonType)
+                }
+            )
             .disposed(by: disposeBag)
     }
 }

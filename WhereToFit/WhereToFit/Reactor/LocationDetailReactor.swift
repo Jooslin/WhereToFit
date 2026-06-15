@@ -14,11 +14,13 @@ final class LocationDetailReactor: BaseReactor {
     enum Action {
         case update
         case updateAddress(String)
+        case updateButtonType(Location.LocationButtonType)
     }
     
     enum Mutation {
         case save
         case setAddress(String)
+        case setButtonType(Location.LocationButtonType)
     }
     
     struct State {
@@ -56,6 +58,8 @@ final class LocationDetailReactor: BaseReactor {
             return .just(.save)
         case .updateAddress(let address):
             return .just(.setAddress(address))
+        case .updateButtonType(let buttonType):
+            return .just(.setButtonType(buttonType))
         }
     }
     
@@ -67,6 +71,8 @@ final class LocationDetailReactor: BaseReactor {
             break
         case .setAddress(let address):
             newState.address = address
+        case .setButtonType(let buttonType):
+            newState.buttonType = buttonType
         }
         
         return newState

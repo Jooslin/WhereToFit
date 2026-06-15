@@ -51,9 +51,18 @@ final class LocationDetailView: UIView {
     }
 }
 
-extension LocationDetailView {
-    func configureButton(_ location: Location) {
-        switch location.buttonType {
+extension LocationDetailView {    
+    func configureButtonType(_ buttonType: Location.LocationButtonType?) {
+        homeButton.isSelected = false
+        officeButton.isSelected = false
+        addButton.isSelected = false
+        
+        guard let buttonType else {
+            nameTextField.isHidden = true
+            return
+        }
+        
+        switch buttonType {
         case .myHome:
             homeButton.isSelected = true
             nameTextField.isHidden = true
@@ -63,7 +72,6 @@ extension LocationDetailView {
         case .additional:
             addButton.isSelected = true
             nameTextField.isHidden = false
-            nameTextField.text = location.name
         }
     }
 }
@@ -126,5 +134,17 @@ extension Reactive where Base: LocationDetailView {
     
     var addressTextFieldTap: ControlEvent<Void> {
         base.addressTextField.rx.controlEvent(.editingDidBegin)
+    }
+    
+    var homeButtonTap: ControlEvent<Void> {
+        base.homeButton.rx.tap
+    }
+    
+    var officeButtonTap: ControlEvent<Void> {
+        base.officeButton.rx.tap
+    }
+    
+    var addButtonTap: ControlEvent<Void> {
+        base.addButton.rx.tap
     }
 }
