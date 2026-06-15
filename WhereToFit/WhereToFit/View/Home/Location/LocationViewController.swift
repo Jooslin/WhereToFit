@@ -21,7 +21,7 @@ final class LocationViewController: BaseViewController<LocationReactor> {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        tabBarController?.tabBar.isHidden = true
     }
     
     override func bind(reactor: LocationReactor) {

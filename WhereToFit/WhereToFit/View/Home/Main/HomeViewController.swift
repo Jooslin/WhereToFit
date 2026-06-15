@@ -19,6 +19,7 @@ final class HomeViewController: BaseViewController<HomeReactor> {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        tabBarController?.tabBar.isHidden = false
     }
     
     override func bind(reactor: HomeReactor) {

@@ -36,6 +36,8 @@ final class LocationDetailView: UIView {
         $0.isHidden = false
     }
     
+    let registerButton = DesignButton(config: .largeFilledBlue)
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setLayout()
@@ -69,6 +71,7 @@ extension LocationDetailView {
         
         addSubview(titleView)
         addSubview(stackView)
+        addSubview(registerButton)
         
         titleView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
@@ -77,6 +80,11 @@ extension LocationDetailView {
         
         stackView.snp.makeConstraints {
             $0.top.equalTo(titleView.snp.bottom).offset(12)
+            $0.horizontalEdges.equalToSuperview().inset(16)
+        }
+        
+        registerButton.snp.makeConstraints {
+            $0.bottom.equalTo(safeAreaLayoutGuide).inset(8)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
         
