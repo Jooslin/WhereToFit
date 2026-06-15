@@ -65,18 +65,19 @@ final class CalendarView: UIView {
     fileprivate let conditionCard = CalendarInfoCardView(title: "컨디션", value: "최악", unit: nil)
 
     private let exerciseTitleLabel = UILabel(text: "운동", config: .body16Medium)
-    fileprivate let exerciseAddButton = UIButton(type: .system).then {
-        $0.setImage(UIImage(systemName: "plus"), for: .normal)
-        $0.tintColor = .gray700
-    }
 
     private lazy var exerciseCollectionView = UICollectionView(frame: .zero, collectionViewLayout: makeExerciseCollectionViewLayout()).then {
-        $0.backgroundColor = .gray50
+        $0.backgroundColor = .gray25
         $0.layer.cornerRadius = 12
         $0.clipsToBounds = true
         $0.showsVerticalScrollIndicator = false
         $0.isScrollEnabled = false
         $0.register(CalendarExerciseCell.self, forCellWithReuseIdentifier: CalendarExerciseCell.reuseIdentifier)
+        $0.register(
+            CalendarExerciseFooterView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
+            withReuseIdentifier: CalendarExerciseFooterView.reuseIdentifier
+        )
     }
 
     private let calendar = Calendar(identifier: .gregorian)
@@ -113,7 +114,7 @@ extension CalendarView {
 
     func reloadExerciseItems(count: Int) {
         exerciseCollectionView.reloadData()
-        exerciseCollectionViewHeightConstraint?.update(offset: CGFloat(count) * 60 + 24)
+        exerciseCollectionViewHeightConstraint?.update(offset: CGFloat(count) * 60 + 88)
     }
 
     func updateSelectedDate(_ date: Date, text: String) {
@@ -147,7 +148,6 @@ private extension CalendarView {
             weightCard,
             conditionCard,
             exerciseTitleLabel,
-            exerciseAddButton,
             exerciseCollectionView
         ].forEach(contentView.addSubview)
 
@@ -217,14 +217,7 @@ private extension CalendarView {
         exerciseTitleLabel.snp.makeConstraints {
             $0.top.equalTo(weightCard.snp.bottom).offset(18)
             $0.leading.equalToSuperview().offset(16)
-            $0.centerY.equalTo(exerciseAddButton)
-            $0.trailing.lessThanOrEqualTo(exerciseAddButton.snp.leading).offset(-12)
-        }
-
-        exerciseAddButton.snp.makeConstraints {
-            $0.top.equalTo(weightCard.snp.bottom).offset(10)
             $0.trailing.equalToSuperview().inset(16)
-            $0.size.equalTo(32)
         }
 
         exerciseCollectionView.snp.makeConstraints {
@@ -257,6 +250,16 @@ private extension CalendarView {
 
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
+        section.boundarySupplementaryItems = [
+            NSCollectionLayoutBoundarySupplementaryItem(
+                layoutSize: NSCollectionLayoutSize(
+                    widthDimension: .fractionalWidth(1),
+                    heightDimension: .absolute(64)
+                ),
+                elementKind: UICollectionView.elementKindSectionFooter,
+                alignment: .bottom
+            )
+        ]
         return UICollectionViewCompositionalLayout(section: section)
     }
 }
@@ -287,9 +290,5 @@ extension Reactive where Base == CalendarView {
 
     var conditionCardTap: ControlEvent<Void> {
         base.conditionCard.rx.controlEvent(.touchUpInside)
-    }
-
-    var exerciseAddButtonTap: ControlEvent<Void> {
-        base.exerciseAddButton.rx.tap
     }
 }

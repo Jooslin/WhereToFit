@@ -47,12 +47,6 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
             }
             .disposed(by: disposeBag)
 
-        calendarView.rx.exerciseAddButtonTap
-            .bind(with: self) { owner, _ in
-                owner.steps.accept(AppStep.calendarExerciseRecordInput)
-            }
-            .disposed(by: disposeBag)
-
         reactor.state
             .map(\.selectedDate)
             .distinctUntilChanged()
@@ -110,5 +104,28 @@ extension CalendarViewController: UICollectionViewDataSource {
 
         cell.configure(item: exerciseItems[indexPath.item], hidesDivider: indexPath.item == exerciseItems.count - 1)
         return cell
+    }
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        viewForSupplementaryElementOfKind kind: String,
+        at indexPath: IndexPath
+    ) -> UICollectionReusableView {
+        guard kind == UICollectionView.elementKindSectionFooter,
+              let footerView = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: CalendarExerciseFooterView.reuseIdentifier,
+                for: indexPath
+              ) as? CalendarExerciseFooterView else {
+            return UICollectionReusableView()
+        }
+
+        footerView.rx.recordButtonTap
+            .bind(with: self) { owner, _ in
+                owner.steps.accept(AppStep.calendarExerciseRecordInput)
+            }
+            .disposed(by: footerView.disposeBag)
+
+        return footerView
     }
 }
