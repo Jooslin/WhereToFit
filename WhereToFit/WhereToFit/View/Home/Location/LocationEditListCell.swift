@@ -31,11 +31,6 @@ final class LocationEditListCell: LocationListCell {
         
         contentView.addSubview(separateBar)
         
-        stackView.snp.makeConstraints {
-            $0.horizontalEdges.equalToSuperview().inset(8)
-            $0.verticalEdges.equalToSuperview().offset(20)
-        }
-        
         separateBar.snp.makeConstraints {
             $0.horizontalEdges.equalToSuperview()
             $0.bottom.equalToSuperview().inset(4)
