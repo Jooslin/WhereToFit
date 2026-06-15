@@ -8,11 +8,16 @@
 import ReactorKit
 import RxCocoa
 import RxSwift
+import Then
 import UIKit
 
 final class CalendarViewController: BaseViewController<CalendarReactor> {
     let calendarView = CalendarView()
     private var exerciseItems: [CalendarReactor.ExerciseItem] = []
+    private let selectedDateFormatter = DateFormatter().then {
+        $0.locale = Locale(identifier: "ko_KR")
+        $0.dateFormat = "M월 d일 EEEE"
+    }
 
     override func loadView() {
         calendarView.setExerciseCollectionViewDataSource(self)
@@ -21,9 +26,13 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
 
     override func bind(reactor: CalendarReactor) {
         calendarView.rx.todayButtonTap
-            .bind(with: self) { owner, _ in
-                owner.calendarView.moveToToday()
-            }
+            .map { CalendarReactor.Action.moveToToday }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        calendarView.rx.dateSelected
+            .map { CalendarReactor.Action.selectDate($0) }
+            .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
         calendarView.rx.weightCardTap
@@ -41,6 +50,18 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
         calendarView.rx.exerciseAddButtonTap
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.calendarExerciseRecordInput)
+            }
+            .disposed(by: disposeBag)
+
+        reactor.state
+            .map(\.selectedDate)
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind(with: self) { owner, selectedDate in
+                owner.calendarView.updateSelectedDate(
+                    selectedDate,
+                    text: owner.selectedDateFormatter.string(from: selectedDate)
+                )
             }
             .disposed(by: disposeBag)
 

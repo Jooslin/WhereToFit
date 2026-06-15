@@ -80,6 +80,8 @@ final class CalendarView: UIView {
     }
 
     private let calendar = Calendar(identifier: .gregorian)
+    fileprivate let dateSelectedRelay = PublishRelay<Date>()
+    private var isUpdatingSelectedDate = false
     private var exerciseCollectionViewHeightConstraint: Constraint?
 
     override init(frame: CGRect) {
@@ -114,16 +116,17 @@ extension CalendarView {
         exerciseCollectionViewHeightConstraint?.update(offset: CGFloat(count) * 60 + 24)
     }
 
-    func moveToToday() {
-        let today = Date()
-        let todayComponents = calendar.dateComponents([.year, .month, .day], from: today)
-        calendarView.setVisibleDateComponents(todayComponents, animated: true)
+    func updateSelectedDate(_ date: Date, text: String) {
+        let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
 
         if let selection = calendarView.selectionBehavior as? UICalendarSelectionSingleDate {
-            selection.setSelected(todayComponents, animated: true)
+            isUpdatingSelectedDate = true
+            selection.setSelected(dateComponents, animated: true)
+            isUpdatingSelectedDate = false
         }
 
-        updateSelectedDateLabel(date: today)
+        calendarView.setVisibleDateComponents(dateComponents, animated: true)
+        selectedDateLabel.text = text
     }
 }
 
@@ -239,13 +242,6 @@ private extension CalendarView {
         calendarView.selectionBehavior = selection
     }
 
-    func updateSelectedDateLabel(date: Date) {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "M월 d일 EEEE"
-        selectedDateLabel.text = formatter.string(from: date)
-    }
-
     func makeExerciseCollectionViewLayout() -> UICollectionViewLayout {
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1),
@@ -267,17 +263,22 @@ private extension CalendarView {
 
 extension CalendarView: UICalendarSelectionSingleDateDelegate {
     func dateSelection(_ selection: UICalendarSelectionSingleDate, didSelectDate dateComponents: DateComponents?) {
+        guard !isUpdatingSelectedDate else { return }
         guard let dateComponents,
               let date = dateComponents.date
         else { return }
 
-        updateSelectedDateLabel(date: date)
+        dateSelectedRelay.accept(date)
     }
 }
 
 extension Reactive where Base == CalendarView {
     var todayButtonTap: ControlEvent<Void> {
         base.todayButtonContainer.rx.controlEvent(.touchUpInside)
+    }
+
+    var dateSelected: ControlEvent<Date> {
+        ControlEvent(events: base.dateSelectedRelay)
     }
 
     var weightCardTap: ControlEvent<Void> {

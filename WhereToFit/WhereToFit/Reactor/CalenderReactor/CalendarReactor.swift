@@ -5,11 +5,13 @@
 //  Created by Yeseul Jang on 6/10/26.
 //
 
+import Foundation
 import ReactorKit
 import RxSwift
 
 final class CalendarReactor: BaseReactor {
     let initialState = State(
+        selectedDate: DateComponents(calendar: Calendar(identifier: .gregorian), year: 2026, month: 5, day: 18).date ?? Date(),
         weight: WeightValue(integer: 54, decimal: 2),
         condition: .worst,
         exerciseItems: [
@@ -63,16 +65,20 @@ final class CalendarReactor: BaseReactor {
     }
 
     enum Action {
+        case selectDate(Date)
+        case moveToToday
         case updateWeight(WeightValue)
         case updateCondition(ConditionValue)
     }
 
     enum Mutation {
+        case setSelectedDate(Date)
         case setWeight(WeightValue)
         case setCondition(ConditionValue)
     }
 
     struct State {
+        var selectedDate: Date
         var weight: WeightValue
         var condition: ConditionValue
         var exerciseItems: [ExerciseItem]
@@ -80,6 +86,10 @@ final class CalendarReactor: BaseReactor {
 
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
+        case .selectDate(let date):
+            return .just(.setSelectedDate(date))
+        case .moveToToday:
+            return .just(.setSelectedDate(Date()))
         case .updateWeight(let weight):
             return .just(.setWeight(weight))
         case .updateCondition(let condition):
@@ -91,6 +101,8 @@ final class CalendarReactor: BaseReactor {
         var newState = state
 
         switch mutation {
+        case .setSelectedDate(let date):
+            newState.selectedDate = date
         case .setWeight(let weight):
             newState.weight = weight
         case .setCondition(let condition):
