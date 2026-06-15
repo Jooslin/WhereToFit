@@ -36,11 +36,13 @@ final class LocationViewController: BaseViewController<LocationReactor> {
             .disposed(by: disposeBag)
         
         locationView.rx.backButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { AppStep.pageBack }
             .bind(to: steps)
             .disposed(by: disposeBag)
         
         locationView.rx.editButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { AppStep.locationEdit }
             .bind(to: steps)
             .disposed(by: disposeBag)
@@ -54,9 +56,10 @@ final class LocationViewController: BaseViewController<LocationReactor> {
             .disposed(by: disposeBag)
         
         selectedAddressRelay
-            .map { address in LocationReactor.Action.locationSelected(address)
+            .map { address in
+                AppStep.locationDetail(.create(address: address))
             }
-            .bind(to: reactor.action)
+            .bind(to: steps)
             .disposed(by: disposeBag)
     }
     

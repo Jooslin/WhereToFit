@@ -10,7 +10,7 @@ import RxSwift
 import ReactorKit
 import RxCocoa
 
-final class LocationDetailViewController: BaseViewController<LocationReactor> {
+final class LocationDetailViewController: BaseViewController<LocationDetailReactor> {
     let detailView = LocationDetailView()
     
     override func loadView() {
@@ -22,27 +22,39 @@ final class LocationDetailViewController: BaseViewController<LocationReactor> {
         
     }
     
-    override func bind(reactor: LocationReactor) {
+    override func bind(reactor: LocationDetailReactor) {
         bindAction(reactor: reactor)
         bindState(reactor: reactor)
     }
     
-    private func bindAction(reactor: LocationReactor) {
-        self.rx.viewWillAppear
-            .map { LocationReactor.Action.loadItems }
-            .bind(to: reactor.action)
-            .disposed(by: disposeBag)
-        
+    private func bindAction(reactor: LocationDetailReactor) {
         detailView.rx.backButtonTap
             .map { AppStep.pageBack }
             .bind(to: steps)
             .disposed(by: disposeBag)
     }
     
-    private func bindState(reactor: LocationReactor) {
+    private func bindState(reactor: LocationDetailReactor) {
         let state = reactor.state
             .asDriver(onErrorJustReturn: .init())
         
+        state.compactMap(\.selectedAddress)
+            .drive(
+                with: detailView,
+                onNext: { detailView, address in
+                    detailView.addressTextField.text = address
+                })
+            .disposed(by: disposeBag)
+        
+        state.compactMap(\.selectedLocation)
+            .drive(
+                with: detailView,
+                onNext: { detailView, location in
+                    detailView.addressTextField.text = location.name
+                    
+                    detailView.nameTextField.text = location.name
+                })
+            .disposed(by: disposeBag)
         
     }
 }

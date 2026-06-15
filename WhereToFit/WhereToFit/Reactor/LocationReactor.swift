@@ -14,7 +14,6 @@ final class LocationReactor: BaseReactor {
     enum Action {
         case viewWillAppear
         case loadItems
-        case locationSelected(String)
     }
     
     enum Mutation {

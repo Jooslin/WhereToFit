@@ -53,19 +53,19 @@ final class HomeFlow: Flow {
             return .one(flowContributor:
                     .contribute(withNextPresentable: vc, withNextStepper: vc))
             
-        case .locationDetail:
-            let vc = LocationDetailViewController(reactor: locationReactor)
+        case .locationDetail(let mode):
+            let reactor = switch mode {
+            case .create(address: let address):
+                LocationDetailReactor(address: address, location: nil)
+            case .edit(let location):
+                LocationDetailReactor(address: nil, location: location)
+            }
+            let vc = LocationDetailViewController(reactor: reactor)
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor:
                     .contribute(withNextPresentable: vc, withNextStepper: vc))
         default:
             return .one(flowContributor: .forwardToParentFlow(withStep: step))
         }
-    }
-}
-
-extension HomeFlow {
-    private func presentPostVC() -> FlowContributors {
-        
     }
 }
