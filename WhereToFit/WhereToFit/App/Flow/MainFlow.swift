@@ -37,6 +37,9 @@ final class MainFlow: Flow {
             pop(animated: true)
             return .none
             
+        case .alert(title: let title, message: let message):
+            return presentAlert(title: title, message: message)
+            
         default:
             return .one(flowContributor: .forwardToParentFlow(withStep: step))
         }

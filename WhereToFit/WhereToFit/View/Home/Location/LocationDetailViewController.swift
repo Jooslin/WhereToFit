@@ -25,12 +25,14 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
     }
     
     private func bindAction(reactor: LocationDetailReactor) {
+        // TitleView
         detailView.rx.backButtonTap
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { AppStep.pageBack }
             .bind(to: steps)
             .disposed(by: disposeBag)
         
+        // 주소 선택
         detailView.rx.addressTextFieldTap
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .withUnretained(self)
@@ -45,6 +47,7 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
+        // 버튼
         detailView.rx.homeButtonTap
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { LocationDetailReactor.Action.updateButtonType(.myHome) }
@@ -62,10 +65,13 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             .map { LocationDetailReactor.Action.updateButtonType(.additional) }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
-        
-//        detailView.registerButton.rx.tap
-//            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
-//            .map { }
+
+        // 등록 버튼
+        detailView.registerButton.rx.tap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .map { LocationDetailReactor.Action.update }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
     }
     
     private func bindState(reactor: LocationDetailReactor) {
@@ -110,6 +116,16 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
                 }
             )
             .disposed(by: disposeBag)
+        
+        state.compactMap(\.didUpdateSucess)
+            .map {
+                return $0 ? AppStep.pageBack
+                : AppStep.alert(title: "저장 실패", message: "위치를 저장할 수 없습니다.\n잠시 후 다시 시도해주세요.")
+            }
+            .asObservable()
+            .bind(to: steps)
+            .disposed(by: disposeBag)
+    
     }
 }
 

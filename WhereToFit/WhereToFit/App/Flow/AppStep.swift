@@ -14,6 +14,7 @@ enum AppStep: Step {
     case onboarding
     case main
     case updateRequired(message: String, storeURL: URL)
+    case alert(title: String, message: String)
 
     // Tab
     case homeTab

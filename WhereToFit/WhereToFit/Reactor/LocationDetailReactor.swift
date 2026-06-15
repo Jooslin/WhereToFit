@@ -18,7 +18,7 @@ final class LocationDetailReactor: BaseReactor {
     }
     
     enum Mutation {
-        case save
+        case didUpdateSuccess(Bool)
         case setAddress(String)
         case setButtonType(Location.LocationButtonType)
     }
@@ -32,6 +32,7 @@ final class LocationDetailReactor: BaseReactor {
         var registerButtonTitle: String {
             selectedLocation == nil ? "등록하기" : "수정하기"
         }
+        var didUpdateSucess: Bool?
     }
     
     init(address: String?, location: Location?) {
@@ -55,7 +56,7 @@ final class LocationDetailReactor: BaseReactor {
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
         case .update:
-            return .just(.save)
+            return updateLocation()
         case .updateAddress(let address):
             return .just(.setAddress(address))
         case .updateButtonType(let buttonType):
@@ -67,8 +68,8 @@ final class LocationDetailReactor: BaseReactor {
         var newState = state
         
         switch mutation {
-        case .save:
-            break
+        case .didUpdateSuccess(let didSuccess):
+            newState.didUpdateSucess = didSuccess
         case .setAddress(let address):
             newState.address = address
         case .setButtonType(let buttonType):
@@ -76,5 +77,23 @@ final class LocationDetailReactor: BaseReactor {
         }
         
         return newState
+    }
+}
+
+extension LocationDetailReactor {
+    //TODO: location 저장 로직 구현 필요
+    private func updateLocation() -> Observable<Mutation> {
+        
+        //TODO: latitude, longitude 찾아야함
+        let location = Location(
+            buttonType: currentState.buttonType ?? .additional,
+            name: currentState.name,
+            address: currentState.address,
+            isSelected: currentState.selectedLocation?.isSelected ?? false,
+            latitude: 37,
+            longitude: 127
+        )
+        
+        return .just(.didUpdateSuccess(true))
     }
 }
