@@ -50,8 +50,8 @@ final class ExerciseRecordInputView: UIView {
     }
 
     private let exerciseNameField = ExerciseRecordField(title: "운동 종목", placeholder: "운동 종목을 선택해주세요")
-    private let dateField = ExerciseRecordField(title: "날짜", text: "2026.05.18")
-    fileprivate let durationField = ExerciseRecordField(title: "운동한 시간", text: "30분")
+    private let dateField = ExerciseRecordField(title: "날짜")
+    fileprivate let durationField = ExerciseRecordField(title: "운동한 시간", text: "0분")
     fileprivate let durationPickerSheetView = DurationPickerSheetView()
 
     private lazy var fieldStackView = UIStackView(arrangedSubviews: [
@@ -79,6 +79,10 @@ final class ExerciseRecordInputView: UIView {
 }
 
 extension ExerciseRecordInputView {
+    func updateDate(_ dateText: String) {
+        dateField.text = dateText
+    }
+
     func updateCustomInputVisible(_ isVisible: Bool) {
         setCustomInputVisible(isVisible, animated: true)
     }

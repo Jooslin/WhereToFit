@@ -12,6 +12,12 @@ import UIKit
 
 final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecordInputReactor> {
     private let exerciseRecordInputView = ExerciseRecordInputView()
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "yyyy.MM.dd"
+        return formatter
+    }()
 
     override func loadView() {
         view = exerciseRecordInputView
@@ -47,6 +53,15 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
         exerciseRecordInputView.saveButton.rx.tap
             .bind(with: self) { owner, _ in
                 owner.dismiss(animated: true)
+            }
+            .disposed(by: disposeBag)
+
+        reactor.state
+            .map(\.selectedDate)
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind(with: self) { owner, selectedDate in
+                owner.exerciseRecordInputView.updateDate(owner.dateFormatter.string(from: selectedDate))
             }
             .disposed(by: disposeBag)
 
