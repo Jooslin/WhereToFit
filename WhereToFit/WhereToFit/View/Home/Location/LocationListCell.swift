@@ -85,7 +85,12 @@ class LocationListCell: UICollectionViewListCell {
 
 extension LocationListCell {
     func configure(_ location: Location) {
-        imageView.image = location.icon
+        imageView.image = switch location.buttonType {
+        case .myHome, .office:
+            location.isSelected ? .homeFilled : .home
+        case .additional:
+            location.isSelected ? .locationPinFilled : .locationPin
+        }
         nameLabel.text = location.name
         addressLabel.text = location.address
         checkImageView.isHidden = !location.isSelected
