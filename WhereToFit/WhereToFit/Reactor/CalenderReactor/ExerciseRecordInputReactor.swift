@@ -5,11 +5,16 @@
 //  Created by Yeseul Jang on 6/15/26.
 //
 
+import Foundation
 import ReactorKit
 import RxSwift
 
 final class ExerciseRecordInputReactor: Reactor {
-    let initialState = State()
+    let initialState: State
+
+    init(selectedDate: Date) {
+        initialState = State(selectedDate: selectedDate)
+    }
 
     struct DurationValue: Equatable {
         let hour: Int
@@ -50,10 +55,11 @@ final class ExerciseRecordInputReactor: Reactor {
     }
 
     struct State {
+        var selectedDate: Date
         var isCustomInputVisible = false
         var isDurationPickerVisible = false
-        var selectedDuration = DurationValue(hour: 0, minute: 30, second: 0)
-        var confirmedDuration = DurationValue(hour: 0, minute: 30, second: 0)
+        var selectedDuration = DurationValue(hour: 0, minute: 0, second: 0)
+        var confirmedDuration = DurationValue(hour: 0, minute: 0, second: 0)
     }
 
     func mutate(action: Action) -> Observable<Mutation> {
