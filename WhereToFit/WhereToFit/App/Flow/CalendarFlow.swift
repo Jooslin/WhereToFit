@@ -79,9 +79,13 @@ private extension CalendarFlow {
     }
 
     func presentExerciseRecordInput() {
-        guard let calendarViewController else { return }
+        guard let calendarViewController,
+              let reactor = calendarViewController.reactor
+        else { return }
 
-        let viewController = ExerciseRecordInputViewController(reactor: ExerciseRecordInputReactor())
+        let viewController = ExerciseRecordInputViewController(
+            reactor: ExerciseRecordInputReactor(selectedDate: reactor.currentState.selectedDate)
+        )
         viewController.modalPresentationStyle = .overFullScreen
         viewController.modalTransitionStyle = .crossDissolve
 
