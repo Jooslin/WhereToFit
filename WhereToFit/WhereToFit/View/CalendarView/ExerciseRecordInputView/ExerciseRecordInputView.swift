@@ -51,7 +51,8 @@ final class ExerciseRecordInputView: UIView {
 
     private let exerciseNameField = ExerciseRecordField(title: "운동 종목", placeholder: "운동 종목을 선택해주세요")
     private let dateField = ExerciseRecordField(title: "날짜", text: "2026.05.18")
-    private let durationField = ExerciseRecordField(title: "운동한 시간", text: "30분")
+    fileprivate let durationField = ExerciseRecordField(title: "운동한 시간", text: "30분")
+    fileprivate let durationPickerSheetView = DurationPickerSheetView()
 
     private lazy var fieldStackView = UIStackView(arrangedSubviews: [
         exerciseNameField,
@@ -67,6 +68,7 @@ final class ExerciseRecordInputView: UIView {
 
         setStyle()
         setLayout()
+        setDurationPicker()
         setCustomInputVisible(false)
     }
 
@@ -77,8 +79,24 @@ final class ExerciseRecordInputView: UIView {
 }
 
 extension ExerciseRecordInputView {
-    func toggleCustomInput() {
-        setCustomInputVisible(!customButton.isSelected, animated: true)
+    func updateCustomInputVisible(_ isVisible: Bool) {
+        setCustomInputVisible(isVisible, animated: true)
+    }
+
+    func updateDurationPickerVisible(_ isVisible: Bool) {
+        if isVisible {
+            showDurationPicker()
+        } else {
+            hideDurationPicker()
+        }
+    }
+
+    func updateSelectedDuration(_ duration: ExerciseRecordInputReactor.DurationValue) {
+        durationPickerSheetView.updateSelectedDuration(duration)
+    }
+
+    func updateConfirmedDuration(_ duration: ExerciseRecordInputReactor.DurationValue) {
+        durationField.text = duration.displayText
     }
 }
 
@@ -90,6 +108,7 @@ private extension ExerciseRecordInputView {
     func setLayout() {
         addSubview(dimmedView)
         addSubview(sheetView)
+        addSubview(durationPickerSheetView)
 
         [
             handleView,
@@ -106,6 +125,10 @@ private extension ExerciseRecordInputView {
 
         sheetView.snp.makeConstraints {
             $0.horizontalEdges.bottom.equalToSuperview()
+        }
+
+        durationPickerSheetView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
         }
 
         handleView.snp.makeConstraints {
@@ -159,11 +182,50 @@ private extension ExerciseRecordInputView {
             self.layoutIfNeeded()
         }
     }
+
+    func setDurationPicker() {
+        durationPickerSheetView.alpha = 0
+        durationPickerSheetView.isHidden = true
+        durationField.setReadOnly()
+    }
+
+    func showDurationPicker() {
+        endEditing(true)
+        guard durationPickerSheetView.isHidden else { return }
+
+        durationPickerSheetView.isHidden = false
+
+        UIView.animate(withDuration: 0.25) {
+            self.durationPickerSheetView.alpha = 1
+        }
+    }
+
+    func hideDurationPicker() {
+        guard !durationPickerSheetView.isHidden else { return }
+
+        UIView.animate(withDuration: 0.25) {
+            self.durationPickerSheetView.alpha = 0
+        } completion: { _ in
+            self.durationPickerSheetView.isHidden = true
+        }
+    }
 }
 
 extension Reactive where Base == ExerciseRecordInputView {
     var customButtonTap: ControlEvent<Void> {
         base.customButton.rx.controlEvent(.touchUpInside)
+    }
+
+    var durationFieldTap: ControlEvent<Void> {
+        base.durationField.rx.editingDidBegin
+    }
+
+    var durationPickerSelectButtonTap: ControlEvent<Void> {
+        base.durationPickerSheetView.selectButton.rx.tap
+    }
+
+    var durationPickerChanged: ControlEvent<ExerciseRecordInputReactor.DurationValue> {
+        base.durationPickerSheetView.rx.durationChanged
     }
 }
 
@@ -214,10 +276,19 @@ private extension ExerciseTypeButton {
     }
 }
 
-private final class ExerciseRecordField: UIView {
+fileprivate final class ExerciseRecordField: UIView {
     private let titleLabel: UILabel
-    private let textField = DesignTextField().then {
+    fileprivate let textField = DesignTextField().then {
         $0.font = LabelConfiguration.body14Medium.font
+    }
+
+    var text: String? {
+        get {
+            textField.text
+        }
+        set {
+            textField.text = newValue
+        }
     }
 
     init(title: String, text: String? = nil, placeholder: String? = nil) {
@@ -239,7 +310,12 @@ private final class ExerciseRecordField: UIView {
     }
 }
 
-private extension ExerciseRecordField {
+fileprivate extension ExerciseRecordField {
+    func setReadOnly() {
+        textField.inputView = UIView()
+        textField.tintColor = .clear
+    }
+
     func setLayout() {
         [
             titleLabel,
@@ -255,5 +331,11 @@ private extension ExerciseRecordField {
             $0.horizontalEdges.bottom.equalToSuperview()
             $0.height.equalTo(48)
         }
+    }
+}
+
+extension Reactive where Base == ExerciseRecordField {
+    var editingDidBegin: ControlEvent<Void> {
+        base.textField.rx.controlEvent(.editingDidBegin)
     }
 }
