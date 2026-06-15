@@ -29,7 +29,7 @@ final class LocationEditViewController: BaseViewController<LocationReactor> {
     
     private func bindAction(reactor: LocationReactor) {
         self.rx.viewWillAppear
-            .map { LocationReactor.Action.viewWillAppear }
+            .map { LocationReactor.Action.loadItems }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         

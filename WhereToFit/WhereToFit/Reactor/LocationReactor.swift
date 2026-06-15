@@ -13,6 +13,7 @@ final class LocationReactor: BaseReactor {
     
     enum Action {
         case viewWillAppear
+        case loadItems
     }
     
     enum Mutation {
@@ -33,6 +34,9 @@ final class LocationReactor: BaseReactor {
                 makeLocationItems(),
                 .just(.setLoading(false))
             ])
+            
+        case .loadItems:
+            return .just(.setLocations(currentState.locations))
         }
     }
     
