@@ -69,7 +69,7 @@ extension KakaoPostCodeViewController: WKScriptMessageHandler {
         var address = ""
         if let data = message.body as? [String: Any] {
             address = data["roadAddress"] as? String ?? ""
-        }
+        } // 도로명주소 가져옴
         
         onSelectAddress?(address)
         self.dismiss(animated: true)

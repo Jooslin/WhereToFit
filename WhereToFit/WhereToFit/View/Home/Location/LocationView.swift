@@ -158,13 +158,3 @@ extension Reactive where Base: LocationView {
             .asObservable()
     }
 }
-
-nonisolated
-struct Location: Hashable {
-    let icon: UIImage
-    let name: String
-    let address: String
-    let isSelected: Bool
-    let latitude: Double
-    let longitude: Double
-}
