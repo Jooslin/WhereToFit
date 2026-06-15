@@ -136,6 +136,13 @@ extension Reactive where Base: LocationDetailView {
         base.addressTextField.rx.controlEvent(.editingDidBegin)
     }
     
+    var nameTextFieldEditingDidEnd: ControlEvent<String> {
+        let source = base.nameTextField.rx.controlEvent(.editingDidEnd)
+            .withLatestFrom(base.nameTextField.rx.text.orEmpty)
+        
+        return ControlEvent(events: source)
+    }
+    
     var homeButtonTap: ControlEvent<Void> {
         base.homeButton.rx.tap
     }

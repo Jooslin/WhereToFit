@@ -14,9 +14,21 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
     let detailView = LocationDetailView()
     
     private let selectedAddressRelay = PublishRelay<String>()
+    private lazy var keyboardDismissTapGesture = UITapGestureRecognizer(
+        target: self,
+        action: #selector(didTapBackground)
+    )
     
     override func loadView() {
         view = detailView
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        keyboardDismissTapGesture.cancelsTouchesInView = false
+        keyboardDismissTapGesture.delegate = self
+        detailView.addGestureRecognizer(keyboardDismissTapGesture)
     }
     
     override func bind(reactor: LocationDetailReactor) {
@@ -44,6 +56,11 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
         
         selectedAddressRelay
             .map { LocationDetailReactor.Action.updateAddress($0) }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+        
+        detailView.rx.nameTextFieldEditingDidEnd
+            .map { LocationDetailReactor.Action.updateName($0) }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
@@ -137,5 +154,15 @@ extension LocationDetailViewController {
         }
         vc.modalPresentationStyle = .overFullScreen
         present(vc, animated: false)
+    }
+    
+    @objc private func didTapBackground() {
+        detailView.endEditing(true)
+    }
+}
+
+extension LocationDetailViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        detailView.nameTextField.isFirstResponder
     }
 }
