@@ -58,11 +58,21 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             )
             .disposed(by: disposeBag)
         
+        state.map(\.registerButtonTitle)
+            .distinctUntilChanged()
+            .drive(
+                with: detailView,
+                onNext: { detailView, title in
+                    detailView.registerButton.title = title
+                }
+            )
+            .disposed(by: disposeBag)
+        
         state.compactMap(\.selectedLocation)
             .drive(
                 with: detailView,
                 onNext: { detailView, location in
-                    detailView.configure(editMode: .edit(location))
+                    detailView.configureButton(location)
                 })
             .disposed(by: disposeBag)
     }

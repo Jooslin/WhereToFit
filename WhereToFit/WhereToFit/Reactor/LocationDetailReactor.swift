@@ -20,11 +20,14 @@ final class LocationDetailReactor: BaseReactor {
     }
     
     struct State {
-        var isInitial: Bool = true
         var address: String
         var buttonType: Location.LocationButtonType?
         var name: String
         var selectedLocation: Location?
+        
+        var registerButtonTitle: String {
+            selectedLocation == nil ? "등록하기" : "수정하기"
+        }
     }
     
     init(address: String?, location: Location?) {

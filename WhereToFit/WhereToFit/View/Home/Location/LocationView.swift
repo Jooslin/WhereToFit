@@ -30,6 +30,7 @@ final class LocationView: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        backgroundColor = .white
         searchBar.addGestureRecognizer(searchBarTapGesture)
         setLayout()
     }

@@ -49,28 +49,18 @@ final class LocationDetailView: UIView {
 }
 
 extension LocationDetailView {
-    func configure(editMode: LocationEditMode) {
-        switch editMode {
-        case .create(address: let address):
-            addressTextField.text = address
-            registerButton.title = "등록하기"
-            
-        case .edit(let location):
-//            addressTextField.text = location.address
-            registerButton.title = "수정하기"
-            
-            switch location.buttonType {
-            case .myHome:
-                homeButton.isSelected = true
-                nameTextField.isHidden = true
-            case .office:
-                officeButton.isSelected = true
-                nameTextField.isHidden = true
-            case .additional:
-                addButton.isSelected = true
-                nameTextField.isHidden = false
-                nameTextField.text = location.name
-            }
+    func configureButton(_ location: Location) {
+        switch location.buttonType {
+        case .myHome:
+            homeButton.isSelected = true
+            nameTextField.isHidden = true
+        case .office:
+            officeButton.isSelected = true
+            nameTextField.isHidden = true
+        case .additional:
+            addButton.isSelected = true
+            nameTextField.isHidden = false
+            nameTextField.text = location.name
         }
     }
 }
