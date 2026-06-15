@@ -83,6 +83,7 @@ extension LocationViewController {
         vc.onSelectAddress = { [weak self] address in
             self?.selectedAddressRelay.accept(address)
         }
+        vc.modalPresentationStyle = .overFullScreen
         self.present(vc, animated: true)
     }
 }

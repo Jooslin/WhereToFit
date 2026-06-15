@@ -5,6 +5,7 @@
 //  Created by 변예린 on 6/15/26.
 //
 
+import UIKit
 import WebKit
 import SnapKit
 
@@ -17,6 +18,8 @@ final class KakaoPostCodeViewController: BaseViewController<TempReactor> {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        view.backgroundColor = UIColor.black.withAlphaComponent(0.4)
         
         contentController.add(self, name: "callBackHandler")
         
@@ -32,16 +35,31 @@ final class KakaoPostCodeViewController: BaseViewController<TempReactor> {
         webView.load(request)
         indicator.startAnimating()
         
+        // setLayout
         view.addSubview(webView)
         webView.addSubview(indicator)
         
         webView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.horizontalEdges.equalToSuperview().inset(35)
+            $0.height.equalTo(465)
+            $0.centerY.equalToSuperview()
         }
         
         indicator.snp.makeConstraints {
             $0.center.equalTo(webView.snp.center)
         }
+        
+        webView.layer.cornerRadius = 16
+        webView.clipsToBounds = true
+        
+        // 제스처 설정 - 여백 탭시 dismiss
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapBackground))
+        tapGesture.delegate = self
+        view.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func didTapBackground() {
+        dismiss(animated: true)
     }
 }
 
@@ -66,5 +84,13 @@ extension KakaoPostCodeViewController: WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         indicator.stopAnimating()
+    }
+}
+
+extension KakaoPostCodeViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        guard let webView else { return true }
+        let touchLocation = touch.location(in: view)
+        return !webView.frame.contains(touchLocation)
     }
 }
