@@ -29,7 +29,6 @@ final class LocationDetailView: UIView {
         $0.normalImage = .locationPin
         $0.selectedImage = .locationPinFilled
         $0.title = "추가"
-        $0.isSelected = true
     }
     let nameTextField = DesignTextField().then {
         $0.placeholder = "장소 이름을 입력해주세요"

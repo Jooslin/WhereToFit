@@ -38,6 +38,10 @@ final class LocationEditViewController: BaseViewController<LocationReactor> {
             .bind(to: steps)
             .disposed(by: disposeBag)
         
+        locationView.rx.editButtonTap
+            .map { AppStep.locationDetail(.edit($0)) }
+            .bind(to: steps)
+            .disposed(by: disposeBag)
     }
     
     private func bindState(reactor: LocationReactor) {
