@@ -59,7 +59,7 @@ final class ExerciseRecordInputView: UIView {
         durationField
     ]).then {
         $0.axis = .vertical
-        $0.spacing = 22
+        $0.spacing = 16
     }
 
     override init(frame: CGRect) {
@@ -135,7 +135,7 @@ private extension ExerciseRecordInputView {
         }
 
         fieldStackView.snp.makeConstraints {
-            $0.top.equalTo(exerciseTypeStackView.snp.bottom).offset(8)
+            $0.top.equalTo(exerciseTypeStackView.snp.bottom).offset(12)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
 
