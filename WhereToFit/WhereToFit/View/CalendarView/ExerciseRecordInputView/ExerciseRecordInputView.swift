@@ -78,7 +78,7 @@ final class ExerciseRecordInputView: UIView {
 
 extension ExerciseRecordInputView {
     func toggleCustomInput() {
-        setCustomInputVisible(!customButton.isSelected)
+        setCustomInputVisible(!customButton.isSelected, animated: true)
     }
 }
 
@@ -106,7 +106,6 @@ private extension ExerciseRecordInputView {
 
         sheetView.snp.makeConstraints {
             $0.horizontalEdges.bottom.equalToSuperview()
-            $0.height.equalTo(474)
         }
 
         handleView.snp.makeConstraints {
@@ -140,15 +139,25 @@ private extension ExerciseRecordInputView {
         }
 
         saveButton.snp.makeConstraints {
+            $0.top.equalTo(fieldStackView.snp.bottom).offset(20)
             $0.horizontalEdges.equalToSuperview().inset(16)
-            $0.bottom.equalTo(safeAreaLayoutGuide)
+            $0.bottom.equalTo(sheetView.safeAreaLayoutGuide).inset(20)
             $0.height.equalTo(48)
         }
     }
 
-    func setCustomInputVisible(_ isVisible: Bool) {
+    func setCustomInputVisible(_ isVisible: Bool, animated: Bool = false) {
         customButton.isSelected = isVisible
         exerciseNameField.isHidden = !isVisible
+
+        guard animated else {
+            layoutIfNeeded()
+            return
+        }
+
+        UIView.animate(withDuration: 0.25) {
+            self.layoutIfNeeded()
+        }
     }
 }
 
