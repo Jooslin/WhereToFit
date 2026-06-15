@@ -56,7 +56,7 @@ extension LocationDetailView {
             registerButton.title = "등록하기"
             
         case .edit(let location):
-            addressTextField.text = location.address
+//            addressTextField.text = location.address
             registerButton.title = "수정하기"
             
             switch location.buttonType {

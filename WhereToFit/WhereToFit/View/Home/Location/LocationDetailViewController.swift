@@ -17,11 +17,6 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
         view = detailView
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-    }
-    
     override func bind(reactor: LocationDetailReactor) {
         bindAction(reactor: reactor)
         bindState(reactor: reactor)
@@ -33,18 +28,34 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             .map { AppStep.pageBack }
             .bind(to: steps)
             .disposed(by: disposeBag)
+        
+//        detailView.registerButton.rx.tap
+//            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+//            .map { }
     }
     
     private func bindState(reactor: LocationDetailReactor) {
         let state = reactor.state
-            .asDriver(onErrorJustReturn: .init())
+            .asDriver(
+                onErrorJustReturn: .init(address: "", name: "")
+            )
         
-        state.compactMap(\.selectedAddress)
+        state.map(\.address)
             .drive(
                 with: detailView,
                 onNext: { detailView, address in
-                    detailView.configure(editMode: .create(address: address))
-                })
+                    detailView.addressTextField.text = address
+                }
+            )
+            .disposed(by: disposeBag)
+        
+        state.map(\.name)
+            .drive(
+                with: detailView,
+                onNext: { detailView, name in
+                    detailView.nameTextField.text = name
+                }
+            )
             .disposed(by: disposeBag)
         
         state.compactMap(\.selectedLocation)
