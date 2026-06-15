@@ -52,3 +52,9 @@ final class LocationEditViewController: BaseViewController<LocationReactor> {
             .disposed(by: disposeBag)
     }
 }
+
+//MARK: Enum
+enum LocationEditMode {
+    case create(address: String)
+    case edit(Location)
+}

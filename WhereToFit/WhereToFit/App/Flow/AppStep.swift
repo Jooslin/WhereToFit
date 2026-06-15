@@ -32,5 +32,5 @@ enum AppStep: Step {
     // Home
     case locationSetting
     case locationEdit
-    case locationDetail
+    case locationDetail(LocationEditMode)
 }
