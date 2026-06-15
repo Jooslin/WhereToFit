@@ -42,6 +42,13 @@ final class ExerciseRecordInputReactor: Reactor {
 
     enum Action {
         case customButtonTapped
+        case exerciseNameFieldTapped
+        case exerciseCategorySelected(SportsCategory)
+        case exerciseSportSelected(String)
+        case exerciseSearchTextChanged(String?)
+        case exerciseSelectionResetButtonTapped
+        case exerciseSelectionApplyButtonTapped
+        case exerciseSelectionCloseButtonTapped
         case durationFieldTapped
         case durationPickerChanged(DurationValue)
         case durationPickerSelectButtonTapped
@@ -49,6 +56,11 @@ final class ExerciseRecordInputReactor: Reactor {
 
     enum Mutation {
         case setCustomInputVisible(Bool)
+        case setExerciseSelectionVisible(Bool)
+        case setSelectedExerciseCategory(SportsCategory)
+        case setSelectedExerciseSport(String?)
+        case setAppliedExerciseName(String?)
+        case setExerciseSearchText(String)
         case setDurationPickerVisible(Bool)
         case setSelectedDuration(DurationValue)
         case setConfirmedDuration(DurationValue)
@@ -57,6 +69,18 @@ final class ExerciseRecordInputReactor: Reactor {
     struct State {
         var selectedDate: Date
         var isCustomInputVisible = false
+        var isExerciseSelectionVisible = false
+        var exerciseCategories = SportsCategory.allCases
+        var selectedExerciseCategory: SportsCategory = .health
+        var selectedExerciseSport: String?
+        var appliedExerciseName: String?
+        var exerciseSearchText = ""
+        var filteredExerciseSports: [String] {
+            let sports = selectedExerciseCategory.sports
+            guard !exerciseSearchText.isEmpty else { return sports }
+
+            return sports.filter { $0.localizedCaseInsensitiveContains(exerciseSearchText) }
+        }
         var isDurationPickerVisible = false
         var selectedDuration = DurationValue(hour: 0, minute: 0, second: 0)
         var confirmedDuration = DurationValue(hour: 0, minute: 0, second: 0)
@@ -66,6 +90,37 @@ final class ExerciseRecordInputReactor: Reactor {
         switch action {
         case .customButtonTapped:
             return .just(.setCustomInputVisible(!currentState.isCustomInputVisible))
+
+        case .exerciseNameFieldTapped:
+            return .just(.setExerciseSelectionVisible(true))
+
+        case .exerciseCategorySelected(let category):
+            return .concat([
+                .just(.setSelectedExerciseCategory(category)),
+                .just(.setSelectedExerciseSport(nil))
+            ])
+
+        case .exerciseSportSelected(let sport):
+            return .just(.setSelectedExerciseSport(sport))
+
+        case .exerciseSearchTextChanged(let text):
+            return .just(.setExerciseSearchText(text ?? ""))
+
+        case .exerciseSelectionResetButtonTapped:
+            return .concat([
+                .just(.setSelectedExerciseCategory(.health)),
+                .just(.setSelectedExerciseSport(nil)),
+                .just(.setExerciseSearchText(""))
+            ])
+
+        case .exerciseSelectionApplyButtonTapped:
+            return .concat([
+                .just(.setAppliedExerciseName(currentState.selectedExerciseSport)),
+                .just(.setExerciseSelectionVisible(false))
+            ])
+
+        case .exerciseSelectionCloseButtonTapped:
+            return .just(.setExerciseSelectionVisible(false))
 
         case .durationFieldTapped:
             return .just(.setDurationPickerVisible(true))
@@ -87,6 +142,21 @@ final class ExerciseRecordInputReactor: Reactor {
         switch mutation {
         case .setCustomInputVisible(let isVisible):
             newState.isCustomInputVisible = isVisible
+
+        case .setExerciseSelectionVisible(let isVisible):
+            newState.isExerciseSelectionVisible = isVisible
+
+        case .setSelectedExerciseCategory(let category):
+            newState.selectedExerciseCategory = category
+
+        case .setSelectedExerciseSport(let sport):
+            newState.selectedExerciseSport = sport
+
+        case .setAppliedExerciseName(let name):
+            newState.appliedExerciseName = name
+
+        case .setExerciseSearchText(let text):
+            newState.exerciseSearchText = text
 
         case .setDurationPickerVisible(let isVisible):
             newState.isDurationPickerVisible = isVisible
