@@ -42,8 +42,7 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             .drive(
                 with: detailView,
                 onNext: { detailView, address in
-                    detailView.addressTextField.text = address
-                    detailView.registerButton.title = "등록하기"
+                    detailView.configure(editMode: .create(address: address))
                 })
             .disposed(by: disposeBag)
         
@@ -51,13 +50,8 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             .drive(
                 with: detailView,
                 onNext: { detailView, location in
-                    detailView.addressTextField.text = location.name
-                    
-                    detailView.nameTextField.text = location.name
-                    
-                    detailView.registerButton.title = "수정하기"
+                    detailView.configure(editMode: .edit(location))
                 })
             .disposed(by: disposeBag)
-        
     }
 }

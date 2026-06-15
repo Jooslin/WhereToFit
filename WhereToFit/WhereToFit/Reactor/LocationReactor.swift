@@ -60,7 +60,7 @@ extension LocationReactor {
         Observable.create { observer in
             let locations: [Location] = [
                 Location(
-                    icon: .homeFilled,
+                    buttonType: .myHome,
                     name: "우리동네체육관",
                     address: "경상북도 구미시 송정대로 55",
                     isSelected: true,
@@ -68,7 +68,7 @@ extension LocationReactor {
                     longitude: 128.3446
                 ),
                 Location(
-                    icon: .locationPin,
+                    buttonType: .additional,
                     name: "구미시민운동장",
                     address: "경상북도 구미시 박정희로 375",
                     isSelected: false,
@@ -76,7 +76,7 @@ extension LocationReactor {
                     longitude: 128.3828
                 ),
                 Location(
-                    icon: .locationPin,
+                    buttonType: .additional,
                     name: "금오산도립공원",
                     address: "경상북도 구미시 금오산로 400",
                     isSelected: false,

@@ -12,8 +12,8 @@ import RxCocoa
 import RxSwift
 
 final class LocationDetailView: UIView {
-    let titleView = TitleView(text: "위치 상세", leftButtonImage: .arrowLeft)
-    let addressLabel = UILabel(text: "주소", config: .body14Medium, color: .gray600)
+    fileprivate let titleView = TitleView(text: "위치 상세", leftButtonImage: .arrowLeft)
+    private let addressLabel = UILabel(text: "주소", config: .body14Medium, color: .gray600)
     let addressTextField = DesignTextField()
     let homeButton = IconButton(config: .iconAdditional, selectedConfig: .selectedIconAdditional, style: .leftImage, iconSize: .tiny).then {
         $0.normalImage = .home
@@ -33,7 +33,7 @@ final class LocationDetailView: UIView {
     }
     let nameTextField = DesignTextField().then {
         $0.placeholder = "장소 이름을 입력해주세요"
-        $0.isHidden = false
+        $0.isHidden = true
     }
     
     let registerButton = DesignButton(config: .largeFilledBlue)
@@ -46,6 +46,33 @@ final class LocationDetailView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+}
+
+extension LocationDetailView {
+    func configure(editMode: LocationEditMode) {
+        switch editMode {
+        case .create(address: let address):
+            addressTextField.text = address
+            registerButton.title = "등록하기"
+            
+        case .edit(let location):
+            addressTextField.text = location.address
+            registerButton.title = "수정하기"
+            
+            switch location.buttonType {
+            case .myHome:
+                homeButton.isSelected = true
+                nameTextField.isHidden = true
+            case .office:
+                officeButton.isSelected = true
+                nameTextField.isHidden = true
+            case .additional:
+                addButton.isSelected = true
+                nameTextField.isHidden = false
+                nameTextField.text = location.name
+            }
+        }
     }
 }
 
