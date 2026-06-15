@@ -47,24 +47,20 @@ final class ExerciseNameSelectionSheetView: UIView {
     private let titleLabel = UILabel(text: "운동 종목", config: .body14Medium, color: .gray700)
     fileprivate let searchBar = SearchBar(placeholder: "하고 싶은 운동 종목 입력")
     private let dividerView = UIView().then {
-        $0.backgroundColor = .gray100
+        $0.backgroundColor = .gray50
     }
 
     private let categoryTableView = UITableView(frame: .zero, style: .plain).then {
         $0.separatorStyle = .none
-        $0.showsVerticalScrollIndicator = false
+        $0.showsVerticalScrollIndicator = true
         $0.backgroundColor = .white
         $0.rowHeight = 44
         $0.register(ExerciseCategoryCell.self, forCellReuseIdentifier: ExerciseCategoryCell.reuseIdentifier)
     }
 
-    private let verticalDividerView = UIView().then {
-        $0.backgroundColor = .gray200
-    }
-
     private let sportTableView = UITableView(frame: .zero, style: .plain).then {
         $0.separatorStyle = .none
-        $0.showsVerticalScrollIndicator = false
+        $0.showsVerticalScrollIndicator = true
         $0.backgroundColor = .white
         $0.rowHeight = 44
         $0.register(ExerciseSportCell.self, forCellReuseIdentifier: ExerciseSportCell.reuseIdentifier)
@@ -72,7 +68,6 @@ final class ExerciseNameSelectionSheetView: UIView {
 
     private lazy var listContainerView = UIView().then {
         $0.addSubview(categoryTableView)
-        $0.addSubview(verticalDividerView)
         $0.addSubview(sportTableView)
     }
 
@@ -191,17 +186,11 @@ private extension ExerciseNameSelectionSheetView {
 
         categoryTableView.snp.makeConstraints {
             $0.leading.verticalEdges.equalToSuperview()
-            $0.trailing.equalTo(verticalDividerView.snp.leading).offset(-12)
-        }
-
-        verticalDividerView.snp.makeConstraints {
-            $0.centerX.equalToSuperview()
-            $0.verticalEdges.equalToSuperview()
-            $0.width.equalTo(1)
+            $0.trailing.equalTo(listContainerView.snp.centerX).offset(-12)
         }
 
         sportTableView.snp.makeConstraints {
-            $0.leading.equalTo(verticalDividerView.snp.trailing).offset(12)
+            $0.leading.equalTo(listContainerView.snp.centerX).offset(12)
             $0.trailing.verticalEdges.equalToSuperview()
             $0.width.equalTo(categoryTableView)
         }
