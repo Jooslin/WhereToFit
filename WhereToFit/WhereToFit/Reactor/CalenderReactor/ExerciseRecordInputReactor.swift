@@ -76,10 +76,11 @@ final class ExerciseRecordInputReactor: Reactor {
         var appliedExerciseName: String?
         var exerciseSearchText = ""
         var filteredExerciseSports: [String] {
-            let sports = selectedExerciseCategory.sports
-            guard !exerciseSearchText.isEmpty else { return sports }
+            guard !exerciseSearchText.isEmpty else { return selectedExerciseCategory.sports }
 
-            return sports.filter { $0.localizedCaseInsensitiveContains(exerciseSearchText) }
+            return SportsCategory.allCases
+                .flatMap(\.sports)
+                .filter { $0.localizedCaseInsensitiveContains(exerciseSearchText) }
         }
         var isDurationPickerVisible = false
         var selectedDuration = DurationValue(hour: 0, minute: 0, second: 0)
@@ -97,11 +98,15 @@ final class ExerciseRecordInputReactor: Reactor {
         case .exerciseCategorySelected(let category):
             return .concat([
                 .just(.setSelectedExerciseCategory(category)),
-                .just(.setSelectedExerciseSport(nil))
+                .just(.setSelectedExerciseSport(nil)),
+                .just(.setExerciseSearchText(""))
             ])
 
         case .exerciseSportSelected(let sport):
-            return .just(.setSelectedExerciseSport(sport))
+            return .concat([
+                .just(.setSelectedExerciseCategory(SportsCategory(sport: sport))),
+                .just(.setSelectedExerciseSport(sport))
+            ])
 
         case .exerciseSearchTextChanged(let text):
             return .just(.setExerciseSearchText(text ?? ""))
