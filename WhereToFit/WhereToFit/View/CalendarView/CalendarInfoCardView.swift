@@ -38,7 +38,7 @@ extension CalendarInfoCardView {
 
 private extension CalendarInfoCardView {
     func setStyle() {
-        backgroundColor = .gray50
+        backgroundColor = .gray25
         layer.cornerRadius = 12
     }
 
