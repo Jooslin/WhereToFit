@@ -13,6 +13,8 @@ import RxCocoa
 final class LocationDetailViewController: BaseViewController<LocationDetailReactor> {
     let detailView = LocationDetailView()
     
+    private let selectedAddressRelay = PublishRelay<String>()
+    
     override func loadView() {
         view = detailView
     }
@@ -27,6 +29,20 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { AppStep.pageBack }
             .bind(to: steps)
+            .disposed(by: disposeBag)
+        
+        detailView.rx.addressTextFieldTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .withUnretained(self)
+            .subscribe(onNext: { `self`, _ in
+                self.detailView.addressTextField.resignFirstResponder()
+                self.presentPostCodeSelection()
+            })
+            .disposed(by: disposeBag)
+        
+        selectedAddressRelay
+            .map { LocationDetailReactor.Action.updateAddress($0) }
+            .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
 //        detailView.registerButton.rx.tap
@@ -75,5 +91,16 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
                     detailView.configureButton(location)
                 })
             .disposed(by: disposeBag)
+    }
+}
+
+extension LocationDetailViewController {
+    private func presentPostCodeSelection() {
+        let vc = KakaoPostCodeViewController()
+        vc.onSelectAddress = { [weak self] address in
+            self?.selectedAddressRelay.accept(address)
+        }
+        vc.modalPresentationStyle = .overFullScreen
+        present(vc, animated: false)
     }
 }

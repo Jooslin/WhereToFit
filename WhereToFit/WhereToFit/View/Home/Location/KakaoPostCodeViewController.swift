@@ -59,7 +59,7 @@ final class KakaoPostCodeViewController: BaseViewController<TempReactor> {
     }
     
     @objc private func didTapBackground() {
-        dismiss(animated: true)
+        dismiss(animated: false)
     }
 }
 
@@ -72,7 +72,7 @@ extension KakaoPostCodeViewController: WKScriptMessageHandler {
         } // 도로명주소 가져옴
         
         onSelectAddress?(address)
-        self.dismiss(animated: true)
+        self.dismiss(animated: false)
     }
 }
 

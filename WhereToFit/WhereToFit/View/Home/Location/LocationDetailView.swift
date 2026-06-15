@@ -14,7 +14,10 @@ import RxSwift
 final class LocationDetailView: UIView {
     fileprivate let titleView = TitleView(text: "위치 상세", leftButtonImage: .arrowLeft)
     private let addressLabel = UILabel(text: "주소", config: .body14Medium, color: .gray600)
-    let addressTextField = DesignTextField()
+    let addressTextField = DesignTextField().then {
+        $0.inputView = UIView()
+        $0.tintColor = .clear
+    }
     let homeButton = IconButton(config: .iconAdditional, selectedConfig: .selectedIconAdditional, style: .leftImage, iconSize: .tiny).then {
         $0.normalImage = .home
         $0.selectedImage = .homeFilled
@@ -119,5 +122,9 @@ extension LocationDetailView {
 extension Reactive where Base: LocationDetailView {
     var backButtonTap: ControlEvent<Void> {
         base.titleView.rx.leftButtonTap
+    }
+    
+    var addressTextFieldTap: ControlEvent<Void> {
+        base.addressTextField.rx.controlEvent(.editingDidBegin)
     }
 }
