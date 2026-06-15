@@ -181,7 +181,8 @@ final class ConditionOptionButton: UIControl {
 
     override var isSelected: Bool {
         didSet {
-            backgroundColor = isSelected ? .primary50 : .gray50
+            backgroundColor = isSelected ? .primary25 : .gray25
+            titleLabel.textColor = isSelected ? .gray900 : .gray400
         }
     }
 
@@ -204,6 +205,7 @@ final class ConditionOptionButton: UIControl {
 private extension ConditionOptionButton {
     func setStyle() {
         backgroundColor = .white
+        titleLabel.textColor = .gray400
         layer.cornerRadius = 24
     }
 
