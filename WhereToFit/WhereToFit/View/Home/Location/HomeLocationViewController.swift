@@ -28,6 +28,11 @@ final class HomeLocationViewController: BaseViewController<LocationReactor> {
     }
     
     private func bindAction(reactor: LocationReactor) {
+        self.rx.viewWillAppear
+            .map { LocationReactor.Action.viewWillAppear }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+        
         locationView.rx.searchBarTap
             .subscribe(onNext: { [weak self] in
                 self?.present()
@@ -39,6 +44,13 @@ final class HomeLocationViewController: BaseViewController<LocationReactor> {
         let state = reactor.state
             .asDriver(onErrorJustReturn: .init())
         
+        state.map(\.locations)
+            .drive(
+                with: locationView,
+                onNext: { locationView, locations in
+                    locationView.setSnapshot(with: locations)
+                })
+            .disposed(by: disposeBag)
     }
     
     func present() {

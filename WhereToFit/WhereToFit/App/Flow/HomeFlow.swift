@@ -41,11 +41,7 @@ final class HomeFlow: Flow {
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
             
         case .locationSetting:
-            let vc = HomeLocationViewController(reactor: HomeReactor(
-                dateService: dateService,
-                weatherRepository: weatherRepository,
-                sportsRepository: sportsRepository
-            ))
+            let vc = HomeLocationViewController(reactor: LocationReactor())
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
         default:
