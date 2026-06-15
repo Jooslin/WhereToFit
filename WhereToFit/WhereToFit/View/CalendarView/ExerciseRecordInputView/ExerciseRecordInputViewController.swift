@@ -29,6 +29,42 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
+        exerciseRecordInputView.rx.exerciseNameFieldTap
+            .map { ExerciseRecordInputReactor.Action.exerciseNameFieldTapped }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        exerciseRecordInputView.rx.exerciseNameSearchText
+            .skip(1)
+            .map { ExerciseRecordInputReactor.Action.exerciseSearchTextChanged($0) }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        exerciseRecordInputView.rx.exerciseCategorySelected
+            .map { ExerciseRecordInputReactor.Action.exerciseCategorySelected($0) }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        exerciseRecordInputView.rx.exerciseSportSelected
+            .map { ExerciseRecordInputReactor.Action.exerciseSportSelected($0) }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        exerciseRecordInputView.rx.exerciseSelectionResetButtonTap
+            .map { ExerciseRecordInputReactor.Action.exerciseSelectionResetButtonTapped }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        exerciseRecordInputView.rx.exerciseSelectionApplyButtonTap
+            .map { ExerciseRecordInputReactor.Action.exerciseSelectionApplyButtonTapped }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        exerciseRecordInputView.rx.exerciseSelectionCloseButtonTap
+            .map { ExerciseRecordInputReactor.Action.exerciseSelectionCloseButtonTapped }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
         exerciseRecordInputView.rx.durationFieldTap
             .map { ExerciseRecordInputReactor.Action.durationFieldTapped }
             .bind(to: reactor.action)
@@ -71,6 +107,37 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .observe(on: MainScheduler.instance)
             .bind(with: self) { owner, isVisible in
                 owner.exerciseRecordInputView.updateCustomInputVisible(isVisible)
+            }
+            .disposed(by: disposeBag)
+
+        reactor.state
+            .observe(on: MainScheduler.instance)
+            .bind(with: self) { owner, state in
+                owner.exerciseRecordInputView.updateExerciseNameSelection(
+                    categories: state.exerciseCategories,
+                    selectedCategory: state.selectedExerciseCategory,
+                    sports: state.filteredExerciseSports,
+                    selectedSport: state.selectedExerciseSport,
+                    searchText: state.exerciseSearchText
+                )
+            }
+            .disposed(by: disposeBag)
+
+        reactor.state
+            .map(\.isExerciseSelectionVisible)
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind(with: self) { owner, isVisible in
+                owner.exerciseRecordInputView.updateExerciseNameSelectionVisible(isVisible)
+            }
+            .disposed(by: disposeBag)
+
+        reactor.state
+            .map(\.appliedExerciseName)
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind(with: self) { owner, exerciseName in
+                owner.exerciseRecordInputView.updateExerciseName(exerciseName)
             }
             .disposed(by: disposeBag)
 

@@ -49,9 +49,10 @@ final class ExerciseRecordInputView: UIView {
         $0.distribution = .fill
     }
 
-    private let exerciseNameField = ExerciseRecordField(title: "운동 종목", placeholder: "운동 종목을 선택해주세요")
+    fileprivate let exerciseNameField = ExerciseRecordField(title: "운동 종목", placeholder: "운동 종목을 선택해주세요")
     private let dateField = ExerciseRecordField(title: "날짜")
     fileprivate let durationField = ExerciseRecordField(title: "운동한 시간", text: "0분")
+    fileprivate let exerciseNameSelectionSheetView = ExerciseNameSelectionSheetView()
     fileprivate let durationPickerSheetView = DurationPickerSheetView()
 
     private lazy var fieldStackView = UIStackView(arrangedSubviews: [
@@ -68,6 +69,7 @@ final class ExerciseRecordInputView: UIView {
 
         setStyle()
         setLayout()
+        setExerciseNameSelectionSheet()
         setDurationPicker()
         setCustomInputVisible(false)
     }
@@ -85,6 +87,34 @@ extension ExerciseRecordInputView {
 
     func updateCustomInputVisible(_ isVisible: Bool) {
         setCustomInputVisible(isVisible, animated: true)
+    }
+
+    func updateExerciseNameSelectionVisible(_ isVisible: Bool) {
+        if isVisible {
+            showExerciseNameSelection()
+        } else {
+            hideExerciseNameSelection()
+        }
+    }
+
+    func updateExerciseNameSelection(
+        categories: [SportsCategory],
+        selectedCategory: SportsCategory,
+        sports: [String],
+        selectedSport: String?,
+        searchText: String
+    ) {
+        exerciseNameSelectionSheetView.update(
+            categories: categories,
+            selectedCategory: selectedCategory,
+            sports: sports,
+            selectedSport: selectedSport,
+            searchText: searchText
+        )
+    }
+
+    func updateExerciseName(_ exerciseName: String?) {
+        exerciseNameField.text = exerciseName
     }
 
     func updateDurationPickerVisible(_ isVisible: Bool) {
@@ -112,6 +142,7 @@ private extension ExerciseRecordInputView {
     func setLayout() {
         addSubview(dimmedView)
         addSubview(sheetView)
+        addSubview(exerciseNameSelectionSheetView)
         addSubview(durationPickerSheetView)
 
         [
@@ -132,6 +163,10 @@ private extension ExerciseRecordInputView {
         }
 
         durationPickerSheetView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+
+        exerciseNameSelectionSheetView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
 
@@ -187,10 +222,37 @@ private extension ExerciseRecordInputView {
         }
     }
 
+    func setExerciseNameSelectionSheet() {
+        exerciseNameSelectionSheetView.alpha = 0
+        exerciseNameSelectionSheetView.isHidden = true
+        exerciseNameField.setReadOnly()
+    }
+
     func setDurationPicker() {
         durationPickerSheetView.alpha = 0
         durationPickerSheetView.isHidden = true
         durationField.setReadOnly()
+    }
+
+    func showExerciseNameSelection() {
+        endEditing(true)
+        guard exerciseNameSelectionSheetView.isHidden else { return }
+
+        exerciseNameSelectionSheetView.isHidden = false
+
+        UIView.animate(withDuration: 0.25) {
+            self.exerciseNameSelectionSheetView.alpha = 1
+        }
+    }
+
+    func hideExerciseNameSelection() {
+        guard !exerciseNameSelectionSheetView.isHidden else { return }
+
+        UIView.animate(withDuration: 0.25) {
+            self.exerciseNameSelectionSheetView.alpha = 0
+        } completion: { _ in
+            self.exerciseNameSelectionSheetView.isHidden = true
+        }
     }
 
     func showDurationPicker() {
@@ -218,6 +280,34 @@ private extension ExerciseRecordInputView {
 extension Reactive where Base == ExerciseRecordInputView {
     var customButtonTap: ControlEvent<Void> {
         base.customButton.rx.controlEvent(.touchUpInside)
+    }
+
+    var exerciseNameFieldTap: ControlEvent<Void> {
+        base.exerciseNameField.rx.editingDidBegin
+    }
+
+    var exerciseNameSearchText: ControlProperty<String?> {
+        base.exerciseNameSelectionSheetView.rx.searchText
+    }
+
+    var exerciseCategorySelected: ControlEvent<SportsCategory> {
+        base.exerciseNameSelectionSheetView.rx.categorySelected
+    }
+
+    var exerciseSportSelected: ControlEvent<String> {
+        base.exerciseNameSelectionSheetView.rx.sportSelected
+    }
+
+    var exerciseSelectionResetButtonTap: ControlEvent<Void> {
+        base.exerciseNameSelectionSheetView.resetButton.rx.tap
+    }
+
+    var exerciseSelectionApplyButtonTap: ControlEvent<Void> {
+        base.exerciseNameSelectionSheetView.applyButton.rx.tap
+    }
+
+    var exerciseSelectionCloseButtonTap: ControlEvent<Void> {
+        base.exerciseNameSelectionSheetView.closeButton.rx.tap
     }
 
     var durationFieldTap: ControlEvent<Void> {
