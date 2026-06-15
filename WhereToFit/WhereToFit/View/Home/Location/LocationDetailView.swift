@@ -91,3 +91,9 @@ extension LocationDetailView {
         }
     }
 }
+
+extension Reactive where Base: LocationDetailView {
+    var backButtonTap: ControlEvent<Void> {
+        base.titleView.rx.leftButtonTap
+    }
+}

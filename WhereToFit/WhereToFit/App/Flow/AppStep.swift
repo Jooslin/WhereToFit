@@ -31,5 +31,6 @@ enum AppStep: Step {
     
     // Home
     case locationSetting
-    case editLocation
+    case locationEdit
+    case locationDetail
 }

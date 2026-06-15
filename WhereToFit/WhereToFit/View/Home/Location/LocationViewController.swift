@@ -13,6 +13,8 @@ import RxCocoa
 final class LocationViewController: BaseViewController<LocationReactor> {
     let locationView = LocationView()
     
+    private let selectedAddressRelay = PublishRelay<String>()
+    
     override func loadView() {
         view = locationView
     }
@@ -39,14 +41,22 @@ final class LocationViewController: BaseViewController<LocationReactor> {
             .disposed(by: disposeBag)
         
         locationView.rx.editButtonTap
-            .map { AppStep.editLocation }
+            .map { AppStep.locationEdit }
             .bind(to: steps)
             .disposed(by: disposeBag)
         
         locationView.rx.searchBarTap
-            .subscribe(onNext: { [weak self] in
-                self?.present()
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .withUnretained(self)
+            .subscribe(onNext: { `self`, _ in
+                self.presentPostCodeSelection()
             })
+            .disposed(by: disposeBag)
+        
+        selectedAddressRelay
+            .map { address in LocationReactor.Action.locationSelected(address)
+            }
+            .bind(to: reactor.action)
             .disposed(by: disposeBag)
     }
     
@@ -62,11 +72,13 @@ final class LocationViewController: BaseViewController<LocationReactor> {
                 })
             .disposed(by: disposeBag)
     }
-    
-    func present() {
+}
+
+extension LocationViewController {
+    private func presentPostCodeSelection() {
         let vc = KakaoPostCodeViewController()
         vc.onSelectAddress = { [weak self] address in
-            self?.locationView.searchBar.text = address
+            self?.selectedAddressRelay.accept(address)
         }
         self.present(vc, animated: true)
     }
