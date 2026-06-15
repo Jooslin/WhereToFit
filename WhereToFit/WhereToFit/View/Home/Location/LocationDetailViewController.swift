@@ -29,6 +29,7 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
     
     private func bindAction(reactor: LocationDetailReactor) {
         detailView.rx.backButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { AppStep.pageBack }
             .bind(to: steps)
             .disposed(by: disposeBag)

@@ -34,13 +34,22 @@ final class LocationEditViewController: BaseViewController<LocationReactor> {
             .disposed(by: disposeBag)
         
         locationView.rx.backButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { AppStep.pageBack }
             .bind(to: steps)
             .disposed(by: disposeBag)
         
         locationView.rx.editButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { AppStep.locationDetail(.edit($0)) }
             .bind(to: steps)
+            .disposed(by: disposeBag)
+        
+        locationView.rx.deleteButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .subscribe(onNext: { location in
+                print(location)
+            })
             .disposed(by: disposeBag)
     }
     

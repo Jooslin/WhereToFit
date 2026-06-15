@@ -69,7 +69,7 @@ extension LocationEditView {
             
             cell.deleteButton.rx.tap
                 .map { item }
-                .bind(to: self.editButtonTap)
+                .bind(to: self.deleteButtonTap)
                 .disposed(by: cell.disposeBag)
         }
 
