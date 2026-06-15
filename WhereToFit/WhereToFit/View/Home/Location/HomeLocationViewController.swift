@@ -10,7 +10,7 @@ import RxSwift
 import ReactorKit
 import RxCocoa
 
-final class HomeLocationViewController: BaseViewController<HomeReactor> {
+final class HomeLocationViewController: BaseViewController<LocationReactor> {
     let locationView = HomeLocationView()
     
     override func loadView() {
@@ -22,12 +22,12 @@ final class HomeLocationViewController: BaseViewController<HomeReactor> {
         
     }
     
-    override func bind(reactor: HomeReactor) {
+    override func bind(reactor: LocationReactor) {
         bindAction(reactor: reactor)
         bindState(reactor: reactor)
     }
     
-    private func bindAction(reactor: HomeReactor) {
+    private func bindAction(reactor: LocationReactor) {
         locationView.rx.searchBarTap
             .subscribe(onNext: { [weak self] in
                 self?.present()
@@ -35,7 +35,7 @@ final class HomeLocationViewController: BaseViewController<HomeReactor> {
             .disposed(by: disposeBag)
     }
     
-    private func bindState(reactor: HomeReactor) {
+    private func bindState(reactor: LocationReactor) {
         let state = reactor.state
             .asDriver(onErrorJustReturn: .init())
         
