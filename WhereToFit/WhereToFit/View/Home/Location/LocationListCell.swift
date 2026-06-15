@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 import Then
 
-class HomeLocationListCell: UICollectionViewListCell {
+class LocationListCell: UICollectionViewListCell {
     let imageView = UIImageView().then {
         $0.tintColor = .gray900
     }
@@ -83,7 +83,7 @@ class HomeLocationListCell: UICollectionViewListCell {
     }
 }
 
-extension HomeLocationListCell {
+extension LocationListCell {
     func configure(_ location: Location) {
         imageView.image = location.icon
         nameLabel.text = location.name

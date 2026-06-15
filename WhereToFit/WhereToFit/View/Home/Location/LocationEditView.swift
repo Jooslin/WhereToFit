@@ -11,7 +11,7 @@ import SnapKit
 import RxCocoa
 import RxSwift
 
-final class HomeLocationEditView: UIView {
+final class LocationEditView: UIView {
     let titleView = TitleView(text: "위치 편집", leftButtonImage: .arrowLeft)
     private(set) lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout()).then {
         $0.layoutMargins = .init(top: 0, left: 16, bottom: 0, right: 16)
@@ -33,7 +33,7 @@ final class HomeLocationEditView: UIView {
     }
 }
 
-extension HomeLocationEditView {
+extension LocationEditView {
     private func setLayout() {
         addSubview(titleView)
         addSubview(collectionView)
@@ -52,9 +52,9 @@ extension HomeLocationEditView {
 }
 
 //MARK: CollectionView DataSource
-extension HomeLocationEditView {
+extension LocationEditView {
     private func makeDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, Location> {
-        let listCellRegistration = UICollectionView.CellRegistration<HomeLocationEditListCell, Location> { [weak self] cell, indexPath, item in
+        let listCellRegistration = UICollectionView.CellRegistration<LocationEditListCell, Location> { [weak self] cell, indexPath, item in
             guard let self else { return }
             cell.configure(item)
             
@@ -81,7 +81,7 @@ extension HomeLocationEditView {
 
 
 //MARK: CollectionView Layout
-extension HomeLocationEditView {
+extension LocationEditView {
     private func makeCompositionalLayout() -> UICollectionViewCompositionalLayout {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
         configuration.contentInsetsReference = .layoutMargins
@@ -115,7 +115,7 @@ extension HomeLocationEditView {
     
 }
 
-extension Reactive where Base: HomeLocationEditView {
+extension Reactive where Base: LocationEditView {
     var backButtonTap: ControlEvent<Void> {
         base.titleView.rx.leftButtonTap
     }

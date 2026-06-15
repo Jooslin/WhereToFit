@@ -30,7 +30,7 @@ final class LocationReactor: BaseReactor {
         case .viewWillAppear:
             return Observable.concat([
                 .just(.setLoading(true)),
-                
+                makeLocationItems(),
                 .just(.setLoading(false))
             ])
         }

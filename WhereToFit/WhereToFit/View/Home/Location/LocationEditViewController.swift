@@ -1,8 +1,8 @@
 //
-//  HomeLocationViewController.swift
+//  HomeLocationEditViewController.swift
 //  WhereToFit
 //
-//  Created by 변예린 on 6/12/26.
+//  Created by 변예린 on 6/15/26.
 //
 
 import UIKit
@@ -10,8 +10,8 @@ import RxSwift
 import ReactorKit
 import RxCocoa
 
-final class HomeLocationViewController: BaseViewController<LocationReactor> {
-    let locationView = HomeLocationView()
+final class LocationEditViewController: BaseViewController<LocationReactor> {
+    let locationView = LocationEditView()
     
     override func loadView() {
         view = locationView
@@ -33,10 +33,9 @@ final class HomeLocationViewController: BaseViewController<LocationReactor> {
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
-        locationView.rx.searchBarTap
-            .subscribe(onNext: { [weak self] in
-                self?.present()
-            })
+        locationView.rx.backButtonTap
+            .map { AppStep.pageBack }
+            .bind(to: steps)
             .disposed(by: disposeBag)
     }
     
@@ -52,16 +51,4 @@ final class HomeLocationViewController: BaseViewController<LocationReactor> {
                 })
             .disposed(by: disposeBag)
     }
-    
-    func present() {
-        let vc = KakaoPostCodeViewController()
-        vc.onSelectAddress = { [weak self] address in
-            self?.locationView.searchBar.text = address
-        }
-        self.present(vc, animated: true)
-    }
-}
-
-#Preview {
-    HomeLocationViewController()
 }

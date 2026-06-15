@@ -11,7 +11,7 @@ import SnapKit
 import RxCocoa
 import RxSwift
 
-final class HomeLocationView: UIView {
+final class LocationView: UIView {
     let titleView = TitleView(text: "위치 지정", leftButtonImage: .arrowLeft, rightButtonImage: .edit)
     let searchBar = SearchBar(placeholder: "주소로 검색하기").then {
         $0.isTextInputEnabled = false
@@ -40,7 +40,7 @@ final class HomeLocationView: UIView {
     }
 }
 
-extension HomeLocationView {
+extension LocationView {
     private func setLayout() {
         addSubview(titleView)
         addSubview(searchBar)
@@ -73,9 +73,9 @@ extension HomeLocationView {
 }
 
 //MARK: CollectionView DataSource
-extension HomeLocationView {
+extension LocationView {
     private func makeDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, Location> {
-        let listCellRegistration = UICollectionView.CellRegistration<HomeLocationListCell, Location> { cell, indexPath, item in
+        let listCellRegistration = UICollectionView.CellRegistration<LocationListCell, Location> { cell, indexPath, item in
             
             cell.configure(item)
         }
@@ -98,7 +98,7 @@ extension HomeLocationView {
 
 
 //MARK: CollectionView Layout
-extension HomeLocationView {
+extension LocationView {
     private func makeCompositionalLayout() -> UICollectionViewCompositionalLayout {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
         configuration.contentInsetsReference = .layoutMargins
@@ -132,9 +132,13 @@ extension HomeLocationView {
     
 }
 
-extension Reactive where Base: HomeLocationView {
+extension Reactive where Base: LocationView {
     var backButtonTap: ControlEvent<Void> {
         base.titleView.rx.leftButtonTap
+    }
+    
+    var editButtonTap: ControlEvent<Void> {
+        base.titleView.rx.rightButtonTap
     }
     
     var currentLocationButtonTap: ControlEvent<Void> {

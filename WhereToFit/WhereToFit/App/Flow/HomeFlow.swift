@@ -17,6 +17,8 @@ final class HomeFlow: Flow {
     private let weatherRepository: WeatherRepositoryProtocol
     private let sportsRepository: SportsRepositoryProtocol
     
+    private let locationReactor = LocationReactor()
+    
     init(dateService: DateService, weatherRepository: WeatherRepositoryProtocol, sportsRepository: SportsRepositoryProtocol) {
         self.dateService = dateService
         self.weatherRepository = weatherRepository
@@ -41,9 +43,16 @@ final class HomeFlow: Flow {
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
             
         case .locationSetting:
-            let vc = HomeLocationViewController(reactor: LocationReactor())
+            let vc = LocationViewController(reactor: locationReactor)
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
+            
+        case .editLocation:
+            let vc = LocationEditViewController(reactor: locationReactor)
+            navigationController.pushViewController(vc, animated: true)
+            return .one(flowContributor:
+                    .contribute(withNextPresentable: vc, withNextStepper: vc))
+            
         default:
             return .one(flowContributor: .forwardToParentFlow(withStep: step))
         }

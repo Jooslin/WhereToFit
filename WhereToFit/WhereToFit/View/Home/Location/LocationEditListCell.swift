@@ -11,7 +11,7 @@ import Then
 import RxSwift
 import RxCocoa
 
-final class HomeLocationEditListCell: HomeLocationListCell {
+final class LocationEditListCell: LocationListCell {
     private(set) var disposeBag = DisposeBag()
     
     let editButton = DesignButton(config: .additional).then {
@@ -88,14 +88,14 @@ final class HomeLocationEditListCell: HomeLocationListCell {
     }
 }
 
-extension HomeLocationEditListCell {
+extension LocationEditListCell {
     func hideSeparateBar(_ isLast: Bool) {
         separateBar.isHidden = isLast
     }
 }
 
 //MARK: Reactive
-extension Reactive where Base: HomeLocationEditListCell {
+extension Reactive where Base: LocationEditListCell {
     var editButtonTap: ControlEvent<Void> {
         base.editButton.rx.tap
     }
