@@ -12,8 +12,10 @@ import UIKit
 
 final class CalendarViewController: BaseViewController<CalendarReactor> {
     let calendarView = CalendarView()
+    private var exerciseItems: [CalendarReactor.ExerciseItem] = []
 
     override func loadView() {
+        calendarView.setExerciseCollectionViewDataSource(self)
         view = calendarView
     }
 
@@ -65,8 +67,27 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
             .distinctUntilChanged()
             .observe(on: MainScheduler.instance)
             .bind(with: self) { owner, items in
-                owner.calendarView.updateExerciseItems(items)
+                owner.exerciseItems = items
+                owner.calendarView.reloadExerciseItems(count: items.count)
             }
             .disposed(by: disposeBag)
+    }
+}
+
+extension CalendarViewController: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        exerciseItems.count
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: CalendarExerciseCell.reuseIdentifier,
+            for: indexPath
+        ) as? CalendarExerciseCell else {
+            return UICollectionViewCell()
+        }
+
+        cell.configure(item: exerciseItems[indexPath.item], hidesDivider: indexPath.item == exerciseItems.count - 1)
+        return cell
     }
 }

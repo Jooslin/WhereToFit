@@ -76,12 +76,10 @@ final class CalendarView: UIView {
         $0.clipsToBounds = true
         $0.showsVerticalScrollIndicator = false
         $0.isScrollEnabled = false
-        $0.dataSource = self
         $0.register(CalendarExerciseCell.self, forCellWithReuseIdentifier: CalendarExerciseCell.reuseIdentifier)
     }
 
     private let calendar = Calendar(identifier: .gregorian)
-    private var exerciseItems: [CalendarReactor.ExerciseItem] = []
     private var exerciseCollectionViewHeightConstraint: Constraint?
 
     override init(frame: CGRect) {
@@ -107,10 +105,13 @@ extension CalendarView {
         conditionCard.updateValue(condition.displayText)
     }
 
-    func updateExerciseItems(_ items: [CalendarReactor.ExerciseItem]) {
-        exerciseItems = items
+    func setExerciseCollectionViewDataSource(_ dataSource: UICollectionViewDataSource) {
+        exerciseCollectionView.dataSource = dataSource
+    }
+
+    func reloadExerciseItems(count: Int) {
         exerciseCollectionView.reloadData()
-        exerciseCollectionViewHeightConstraint?.update(offset: CGFloat(items.count) * 60 + 24)
+        exerciseCollectionViewHeightConstraint?.update(offset: CGFloat(count) * 60 + 24)
     }
 
     func moveToToday() {
@@ -271,24 +272,6 @@ extension CalendarView: UICalendarSelectionSingleDateDelegate {
         else { return }
 
         updateSelectedDateLabel(date: date)
-    }
-}
-
-extension CalendarView: UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        exerciseItems.count
-    }
-
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: CalendarExerciseCell.reuseIdentifier,
-            for: indexPath
-        ) as? CalendarExerciseCell else {
-            return UICollectionViewCell()
-        }
-
-        cell.configure(item: exerciseItems[indexPath.item], hidesDivider: indexPath.item == exerciseItems.count - 1)
-        return cell
     }
 }
 
