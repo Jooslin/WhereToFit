@@ -66,14 +66,14 @@ enum SportsCategory: String, Hashable {
         case .fitness: .sportsFitness
         case .yogaPilates: .sportsYoga
         case .gymnastics: .sportsGymnastic
-        case .dance: UIImage(named: "sportsDance") ?? .dance
+        case .dance: UIImage(named: "sportsDance") ?? .sportsOthers
         case .aquaticSports: .sportsAqua
         case .ballSports: .sportsBall
         case .iceSports: .sportsIce
         case .martialArts: .sportsMartial
         case .runningCycle: .sportsRunning
-        case .recreationalSports: UIImage(named: "sportsRecreational") ?? .recreationalSports
-        case .adaptivePhysicalEducation: UIImage(named: "sportsAdaptive") ?? .adaptivePhysicalEducation
+        case .recreationalSports: UIImage(named: "sportsRecreational") ?? .sportsOthers
+        case .adaptivePhysicalEducation: UIImage(named: "sportsAdaptive") ?? .sportsOthers
         case .other: .sportsOthers
         }
     }
