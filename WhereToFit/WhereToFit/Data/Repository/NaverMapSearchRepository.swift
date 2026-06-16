@@ -21,12 +21,15 @@ final class NaverMapSearchRepository: MapSearchRepositoryProtocol {
         guard trimmedQuery.isEmpty == false else { return [] }
 
         // 주소형 검색과 장소명 검색은 서로 보완적이라 둘 다 호출한 뒤 합칩니다.
-        let geocodeResult = await fetchLocations {
+        async let geocodeFetch = fetchLocations {
             try await networkService.fetchNaverGeocodeLocations(query: trimmedQuery)
         }
-        let localSearchResult = await fetchLocations {
+        async let localSearchFetch = fetchLocations {
             try await networkService.fetchNaverLocalSearchLocations(query: trimmedQuery)
         }
+
+        let geocodeResult = await geocodeFetch
+        let localSearchResult = await localSearchFetch
 
         let locations = mergeLocations(
             geocodeResult.value ?? [],
