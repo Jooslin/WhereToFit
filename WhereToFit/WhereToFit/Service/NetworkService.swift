@@ -343,8 +343,8 @@ extension NetworkService {
             .value
 
         return response.items.compactMap { item in
-            guard let longitude = Self.naverLocalCoordinateValue(from: item.mapx),
-                  let latitude = Self.naverLocalCoordinateValue(from: item.mapy) else {
+            guard let longitude = Self.naverLocalLongitude(from: item.mapx),
+                  let latitude = Self.naverLocalLatitude(from: item.mapy) else {
                 return nil
             }
 
@@ -362,9 +362,24 @@ extension NetworkService {
         }
     }
 
-    private static func naverLocalCoordinateValue(from value: String) -> Double? {
-        guard let coordinate = Double(value) else { return nil }
-        return abs(coordinate) > 1_000 ? coordinate / 10_000_000 : coordinate
+    private static func naverLocalLongitude(from value: String) -> Double? {
+        naverLocalWGS84Coordinate(from: value, validRange: 120...135)
+    }
+
+    private static func naverLocalLatitude(from value: String) -> Double? {
+        naverLocalWGS84Coordinate(from: value, validRange: 30...45)
+    }
+
+    private static func naverLocalWGS84Coordinate(
+        from value: String,
+        validRange: ClosedRange<Double>
+    ) -> Double? {
+        guard let rawValue = Double(value) else { return nil }
+
+        // Naver Local Search returns WGS84 coordinates scaled by 10,000,000.
+        let coordinate = abs(rawValue) > 1_000 ? rawValue / 10_000_000 : rawValue
+        guard validRange.contains(coordinate) else { return nil }
+        return coordinate
     }
 }
 
