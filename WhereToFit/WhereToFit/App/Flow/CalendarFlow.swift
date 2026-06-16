@@ -52,9 +52,15 @@ private extension CalendarFlow {
         navigationController.viewControllers.first { $0 is CalendarViewController } as? CalendarViewController
     }
 
+    var canPresentCalendarModal: Bool {
+        navigationController.presentedViewController == nil
+            && calendarViewController?.presentedViewController == nil
+    }
+
     func presentWeightInput() {
         guard let calendarViewController,
-              let reactor = calendarViewController.reactor
+              let reactor = calendarViewController.reactor,
+              canPresentCalendarModal
         else { return }
 
         let viewController = WeightInputViewController(currentWeight: reactor.currentState.weight)
@@ -69,7 +75,8 @@ private extension CalendarFlow {
 
     func presentConditionInput() {
         guard let calendarViewController,
-              let reactor = calendarViewController.reactor
+              let reactor = calendarViewController.reactor,
+              canPresentCalendarModal
         else { return }
 
         let viewController = ConditionInputViewController(currentCondition: reactor.currentState.condition)
@@ -84,7 +91,8 @@ private extension CalendarFlow {
 
     func presentExerciseRecordInput() {
         guard let calendarViewController,
-              let reactor = calendarViewController.reactor
+              let reactor = calendarViewController.reactor,
+              canPresentCalendarModal
         else { return }
 
         let viewController = ExerciseRecordInputViewController(
