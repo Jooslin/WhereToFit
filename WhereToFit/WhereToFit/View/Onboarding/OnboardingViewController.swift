@@ -35,6 +35,7 @@ final class OnboardingViewController: BaseViewController<OnboardingReactor> {
             isDisabledAccessible: true,
 
             priceAmount: 50000,
+            rawPriceText: "50,000원",
             priceUnit: .month,
             priceNote: "라켓 대여 가능",
 

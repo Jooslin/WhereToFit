@@ -36,7 +36,18 @@ enum ReservationMethod: Equatable {
     }
 }
 
-extension ReservationMethod {
+nonisolated extension ReservationMethod {
+    var title: String {
+        switch self {
+        case .online: return "온라인"
+        case .phone: return "전화"
+        case .visit: return "방문"
+        case .app: return "앱"
+        case .email: return "이메일"
+        case .inquire: return "문의"
+        }
+    }
+
     static func parse(_ rawValue: String?) -> [ReservationMethod] {
         guard let rawValue else {
             return []
