@@ -21,8 +21,12 @@ final class CalendarFlow: Flow {
         
         switch step {
         case .calendarTab:
+            if calendarViewController != nil {
+                return .none
+            }
+
             let vc = CalendarViewController(reactor: CalendarReactor())
-            navigationController.pushViewController(vc, animated: true)
+            navigationController.setViewControllers([vc], animated: false)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
 
         case .calendarWeightInput:

@@ -21,8 +21,12 @@ final class MyFlow: Flow {
 
         switch step {
         case .myTab:
+            if myViewController != nil {
+                return .none
+            }
+
             let vc = MyViewController(reactor: MyReactor())
-            navigationController.pushViewController(vc, animated: true)
+            navigationController.setViewControllers([vc], animated: false)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
 
         case .profileManagement:
@@ -62,5 +66,11 @@ final class MyFlow: Flow {
         default:
             return .one(flowContributor: .forwardToParentFlow(withStep: step))
         }
+    }
+}
+
+private extension MyFlow {
+    var myViewController: MyViewController? {
+        navigationController.viewControllers.first { $0 is MyViewController } as? MyViewController
     }
 }
