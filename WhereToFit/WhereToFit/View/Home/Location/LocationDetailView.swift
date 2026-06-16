@@ -17,6 +17,7 @@ final class LocationDetailView: UIView {
     let addressTextField = DesignTextField().then {
         $0.inputView = UIView()
         $0.tintColor = .clear
+        $0.placeholder = "주소를 입력해주세요"
     }
     let homeButton = IconButton(config: .iconAdditional, selectedConfig: .selectedIconAdditional, style: .leftImage, iconSize: .tiny).then {
         $0.normalImage = .home

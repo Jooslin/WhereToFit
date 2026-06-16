@@ -26,9 +26,9 @@ final class LocationDetailReactor: BaseReactor {
     }
     
     struct State {
-        var address: String
+        var address: String?
         var buttonType: Location.LocationButtonType?
-        var name: String
+        var name: String?
         var selectedLocation: Location?
         
         var registerButtonTitle: String {
@@ -37,13 +37,8 @@ final class LocationDetailReactor: BaseReactor {
         var didUpdateSucess: Bool?
     }
     
-    init(address: String?, location: Location?) {
-        if let address {
-            self.initialState = State(
-                address: address,
-                name: address
-            )
-        } else if let location {
+    init(location: Location?) {
+        if let location {
             self.initialState = State(
                 address: location.address,
                 buttonType: location.buttonType,
@@ -51,7 +46,7 @@ final class LocationDetailReactor: BaseReactor {
                 selectedLocation: location
             )
         } else {
-            self.initialState = State(address: "", name: "")
+            self.initialState = State()
         }
     }
     
@@ -93,8 +88,8 @@ extension LocationDetailReactor {
         //TODO: latitude, longitude 찾아야함
         let location = Location(
             buttonType: currentState.buttonType ?? .additional,
-            name: currentState.name,
-            address: currentState.address,
+            name: currentState.name ?? currentState.address ?? "",
+            address: currentState.address ?? "",
             isSelected: currentState.selectedLocation?.isSelected ?? false,
             latitude: 37,
             longitude: 127

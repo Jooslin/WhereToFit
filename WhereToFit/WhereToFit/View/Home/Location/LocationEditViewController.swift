@@ -69,6 +69,6 @@ final class LocationEditViewController: BaseViewController<LocationReactor> {
 
 //MARK: Enum
 enum LocationEditMode {
-    case create(address: String)
+    case create
     case edit(Location)
 }

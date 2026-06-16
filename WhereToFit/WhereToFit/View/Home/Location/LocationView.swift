@@ -193,4 +193,8 @@ extension Reactive where Base: LocationView {
             }
             .asObservable()
     }
+    
+    var locationAddButtonTap: PublishRelay<Void> {
+        base.addButtonTap
+    }
 }

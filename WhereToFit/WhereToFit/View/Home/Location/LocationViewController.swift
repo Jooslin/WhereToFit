@@ -53,6 +53,13 @@ final class LocationViewController: BaseViewController<LocationReactor> {
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
+        // 위치 추가
+        locationView.rx.locationAddButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .map { AppStep.locationDetail(.create) }
+            .bind(to: steps)
+            .disposed(by: disposeBag)
+        
         // 현재 위치로 지정
         locationView.rx.currentLocationButtonTap
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
