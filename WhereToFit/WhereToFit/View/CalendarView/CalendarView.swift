@@ -46,6 +46,8 @@ final class CalendarView: UIView {
     }
 
     private let calendarView = UICalendarView().then {
+        let calendar = Calendar(identifier: .gregorian)
+
         $0.calendar = Calendar(identifier: .gregorian)
         $0.locale = Locale(identifier: "ko_KR")
         $0.tintColor = .primary400
@@ -54,7 +56,7 @@ final class CalendarView: UIView {
             start: DateComponents(calendar: Calendar(identifier: .gregorian), year: 2026, month: 1, day: 1).date ?? Date(),
             end: DateComponents(calendar: Calendar(identifier: .gregorian), year: 2026, month: 12, day: 31).date ?? Date()
         )
-        $0.visibleDateComponents = DateComponents(year: 2026, month: 5)
+        $0.visibleDateComponents = calendar.dateComponents([.year, .month], from: Date())
     }
 
     private let selectedDateLabel = UILabel(text: "5월 18일 월요일", config: .body16Medium)
@@ -267,7 +269,7 @@ private extension CalendarView {
 
     func setCalendarSelection() {
         let selection = UICalendarSelectionSingleDate(delegate: self)
-        let selectedDate = DateComponents(calendar: calendar, year: 2026, month: 5, day: 18)
+        let selectedDate = calendar.dateComponents([.year, .month, .day], from: Date())
         selection.setSelected(selectedDate, animated: false)
         calendarView.selectionBehavior = selection
     }

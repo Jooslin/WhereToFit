@@ -11,7 +11,7 @@ import RxSwift
 
 final class CalendarReactor: BaseReactor {
     let initialState = State(
-        selectedDate: DateComponents(calendar: Calendar(identifier: .gregorian), year: 2026, month: 5, day: 18).date ?? Date(),
+        selectedDate: CalendarReactor.normalizedDate(Date()),
         weight: WeightValue(integer: 54, decimal: 2),
         condition: .worst,
         exerciseItems: [
@@ -87,9 +87,9 @@ final class CalendarReactor: BaseReactor {
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
         case .selectDate(let date):
-            return .just(.setSelectedDate(date))
+            return .just(.setSelectedDate(Self.normalizedDate(date)))
         case .moveToToday:
-            return .just(.setSelectedDate(Date()))
+            return .just(.setSelectedDate(Self.normalizedDate(Date())))
         case .updateWeight(let weight):
             return .just(.setWeight(weight))
         case .updateCondition(let condition):
@@ -110,5 +110,9 @@ final class CalendarReactor: BaseReactor {
         }
 
         return newState
+    }
+
+    private static func normalizedDate(_ date: Date) -> Date {
+        Calendar(identifier: .gregorian).startOfDay(for: date)
     }
 }
