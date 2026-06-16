@@ -45,7 +45,7 @@ final class CalendarFlow: Flow {
 
 private extension CalendarFlow {
     var calendarViewController: CalendarViewController? {
-        navigationController.topViewController as? CalendarViewController
+        navigationController.viewControllers.first { $0 is CalendarViewController } as? CalendarViewController
     }
 
     func presentWeightInput() {
