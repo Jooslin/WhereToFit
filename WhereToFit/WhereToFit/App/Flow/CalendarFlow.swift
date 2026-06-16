@@ -52,14 +52,19 @@ private extension CalendarFlow {
         navigationController.viewControllers.first { $0 is CalendarViewController } as? CalendarViewController
     }
 
+    var calendarModalPresenter: UIViewController? {
+        navigationController.topViewController ?? calendarViewController
+    }
+
     var canPresentCalendarModal: Bool {
         navigationController.presentedViewController == nil
-            && calendarViewController?.presentedViewController == nil
+            && calendarModalPresenter?.presentedViewController == nil
     }
 
     func presentWeightInput() {
         guard let calendarViewController,
               let reactor = calendarViewController.reactor,
+              let presenter = calendarModalPresenter,
               canPresentCalendarModal
         else { return }
 
@@ -70,12 +75,13 @@ private extension CalendarFlow {
             reactor?.action.onNext(.updateWeight(weight))
         }
 
-        calendarViewController.present(viewController, animated: true)
+        presenter.present(viewController, animated: true)
     }
 
     func presentConditionInput() {
         guard let calendarViewController,
               let reactor = calendarViewController.reactor,
+              let presenter = calendarModalPresenter,
               canPresentCalendarModal
         else { return }
 
@@ -86,12 +92,13 @@ private extension CalendarFlow {
             reactor?.action.onNext(.updateCondition(condition))
         }
 
-        calendarViewController.present(viewController, animated: true)
+        presenter.present(viewController, animated: true)
     }
 
     func presentExerciseRecordInput() {
         guard let calendarViewController,
               let reactor = calendarViewController.reactor,
+              let presenter = calendarModalPresenter,
               canPresentCalendarModal
         else { return }
 
@@ -101,6 +108,6 @@ private extension CalendarFlow {
         viewController.modalPresentationStyle = .overFullScreen
         viewController.modalTransitionStyle = .crossDissolve
 
-        calendarViewController.present(viewController, animated: true)
+        presenter.present(viewController, animated: true)
     }
 }
