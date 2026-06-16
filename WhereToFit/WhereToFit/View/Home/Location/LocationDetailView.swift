@@ -13,12 +13,19 @@ import RxSwift
 
 final class LocationDetailView: UIView {
     fileprivate let titleView = TitleView(text: "위치 상세", leftButtonImage: .arrowLeft)
+    
     private let addressLabel = UILabel(text: "주소", config: .body14Medium, color: .gray600)
     let addressTextField = DesignTextField().then {
         $0.inputView = UIView()
         $0.tintColor = .clear
         $0.placeholder = "주소를 입력해주세요"
     }
+    let currentLocationButton = IconButton(config: .icon, style: .leftImage, iconSize: .tiny).then {
+        $0.normalImage = .crosshair
+        $0.title = "현재 위치로 등록"
+        $0.applyColor(color: .primary400)
+    }
+    
     let homeButton = IconButton(config: .iconAdditional, selectedConfig: .selectedIconAdditional, style: .leftImage, iconSize: .tiny).then {
         $0.normalImage = .home
         $0.selectedImage = .homeFilled
@@ -34,6 +41,7 @@ final class LocationDetailView: UIView {
         $0.selectedImage = .locationPinFilled
         $0.title = "추가"
     }
+    
     let nameTextField = DesignTextField().then {
         $0.placeholder = "장소 이름을 입력해주세요"
         $0.isHidden = true
@@ -79,7 +87,14 @@ extension LocationDetailView {
 
 extension LocationDetailView {
     private func setLayout() {
-        let addressStack = UIStackView(arrangedSubviews: [addressLabel, addressTextField]).then {
+        let addressTitleStack = UIStackView(arrangedSubviews: [addressLabel, currentLocationButton]).then {
+            $0.axis = .horizontal
+            
+            currentLocationButton.setContentHuggingPriority(.required, for: .horizontal)
+            currentLocationButton.setContentCompressionResistancePriority(.required, for: .horizontal)
+        }
+        
+        let addressStack = UIStackView(arrangedSubviews: [addressTitleStack, addressTextField]).then {
             $0.axis = .vertical
             $0.spacing = 8
             $0.alignment = .fill
@@ -155,5 +170,9 @@ extension Reactive where Base: LocationDetailView {
     
     var addButtonTap: ControlEvent<Void> {
         base.addButton.rx.tap
+    }
+    
+    var currentLocationbuttonTap: ControlEvent<Void> {
+        base.currentLocationButton.rx.tap
     }
 }
