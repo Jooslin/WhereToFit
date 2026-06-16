@@ -104,9 +104,7 @@ final class ExerciseRecordInputReactor: Reactor {
             ])
 
         case .exerciseSportSelected(let sport):
-            let selectedCategory: SportsCategory? = currentState.exerciseSearchText.isEmpty
-                ? SportsCategory(sport: sport)
-                : nil
+            let selectedCategory = SportsCategory(sport: sport)
 
             return .concat([
                 .just(.setSelectedExerciseCategory(selectedCategory)),
