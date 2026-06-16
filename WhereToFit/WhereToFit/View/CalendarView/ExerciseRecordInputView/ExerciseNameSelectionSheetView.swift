@@ -50,6 +50,14 @@ final class ExerciseNameSelectionSheetView: UIView {
         $0.backgroundColor = .gray50
     }
 
+    private let searchResultTableView = UITableView(frame: .zero, style: .plain).then {
+        $0.separatorStyle = .none
+        $0.showsVerticalScrollIndicator = true
+        $0.backgroundColor = .white
+        $0.rowHeight = 44
+        $0.register(ExerciseSportCell.self, forCellReuseIdentifier: ExerciseSportCell.reuseIdentifier)
+    }
+
     private let categoryTableView = UITableView(frame: .zero, style: .plain).then {
         $0.separatorStyle = .none
         $0.showsVerticalScrollIndicator = true
@@ -82,8 +90,11 @@ final class ExerciseNameSelectionSheetView: UIView {
 
     private var categories: [SportsCategory] = []
     private var sports: [String] = []
+    private var searchResults: [String] = []
     private var selectedCategory: SportsCategory?
     private var selectedSport: String?
+    private var isSearchActive = false
+    private var searchResultHeightConstraint: Constraint?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -102,20 +113,26 @@ final class ExerciseNameSelectionSheetView: UIView {
 extension ExerciseNameSelectionSheetView {
     func update(
         categories: [SportsCategory],
-        selectedCategory: SportsCategory,
+        selectedCategory: SportsCategory?,
         sports: [String],
+        searchResults: [String],
         selectedSport: String?,
         searchText: String
     ) {
         self.categories = categories
         self.selectedCategory = selectedCategory
         self.sports = sports
+        self.searchResults = searchResults
         self.selectedSport = selectedSport
+        isSearchActive = !searchText.isEmpty
 
         if searchBar.text != searchText {
             searchBar.text = searchText
         }
 
+        searchResultHeightConstraint?.update(offset: isSearchActive ? 132 : 0)
+        searchResultTableView.isHidden = !isSearchActive
+        searchResultTableView.reloadData()
         categoryTableView.reloadData()
         sportTableView.reloadData()
     }
@@ -135,6 +152,7 @@ private extension ExerciseNameSelectionSheetView {
             titleLabel,
             closeButton,
             searchBar,
+            searchResultTableView,
             dividerView,
             listContainerView,
             buttonStackView
@@ -172,8 +190,14 @@ private extension ExerciseNameSelectionSheetView {
             $0.height.equalTo(48)
         }
 
+        searchResultTableView.snp.makeConstraints {
+            $0.top.equalTo(searchBar.snp.bottom).offset(10)
+            $0.horizontalEdges.equalToSuperview().inset(16)
+            searchResultHeightConstraint = $0.height.equalTo(0).constraint
+        }
+
         dividerView.snp.makeConstraints {
-            $0.top.equalTo(searchBar.snp.bottom).offset(16)
+            $0.top.equalTo(searchResultTableView.snp.bottom).offset(16)
             $0.horizontalEdges.equalToSuperview().inset(16)
             $0.height.equalTo(1)
         }
@@ -204,19 +228,42 @@ private extension ExerciseNameSelectionSheetView {
     }
 
     func setTables() {
+        searchResultTableView.dataSource = self
+        searchResultTableView.delegate = self
         categoryTableView.dataSource = self
         categoryTableView.delegate = self
         sportTableView.dataSource = self
         sportTableView.delegate = self
+        searchResultTableView.isHidden = true
     }
 }
 
 extension ExerciseNameSelectionSheetView: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        tableView == categoryTableView ? categories.count : sports.count
+        switch tableView {
+        case searchResultTableView:
+            return searchResults.count
+        case categoryTableView:
+            return categories.count
+        default:
+            return sports.count
+        }
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if tableView == searchResultTableView {
+            guard let cell = tableView.dequeueReusableCell(
+                withIdentifier: ExerciseSportCell.reuseIdentifier,
+                for: indexPath
+            ) as? ExerciseSportCell else {
+                return UITableViewCell()
+            }
+
+            let sport = searchResults[indexPath.row]
+            cell.configure(title: sport, isSelected: sport == selectedSport)
+            return cell
+        }
+
         if tableView == categoryTableView {
             guard let cell = tableView.dequeueReusableCell(
                 withIdentifier: ExerciseCategoryCell.reuseIdentifier,
@@ -247,6 +294,8 @@ extension ExerciseNameSelectionSheetView: UITableViewDataSource, UITableViewDele
 
         if tableView == categoryTableView {
             categorySelectedRelay.accept(categories[indexPath.row])
+        } else if tableView == searchResultTableView {
+            sportSelectedRelay.accept(searchResults[indexPath.row])
         } else {
             sportSelectedRelay.accept(sports[indexPath.row])
         }

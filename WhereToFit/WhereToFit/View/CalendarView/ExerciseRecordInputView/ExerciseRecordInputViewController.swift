@@ -117,6 +117,7 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
                     categories: state.exerciseCategories,
                     selectedCategory: state.selectedExerciseCategory,
                     sports: state.filteredExerciseSports,
+                    searchResults: state.searchResults,
                     selectedSport: state.selectedExerciseSport,
                     searchText: state.exerciseSearchText
                 )

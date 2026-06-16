@@ -41,14 +41,6 @@ final class ExerciseRecordInputView: UIView {
 
     fileprivate let customButton = ExerciseTypeButton(title: "기타 입력")
 
-    private lazy var exerciseTypeStackView = UIStackView(arrangedSubviews: [
-        customButton
-    ]).then {
-        $0.axis = .horizontal
-        $0.spacing = 8
-        $0.distribution = .fill
-    }
-
     fileprivate let exerciseNameField = ExerciseRecordField(title: "운동 종목", placeholder: "운동 종목을 선택해주세요")
     private let dateField = ExerciseRecordField(title: "날짜")
     fileprivate let durationField = ExerciseRecordField(title: "운동한 시간", text: "0분")
@@ -99,8 +91,9 @@ extension ExerciseRecordInputView {
 
     func updateExerciseNameSelection(
         categories: [SportsCategory],
-        selectedCategory: SportsCategory,
+        selectedCategory: SportsCategory?,
         sports: [String],
+        searchResults: [String],
         selectedSport: String?,
         searchText: String
     ) {
@@ -108,6 +101,7 @@ extension ExerciseRecordInputView {
             categories: categories,
             selectedCategory: selectedCategory,
             sports: sports,
+            searchResults: searchResults,
             selectedSport: selectedSport,
             searchText: searchText
         )
@@ -137,6 +131,8 @@ extension ExerciseRecordInputView {
 private extension ExerciseRecordInputView {
     func setStyle() {
         backgroundColor = .clear
+        customButton.setContentHuggingPriority(.required, for: .horizontal)
+        customButton.setContentCompressionResistancePriority(.required, for: .horizontal)
     }
 
     func setLayout() {
@@ -149,7 +145,7 @@ private extension ExerciseRecordInputView {
             handleView,
             titleLabel,
             closeButton,
-            exerciseTypeStackView,
+            customButton,
             fieldStackView,
             saveButton
         ].forEach(sheetView.addSubview)
@@ -188,7 +184,7 @@ private extension ExerciseRecordInputView {
             $0.size.equalTo(32)
         }
 
-        exerciseTypeStackView.snp.makeConstraints {
+        customButton.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(6)
             $0.leading.equalToSuperview().offset(16)
             $0.trailing.lessThanOrEqualToSuperview().inset(16)
@@ -196,7 +192,7 @@ private extension ExerciseRecordInputView {
         }
 
         fieldStackView.snp.makeConstraints {
-            $0.top.equalTo(exerciseTypeStackView.snp.bottom).offset(12)
+            $0.top.equalTo(customButton.snp.bottom).offset(12)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
 
@@ -357,6 +353,8 @@ private extension ExerciseTypeButton {
         layer.cornerRadius = 16
         layer.borderWidth = 1
         layer.borderColor = UIColor.gray200.cgColor
+        setContentHuggingPriority(.required, for: .horizontal)
+        setContentCompressionResistancePriority(.required, for: .horizontal)
         titleLabel.textColor = .gray700
     }
 

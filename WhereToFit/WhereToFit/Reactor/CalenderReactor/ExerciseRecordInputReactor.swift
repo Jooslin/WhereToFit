@@ -57,7 +57,7 @@ final class ExerciseRecordInputReactor: Reactor {
     enum Mutation {
         case setCustomInputVisible(Bool)
         case setExerciseSelectionVisible(Bool)
-        case setSelectedExerciseCategory(SportsCategory)
+        case setSelectedExerciseCategory(SportsCategory?)
         case setSelectedExerciseSport(String?)
         case setAppliedExerciseName(String?)
         case setExerciseSearchText(String)
@@ -71,13 +71,15 @@ final class ExerciseRecordInputReactor: Reactor {
         var isCustomInputVisible = false
         var isExerciseSelectionVisible = false
         var exerciseCategories = SportsCategory.allCases
-        var selectedExerciseCategory: SportsCategory = .health
+        var selectedExerciseCategory: SportsCategory?
         var selectedExerciseSport: String?
         var appliedExerciseName: String?
         var exerciseSearchText = ""
         var filteredExerciseSports: [String] {
-            guard !exerciseSearchText.isEmpty else { return selectedExerciseCategory.sports }
-
+            selectedExerciseCategory?.sports ?? []
+        }
+        var searchResults: [String] {
+            guard !exerciseSearchText.isEmpty else { return [] }
             return SportsCategory.allCases
                 .flatMap(\.sports)
                 .filter { $0.localizedCaseInsensitiveContains(exerciseSearchText) }
@@ -103,18 +105,31 @@ final class ExerciseRecordInputReactor: Reactor {
             ])
 
         case .exerciseSportSelected(let sport):
+            let selectedCategory: SportsCategory? = currentState.exerciseSearchText.isEmpty
+                ? SportsCategory(sport: sport)
+                : nil
+
             return .concat([
-                .just(.setSelectedExerciseCategory(SportsCategory(sport: sport))),
+                .just(.setSelectedExerciseCategory(selectedCategory)),
                 .just(.setSelectedExerciseSport(sport))
             ])
 
         case .exerciseSearchTextChanged(let text):
-            return .just(.setExerciseSearchText(text ?? ""))
+            let searchText = text ?? ""
+            guard !searchText.isEmpty else {
+                return .just(.setExerciseSearchText(searchText))
+            }
+
+            return .concat([
+                .just(.setSelectedExerciseCategory(nil)),
+                .just(.setExerciseSearchText(searchText))
+            ])
 
         case .exerciseSelectionResetButtonTapped:
             return .concat([
-                .just(.setSelectedExerciseCategory(.health)),
+                .just(.setSelectedExerciseCategory(nil)),
                 .just(.setSelectedExerciseSport(nil)),
+                .just(.setAppliedExerciseName(nil)),
                 .just(.setExerciseSearchText(""))
             ])
 
