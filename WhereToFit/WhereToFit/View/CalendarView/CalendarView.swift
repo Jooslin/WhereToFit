@@ -12,15 +12,22 @@ import Then
 import UIKit
 
 final class CalendarView: UIView {
+    enum ContentMode {
+        case calendar
+        case report
+    }
+
     private let scrollView = UIScrollView().then {
         $0.showsVerticalScrollIndicator = false
     }
     private let contentView = UIView()
+    private let calendarContentView = UIView()
+    private let reportContentView = ReportContentView()
 
-    private let segmentedControl = UISegmentedControl(items: ["캘린더", "리포트"]).then {
+    fileprivate let segmentedControl = UISegmentedControl(items: ["캘린더", "리포트"]).then {
         $0.selectedSegmentIndex = 0
         $0.selectedSegmentTintColor = .white
-        $0.backgroundColor = .gray50
+        $0.backgroundColor = .gray25
         $0.setTitleTextAttributes([
             .foregroundColor: UIColor.primary400,
             .font: LabelConfiguration.body14Medium.font
@@ -135,6 +142,11 @@ extension CalendarView {
         calendarView.setVisibleDateComponents(dateComponents, animated: true)
         selectedDateLabel.text = text
     }
+
+    func updateContentMode(_ mode: ContentMode) {
+        calendarContentView.isHidden = mode != .calendar
+        reportContentView.isHidden = mode != .report
+    }
 }
 
 private extension CalendarView {
@@ -149,13 +161,18 @@ private extension CalendarView {
 
         [
             segmentedControl,
+            calendarContentView,
+            reportContentView
+        ].forEach(contentView.addSubview)
+
+        [
             calendarCardView,
             selectedDateLabel,
             weightCard,
             conditionCard,
             exerciseTitleLabel,
             exerciseCollectionView
-        ].forEach(contentView.addSubview)
+        ].forEach(calendarContentView.addSubview)
 
         calendarCardView.addSubview(calendarView)
         calendarCardView.addSubview(todayButtonContainer)
@@ -177,8 +194,20 @@ private extension CalendarView {
             $0.height.equalTo(52)
         }
 
-        calendarCardView.snp.makeConstraints {
+        calendarContentView.snp.makeConstraints {
             $0.top.equalTo(segmentedControl.snp.bottom).offset(16)
+            $0.horizontalEdges.equalToSuperview()
+            $0.bottom.equalToSuperview().inset(24)
+        }
+
+        reportContentView.snp.makeConstraints {
+            $0.top.equalTo(segmentedControl.snp.bottom)
+            $0.horizontalEdges.equalToSuperview()
+            $0.bottom.equalToSuperview()
+        }
+
+        calendarCardView.snp.makeConstraints {
+            $0.top.equalToSuperview()
             $0.horizontalEdges.equalToSuperview().inset(16)
             $0.height.equalTo(372)
         }
@@ -209,13 +238,13 @@ private extension CalendarView {
         weightCard.snp.makeConstraints {
             $0.top.equalTo(selectedDateLabel.snp.bottom).offset(8)
             $0.leading.equalToSuperview().offset(16)
-            $0.trailing.equalTo(contentView.snp.centerX).offset(-8)
+            $0.trailing.equalTo(calendarContentView.snp.centerX).offset(-8)
             $0.height.equalTo(76)
         }
 
         conditionCard.snp.makeConstraints {
             $0.top.equalTo(weightCard)
-            $0.leading.equalTo(contentView.snp.centerX).offset(8)
+            $0.leading.equalTo(calendarContentView.snp.centerX).offset(8)
             $0.trailing.equalToSuperview().inset(16)
             $0.height.equalTo(weightCard)
         }
@@ -230,8 +259,10 @@ private extension CalendarView {
             $0.top.equalTo(exerciseTitleLabel.snp.bottom).offset(10)
             $0.horizontalEdges.equalToSuperview().inset(16)
             exerciseCollectionViewHeightConstraint = $0.height.equalTo(24).constraint
-            $0.bottom.equalToSuperview().inset(24)
+            $0.bottom.equalToSuperview()
         }
+
+        reportContentView.isHidden = true
     }
 
     func setCalendarSelection() {
@@ -296,5 +327,9 @@ extension Reactive where Base == CalendarView {
 
     var conditionCardTap: ControlEvent<Void> {
         base.conditionCard.rx.controlEvent(.touchUpInside)
+    }
+
+    var selectedSegmentIndex: ControlProperty<Int> {
+        base.segmentedControl.rx.selectedSegmentIndex
     }
 }

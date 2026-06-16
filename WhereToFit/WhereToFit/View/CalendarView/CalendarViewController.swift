@@ -25,6 +25,14 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
     }
 
     override func bind(reactor: CalendarReactor) {
+        calendarView.rx.selectedSegmentIndex
+            .skip(1)
+            .map { $0 == 0 ? CalendarView.ContentMode.calendar : .report }
+            .bind(with: self) { owner, mode in
+                owner.calendarView.updateContentMode(mode)
+            }
+            .disposed(by: disposeBag)
+
         calendarView.rx.todayButtonTap
             .map { CalendarReactor.Action.moveToToday }
             .bind(to: reactor.action)
