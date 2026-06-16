@@ -294,10 +294,6 @@ extension Reactive where Base == ExerciseRecordInputView {
         base.exerciseNameSelectionSheetView.rx.sportSelected
     }
 
-    var exerciseSelectionResetButtonTap: ControlEvent<Void> {
-        base.exerciseNameSelectionSheetView.resetButton.rx.tap
-    }
-
     var exerciseSelectionApplyButtonTap: ControlEvent<Void> {
         base.exerciseNameSelectionSheetView.applyButton.rx.tap
     }

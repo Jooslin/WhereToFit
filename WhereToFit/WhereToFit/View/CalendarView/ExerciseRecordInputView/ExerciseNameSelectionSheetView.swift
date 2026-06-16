@@ -17,10 +17,6 @@ final class ExerciseNameSelectionSheetView: UIView {
         $0.tintColor = .gray600
     }
 
-    let resetButton = DesignButton(config: .largeBorderBlue).then {
-        $0.title = "초기화"
-    }
-
     let applyButton = DesignButton(config: .largeFilledBlue).then {
         $0.title = "적용"
     }
@@ -78,12 +74,10 @@ final class ExerciseNameSelectionSheetView: UIView {
     }
 
     private lazy var buttonStackView = UIStackView(arrangedSubviews: [
-        resetButton,
         applyButton
     ]).then {
         $0.axis = .horizontal
-        $0.spacing = 20
-        $0.distribution = .fillEqually
+        $0.distribution = .fill
     }
 
     private var searchResultHeightConstraint: Constraint?

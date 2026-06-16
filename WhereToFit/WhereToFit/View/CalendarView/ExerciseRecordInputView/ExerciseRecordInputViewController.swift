@@ -50,11 +50,6 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
-        exerciseRecordInputView.rx.exerciseSelectionResetButtonTap
-            .map { ExerciseRecordInputReactor.Action.exerciseSelectionResetButtonTapped }
-            .bind(to: reactor.action)
-            .disposed(by: disposeBag)
-
         exerciseRecordInputView.rx.exerciseSelectionApplyButtonTap
             .map { ExerciseRecordInputReactor.Action.exerciseSelectionApplyButtonTapped }
             .bind(to: reactor.action)

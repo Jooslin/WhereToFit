@@ -46,7 +46,6 @@ final class ExerciseRecordInputReactor: Reactor {
         case exerciseCategorySelected(SportsCategory)
         case exerciseSportSelected(String)
         case exerciseSearchTextChanged(String?)
-        case exerciseSelectionResetButtonTapped
         case exerciseSelectionApplyButtonTapped
         case exerciseSelectionCloseButtonTapped
         case durationFieldTapped
@@ -123,14 +122,6 @@ final class ExerciseRecordInputReactor: Reactor {
             return .concat([
                 .just(.setSelectedExerciseCategory(nil)),
                 .just(.setExerciseSearchText(searchText))
-            ])
-
-        case .exerciseSelectionResetButtonTapped:
-            return .concat([
-                .just(.setSelectedExerciseCategory(nil)),
-                .just(.setSelectedExerciseSport(nil)),
-                .just(.setAppliedExerciseName(nil)),
-                .just(.setExerciseSearchText(""))
             ])
 
         case .exerciseSelectionApplyButtonTapped:
