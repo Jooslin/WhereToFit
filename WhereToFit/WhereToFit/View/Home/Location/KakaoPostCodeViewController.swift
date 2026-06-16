@@ -16,7 +16,7 @@ final class KakaoPostCodeViewController: BaseViewController<TempReactor> {
     
     let contentController = WKUserContentController() // JavaScript가 메세지를 post하고 유저의 스크립트를 webview에 주입할 수 있도록 함
     
-    deinit {
+    @MainActor deinit {
         contentController.removeScriptMessageHandler(forName: "callBackHandler")
     }
     
