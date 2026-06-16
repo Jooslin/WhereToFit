@@ -172,7 +172,7 @@ extension Reactive where Base: LocationDetailView {
         base.addButton.rx.tap
     }
     
-    var currentLocationbuttonTap: ControlEvent<Void> {
+    var currentLocationButtonTap: ControlEvent<Void> {
         base.currentLocationButton.rx.tap
     }
 }

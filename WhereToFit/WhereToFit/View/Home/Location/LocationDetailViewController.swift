@@ -64,6 +64,13 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
+        detailView.rx.currentLocationButtonTap
+            .map {
+                LocationDetailReactor.Action.currentLocation
+            }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+        
         // 버튼
         detailView.rx.homeButtonTap
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)

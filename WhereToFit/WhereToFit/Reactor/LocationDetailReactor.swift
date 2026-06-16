@@ -16,6 +16,7 @@ final class LocationDetailReactor: BaseReactor {
         case updateAddress(String)
         case updateName(String)
         case updateButtonType(Location.LocationButtonType)
+        case currentLocation
     }
     
     enum Mutation {
@@ -72,6 +73,9 @@ final class LocationDetailReactor: BaseReactor {
         case .updateAddress(let address):
             return .just(.setAddress(address))
             
+        case .currentLocation:
+            return currentLocation()
+            
         case .updateName(let name):
             return .just(.setName(name))
             
@@ -115,5 +119,11 @@ extension LocationDetailReactor {
         )
         
         return .just(.setUpdateResult(true))
+    }
+    
+    private func currentLocation() -> Observable<Mutation> {
+        //TODO: 현재 위치 뱉는 로직
+        
+        return .just(.setAddress("현재 주소"))
     }
 }
