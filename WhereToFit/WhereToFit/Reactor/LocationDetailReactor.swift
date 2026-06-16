@@ -19,10 +19,12 @@ final class LocationDetailReactor: BaseReactor {
     }
     
     enum Mutation {
-        case didUpdateSuccess(Bool)
         case setAddress(String)
         case setName(String)
         case setButtonType(Location.LocationButtonType)
+        
+        case setLoading(Bool)
+        case setUpdateResult(Bool)
     }
     
     struct State {
@@ -38,7 +40,9 @@ final class LocationDetailReactor: BaseReactor {
             guard let address else { return false }
             return !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
-        var didUpdateSucess: Bool?
+        
+        var isLoading: Bool = false
+        @Pulse var updateResult: Bool?
     }
     
     init(location: Location?) {
@@ -57,11 +61,20 @@ final class LocationDetailReactor: BaseReactor {
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
         case .update:
-            return updateLocation()
+            guard !currentState.isLoading else { return .empty() }
+            
+            return Observable.concat([
+                .just(.setLoading(true)),
+                updateLocation(),
+                .just(.setLoading(false))
+                ])
+            
         case .updateAddress(let address):
             return .just(.setAddress(address))
+            
         case .updateName(let name):
             return .just(.setName(name))
+            
         case .updateButtonType(let buttonType):
             return .just(.setButtonType(buttonType))
         }
@@ -71,14 +84,16 @@ final class LocationDetailReactor: BaseReactor {
         var newState = state
         
         switch mutation {
-        case .didUpdateSuccess(let didSuccess):
-            newState.didUpdateSucess = didSuccess
         case .setAddress(let address):
             newState.address = address
         case .setName(let name):
             newState.name = name
         case .setButtonType(let buttonType):
             newState.buttonType = buttonType
+        case .setLoading(let isLoading):
+            newState.isLoading = isLoading
+        case .setUpdateResult(let isSuccess):
+            newState.updateResult = isSuccess
         }
         
         return newState
@@ -99,6 +114,6 @@ extension LocationDetailReactor {
             longitude: 127
         )
         
-        return .just(.didUpdateSuccess(true))
+        return .just(.setUpdateResult(true))
     }
 }

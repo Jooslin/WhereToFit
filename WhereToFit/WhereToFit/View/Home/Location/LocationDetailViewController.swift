@@ -131,15 +131,13 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             )
             .disposed(by: disposeBag)
         
-        state.compactMap(\.didUpdateSucess)
+        reactor.pulse(\.$updateResult)
+            .compactMap { $0 }
             .map {
-                return $0 ? AppStep.pageBack
-                : AppStep.alert(title: "저장 실패", message: "위치를 저장할 수 없습니다.\n잠시 후 다시 시도해주세요.")
+                $0 ? AppStep.pageBack : AppStep.alert(title: "저장 실패", message: "위치를 저장할 수 없습니다.\n잠시 후 다시 시도해주세요.")
             }
-            .asObservable()
             .bind(to: steps)
             .disposed(by: disposeBag)
-    
     }
 }
 
