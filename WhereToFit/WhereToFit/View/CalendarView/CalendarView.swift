@@ -62,7 +62,12 @@ final class CalendarView: UIView {
     }
 
     fileprivate let weightCard = CalendarInfoCardView(title: "몸무게", value: "54.2", unit: "kg")
-    fileprivate let conditionCard = CalendarInfoCardView(title: "컨디션", value: "최악", unit: nil)
+    fileprivate let conditionCard = CalendarInfoCardView(
+        title: "컨디션",
+        value: "최악",
+        unit: nil,
+        valueImage: CalendarReactor.ConditionValue.worst.image
+    )
 
     private let exerciseTitleLabel = UILabel(text: "운동", config: .body16Medium)
 
@@ -106,6 +111,7 @@ extension CalendarView {
 
     func updateCondition(_ condition: CalendarReactor.ConditionValue) {
         conditionCard.updateValue(condition.displayText)
+        conditionCard.updateValueImage(condition.image)
     }
 
     func setExerciseCollectionViewDataSource(_ dataSource: UICollectionViewDataSource) {
