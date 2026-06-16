@@ -33,6 +33,7 @@ final class FacilityDetailViewController: UIViewController {
     private var locationMarker: NMFMarker?
     private var programCards: [FacilityProgramCardView] = []
     private var programCardFacilities: [FitnessFacility] = []
+    private let interactivePopGestureDelegate = InteractivePopGestureDelegate()
     private var priceSectionValue: String {
         let listPriceText = FacilityProgramListItemViewModel(facility: facility).priceText
         guard listPriceText == "상세 정보 확인" else {
@@ -102,8 +103,7 @@ final class FacilityDetailViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: false)
-        navigationController?.interactivePopGestureRecognizer?.delegate = nil
-        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+        interactivePopGestureDelegate.attach(to: navigationController)
     }
 
     deinit {
