@@ -40,7 +40,7 @@ final class KakaoPostCodeViewController: BaseViewController<TempReactor> {
         webView.addSubview(indicator)
         
         webView.snp.makeConstraints {
-            $0.horizontalEdges.equalToSuperview().inset(35)
+            $0.horizontalEdges.equalToSuperview().inset(16)
             $0.height.equalTo(465)
             $0.centerY.equalToSuperview()
         }
