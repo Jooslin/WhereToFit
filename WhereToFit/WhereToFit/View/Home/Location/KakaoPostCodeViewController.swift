@@ -16,12 +16,16 @@ final class KakaoPostCodeViewController: BaseViewController<TempReactor> {
     
     let contentController = WKUserContentController() // JavaScript가 메세지를 post하고 유저의 스크립트를 webview에 주입할 수 있도록 함
     
+    deinit {
+        contentController.removeScriptMessageHandler(forName: "callBackHandler")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = UIColor.black.withAlphaComponent(0.4)
         
-        contentController.add(self, name: "callBackHandler")
+        contentController.add(WeakScriptMessageHandler(self), name: "callBackHandler")
         
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = contentController
@@ -92,5 +96,17 @@ extension KakaoPostCodeViewController: UIGestureRecognizerDelegate {
         guard let webView else { return true }
         let touchLocation = touch.location(in: view)
         return !webView.frame.contains(touchLocation)
+    }
+}
+
+final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
+    private weak var delegate: WKScriptMessageHandler?
+    
+    init(_ delegate: WKScriptMessageHandler) {
+        self.delegate = delegate
+    }
+    
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        delegate?.userContentController(userContentController, didReceive: message)
     }
 }
