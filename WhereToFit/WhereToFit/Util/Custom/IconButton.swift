@@ -59,22 +59,34 @@ class IconButton: DesignButton {
     // 이미지
     var normalImage: UIImage? {
         didSet {
+            invalidateIntrinsicContentSize()
             updateImage()
         }
     }
     var normalRightImage: UIImage? {
         didSet {
+            invalidateIntrinsicContentSize()
             updateImage()
         }
     }
     var selectedImage: UIImage? {
         didSet {
+            invalidateIntrinsicContentSize()
             updateImage()
         }
     }
     var selectedRightImage: UIImage? {
         didSet {
+            invalidateIntrinsicContentSize()
             updateImage()
+        }
+    }
+    
+    override var title: String?  {
+        get { super.title }
+        set {
+            super.title = newValue
+            invalidateIntrinsicContentSize()
         }
     }
     
@@ -155,6 +167,8 @@ class IconButton: DesignButton {
         let hitFrame = bounds.insetBy(dx: widthInset, dy: heightInset)
         return hitFrame.contains(point)
     }
+    
+    override func layoutContent() { }
 }
 
 //MARK: Layout
@@ -176,6 +190,8 @@ extension IconButton {
         // set priority
         setContentHuggingPriority(.required, for: .horizontal)
         setContentCompressionResistancePriority(.required, for: .horizontal)
+        stackView.setContentHuggingPriority(.required, for: .horizontal)
+        stackView.setContentCompressionResistancePriority(.required, for: .horizontal)
         titleLabel.setContentHuggingPriority(.required, for: .horizontal)
         titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         
@@ -183,7 +199,11 @@ extension IconButton {
         addSubview(stackView)
         
         stackView.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(config.size.padding)
+            $0.center.equalToSuperview()
+            $0.top.greaterThanOrEqualToSuperview().inset(config.size.padding.top)
+            $0.bottom.lessThanOrEqualToSuperview().inset(config.size.padding.bottom)
+            $0.leading.greaterThanOrEqualToSuperview().inset(config.size.padding.left)
+            $0.trailing.lessThanOrEqualToSuperview().inset(config.size.padding.right)
         }
         
         [leftImageView, rightImageView].forEach {
@@ -192,6 +212,7 @@ extension IconButton {
             }
         }
     }
+    
 }
 
 //MARK: Configure
