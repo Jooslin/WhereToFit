@@ -89,6 +89,7 @@ extension LocationDetailView {
             $0.axis = .horizontal
             $0.spacing = 8
             $0.alignment = .center
+            $0.distribution = .equalSpacing
         }
         
         let stackView = UIStackView(arrangedSubviews: [addressStack, buttonStack, nameTextField]).then {

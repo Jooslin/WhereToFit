@@ -192,18 +192,25 @@ extension IconButton {
         setContentCompressionResistancePriority(.required, for: .horizontal)
         stackView.setContentHuggingPriority(.required, for: .horizontal)
         stackView.setContentCompressionResistancePriority(.required, for: .horizontal)
+        titleLabel.numberOfLines = 1
+        titleLabel.lineBreakMode = .byTruncatingTail
         titleLabel.setContentHuggingPriority(.required, for: .horizontal)
         titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         
         // set layout
         addSubview(stackView)
         
+        let padding = config.size.padding
+        let centerXOffset = (padding.left - padding.right) / 2
+        let centerYOffset = (padding.top - padding.bottom) / 2
+        
         stackView.snp.makeConstraints {
-            $0.center.equalToSuperview()
-            $0.top.greaterThanOrEqualToSuperview().inset(config.size.padding.top)
-            $0.bottom.lessThanOrEqualToSuperview().inset(config.size.padding.bottom)
-            $0.leading.greaterThanOrEqualToSuperview().inset(config.size.padding.left)
-            $0.trailing.lessThanOrEqualToSuperview().inset(config.size.padding.right)
+            $0.centerX.equalToSuperview().offset(centerXOffset)
+            $0.centerY.equalToSuperview().offset(centerYOffset)
+            $0.top.greaterThanOrEqualToSuperview().inset(padding.top)
+            $0.bottom.lessThanOrEqualToSuperview().inset(padding.bottom)
+            $0.leading.greaterThanOrEqualToSuperview().inset(padding.left)
+            $0.trailing.lessThanOrEqualToSuperview().inset(padding.right)
         }
         
         [leftImageView, rightImageView].forEach {

@@ -30,7 +30,6 @@ final class HomeTitleView: TitleView {
         leftButton.snp.remakeConstraints {
             $0.verticalEdges.equalToSuperview().inset(12)
             $0.leading.equalToSuperview().inset(16)
-            $0.width.equalTo(leftButton.intrinsicContentSize.width)
         }
     }
     
