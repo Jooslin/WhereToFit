@@ -26,7 +26,7 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
 
     override func bind(reactor: CalendarReactor) {
         calendarView.rx.selectedSegmentIndex
-            .skip(1)
+            .distinctUntilChanged()
             .map { $0 == 0 ? CalendarView.ContentMode.calendar : .report }
             .bind(with: self) { owner, mode in
                 owner.calendarView.updateContentMode(mode)
