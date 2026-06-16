@@ -59,7 +59,8 @@ protocol SportsRepositoryProtocol {
         keyword: String,
         limit: Int,
         offset: Int,
-        order: SearchOrder
+        order: SearchOrder,
+        searchType: NetworkService.SearchType
     ) -> Single<SupabasePage<Facility>>
     
     func fetchPrograms(
@@ -104,13 +105,14 @@ final class SportsRepository: SportsRepositoryProtocol {
         keyword: String,
         limit: Int = 50,
         offset: Int = 0,
-        order: SearchOrder = .ascending
+        order: SearchOrder = .ascending,
+        searchType: NetworkService.SearchType = .facilityName
     ) -> Single<SupabasePage<Facility>> {
         Single.async { [networkService] in
             let page: SupabasePage<PublicFacilityDTO> = try await networkService.fetchFilteredSupabaseData(
                 api: .facility,
                 keyword: keyword,
-                searchType: .facilityName,
+                searchType: searchType,
                 order: order,
                 limit: limit,
                 offset: offset

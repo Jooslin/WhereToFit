@@ -28,5 +28,11 @@ enum AppStep: Step {
     // My
     case profileManagement
     case notificationSetting
+    case favoritePrograms
+    case registeredPrograms
+    case exerciseResult
     case pageBack
+    
+    // Home
+    case locationSetting
 }

@@ -223,6 +223,7 @@ extension NetworkService {
     }
     
     enum SearchType: String {
+        case facilityID = "id"
         case facilityName = "facility_name"
         case className = "class_name"
     }

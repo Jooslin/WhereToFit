@@ -37,6 +37,24 @@ final class MyFlow: Flow {
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
 
+        case .favoritePrograms:
+            let vc = FavoriteListViewController(reactor: FavoriteListReactor())
+            vc.hidesBottomBarWhenPushed = true
+            navigationController.pushViewController(vc, animated: true)
+            return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
+
+        case .registeredPrograms:
+            let vc = RegisteredProgramsViewController(reactor: RegisteredProgramsReactor())
+            vc.hidesBottomBarWhenPushed = true
+            navigationController.pushViewController(vc, animated: true)
+            return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
+
+        case .exerciseResult:
+            let vc = ExerciseResultViewController(reactor: ExerciseResultReactor())
+            vc.hidesBottomBarWhenPushed = true
+            navigationController.pushViewController(vc, animated: true)
+            return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
+
         case .pageBack:
             navigationController.popViewController(animated: true)
             return .none

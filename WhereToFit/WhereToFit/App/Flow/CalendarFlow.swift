@@ -20,9 +20,8 @@ final class CalendarFlow: Flow {
         }
         
         switch step {
-            //TODO: 추후 VC 수정 필요
         case .calendarTab:
-            let vc = TempViewController(reactor: TempReactor())
+            let vc = CalendarViewController(reactor: CalendarReactor())
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
             

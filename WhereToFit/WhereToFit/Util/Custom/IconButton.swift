@@ -35,13 +35,26 @@ import RxCocoa
 class IconButton: UIControl {
     private enum Metric {
         static let hitSize = CGSize(width: 44, height: 44)
-        static let iconSize = CGSize(width: 24, height: 24)
     }
     
     enum ButtonState {
         case normal, selected
     }
     
+    enum IconSize {
+        case compact
+        case regular
+
+        var size: CGSize {
+            switch self {
+            case .compact:
+                return CGSize(width: 20, height: 20)
+            case .regular:
+                return CGSize(width: 24, height: 24)
+            }
+        }
+    }
+
     private let stackView: UIStackView
     private let iconImageView: UIImageView
     private let titleLabel: UILabel
@@ -52,6 +65,7 @@ class IconButton: UIControl {
     private var normalRightImage: UIImage?
     private var selectedRightImage: UIImage?
     private let spacing: CGFloat
+    private let iconSize: IconSize
     private var touchSize = Metric.hitSize
     
     // 고유 크기 계산
@@ -60,8 +74,8 @@ class IconButton: UIControl {
         var heights: [CGFloat] = []
         
         if !iconImageView.isHidden {
-            widths.append(Metric.iconSize.width)
-            heights.append(Metric.iconSize.height)
+            widths.append(iconSize.size.width)
+            heights.append(iconSize.size.height)
         }
         
         if !titleLabel.isHidden {
@@ -71,8 +85,8 @@ class IconButton: UIControl {
         }
         
         if !rightIconImageView.isHidden {
-            widths.append(Metric.iconSize.width)
-            heights.append(Metric.iconSize.height)
+            widths.append(iconSize.size.width)
+            heights.append(iconSize.size.height)
         }
         
         guard !widths.isEmpty else { return .zero }
@@ -104,12 +118,14 @@ class IconButton: UIControl {
         labelConfig: LabelConfiguration = .body14Medium,
         rightImage: UIImage? = nil,
         selectedRightImage: UIImage? = nil,
+        iconSize: IconSize = .regular,
         spacing: CGFloat = 4
     ) {
         self.normalImage = image
         self.selectedImage = selectedImage
         self.normalRightImage = rightImage
         self.selectedRightImage = selectedRightImage
+        self.iconSize = iconSize
         self.spacing = spacing
         
         // set attributes
@@ -154,7 +170,7 @@ class IconButton: UIControl {
         
         [iconImageView, rightIconImageView].forEach {
             $0.snp.makeConstraints {
-                $0.width.height.equalTo(Metric.iconSize)
+                $0.width.height.equalTo(iconSize.size)
             }
         }
     }
