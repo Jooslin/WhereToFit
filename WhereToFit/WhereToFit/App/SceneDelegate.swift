@@ -1,6 +1,6 @@
 //
 //  SceneDelegate.swift
-//  Gymap
+//  WhereToFit
 //
 //  Created by 변예린 on 5/19/26.
 //

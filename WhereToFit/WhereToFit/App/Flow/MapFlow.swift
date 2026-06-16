@@ -2,7 +2,7 @@
 //  MapFlow.swift
 //  WhereToFit
 //
-//  Created by 변예린 on 5/27/26.
+//  Created by 변예린, Yeseul Jang on 5/27/26.
 //
 
 import UIKit
