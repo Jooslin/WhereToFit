@@ -15,18 +15,23 @@ final class LocationReactor: BaseReactor {
         case viewWillAppear
         case loadItems
         case selected(Location)
+        case updateSelection
     }
     
     enum Mutation {
         case setLoading(Bool)
         case setLocations([Location])
         case setDataSource([LocationView.Item])
+        case setSelectedLocation(Location)
+        case setUpdateResult(Bool)
     }
     
     struct State {
         var isLoading: Bool = false
         var data: [LocationView.Section: [LocationView.Item]] = [.button:[LocationView.Item.button]]
         var locations: [Location] = []
+        var selectedLocation: Location = Location(buttonType: .additional, name: "광화문", address: "서울특별시 광화문", isSelected: true, latitude: 37, longitude: 127)
+        @Pulse var updateResult: Bool?
     }
     
     func mutate(action: Action) -> Observable<Mutation> {
@@ -44,11 +49,14 @@ final class LocationReactor: BaseReactor {
             return .just(.setLocations(currentState.locations))
             
         case .selected(let location):
+            return updateSelectedLocation(location)
+            
+        case .updateSelection:
             guard !currentState.isLoading else { return .empty() }
             
             return Observable.concat([
                 .just(.setLoading(true)),
-                updateSelectedLocation(location),
+                updateSelectedLocationCoreData(),
                 .just(.setLoading(false))
             ])
         }
@@ -64,6 +72,10 @@ final class LocationReactor: BaseReactor {
             newState.locations = locations
         case .setDataSource(let items):
             newState.data[.location] = items
+        case .setSelectedLocation(let location):
+            newState.selectedLocation = location
+        case .setUpdateResult(let isSuccess):
+            newState.updateResult = isSuccess
         }
         
         return newState
@@ -105,8 +117,11 @@ extension LocationReactor {
                 $0 + [LocationView.Item.location($1)]
             }
             
+            let selectedLocation = locations.filter { $0.isSelected }.first ?? Location(buttonType: .additional, name: "광화문", address: "서울특별시 광화문", isSelected: true, latitude: 37, longitude: 127)
+            
             observer.onNext(.setLocations(locations))
             observer.onNext(.setDataSource(items))
+            observer.onNext(.setSelectedLocation(selectedLocation))
             observer.onCompleted()
             
             return Disposables.create()
@@ -115,6 +130,7 @@ extension LocationReactor {
     
     //TODO: selectedLocation 업데이트 로직 필요
     private func updateSelectedLocation(_ location: Location) -> Observable<Mutation> {
+        // 여기는 State의 locations만 사용!!
         // 현재 isSelected = true인 location 찾기
         // 현재 isSelected location 값을 false로, 파라미터로 받은 location.isSelected = true로 수정
         // 새로 모든 아이템 받아와서 .setLocations 반환
@@ -152,9 +168,23 @@ extension LocationReactor {
                 
                 observer.onNext(.setLocations(locations))
                 observer.onNext(.setDataSource(items))
+                observer.onNext(.setSelectedLocation(location))
                 observer.onCompleted()
                 
                 return Disposables.create()
             }
+    }
+    
+    private func updateSelectedLocationCoreData() -> Observable<Mutation> {
+        // State의 selectedLocation의 isSelected를 변경!
+        // 기존 isSelected == true 값은 false로 변경
+        Observable.create { observer in
+            
+            observer.onNext(.setUpdateResult(true))
+            observer.onCompleted()
+            
+            return Disposables.create()
+        }
+        
     }
 }

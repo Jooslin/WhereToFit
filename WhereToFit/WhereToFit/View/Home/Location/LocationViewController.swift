@@ -46,10 +46,17 @@ final class LocationViewController: BaseViewController<LocationReactor> {
             .bind(to: steps)
             .disposed(by: disposeBag)
         
-        // 위치 지정
+        // 셀 선택
         locationView.rx.listCellSelected
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { LocationReactor.Action.selected($0) }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+        
+        // 현재 위치로 지정
+        locationView.rx.currentLocationButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .map { LocationReactor.Action.updateSelection }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
     }
@@ -65,18 +72,15 @@ final class LocationViewController: BaseViewController<LocationReactor> {
                     locationView.setSnapshot(with: data)
                 })
             .disposed(by: disposeBag)
+        
+        reactor.pulse(\.$updateResult)
+            .compactMap { $0 }
+            .map {
+                $0 ? AppStep.pageBack : AppStep.alert(title: "저장 실패", message: "현재 위치를 저장하는 데 실패했습니다.\n잠시 후 다시 시도해주세요.")
+            }
+            .bind(to: steps)
+            .disposed(by: disposeBag)
     }
-}
-
-extension LocationViewController {
-//    private func presentPostCodeSelection() {
-//        let vc = KakaoPostCodeViewController()
-//        vc.onSelectAddress = { [weak self] address in
-//            self?.selectedAddressRelay.accept(address)
-//        }
-//        vc.modalPresentationStyle = .overFullScreen
-//        self.present(vc, animated: false)
-//    }
 }
 
 #Preview {
