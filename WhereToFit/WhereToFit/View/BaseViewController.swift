@@ -17,9 +17,10 @@ class BaseViewController<R: Reactor>: UIViewController, Stepper, ReactorKit.View
     typealias Action = R.Action
     
     let steps = PublishRelay<Step>()
+    let steps = PublishRelay<Step>()
     var disposeBag = DisposeBag()
+    private let baseDisposeBag = DisposeBag()
     private let keyboardDismissTapDelegate = KeyboardDismissTapDelegate()
-    private let interactivePopGestureDelegate = InteractivePopGestureDelegate()
     
     init(reactor: R? = nil) {
         super.init(nibName: nil, bundle: nil)
