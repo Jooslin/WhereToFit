@@ -125,6 +125,11 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             )
             .disposed(by: disposeBag)
         
+        state.map(\.isRegisterButtonEnabled)
+            .distinctUntilChanged()
+            .drive(detailView.registerButton.rx.isEnabled)
+            .disposed(by: disposeBag)
+        
         state.map(\.buttonType)
             .drive(
                 with: detailView,

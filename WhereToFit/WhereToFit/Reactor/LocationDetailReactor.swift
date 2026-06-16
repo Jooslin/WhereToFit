@@ -34,6 +34,10 @@ final class LocationDetailReactor: BaseReactor {
         var registerButtonTitle: String {
             selectedLocation == nil ? "등록하기" : "수정하기"
         }
+        var isRegisterButtonEnabled: Bool {
+            guard let address else { return false }
+            return !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
         var didUpdateSucess: Bool?
     }
     
