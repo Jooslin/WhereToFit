@@ -13,8 +13,6 @@ import RxCocoa
 final class LocationViewController: BaseViewController<LocationReactor> {
     let locationView = LocationView()
     
-    private let selectedAddressRelay = PublishRelay<String>()
-    
     override func loadView() {
         view = locationView
     }
@@ -48,22 +46,6 @@ final class LocationViewController: BaseViewController<LocationReactor> {
             .bind(to: steps)
             .disposed(by: disposeBag)
         
-        // 신규 위치 생성
-        locationView.rx.searchBarTap
-            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
-            .withUnretained(self)
-            .subscribe(onNext: { `self`, _ in
-                self.presentPostCodeSelection()
-            })
-            .disposed(by: disposeBag)
-        
-        selectedAddressRelay
-            .map { address in
-                AppStep.locationDetail(.create(address: address))
-            }
-            .bind(to: steps)
-            .disposed(by: disposeBag)
-        
         // 위치 지정
         locationView.rx.listCellSelected
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
@@ -76,25 +58,25 @@ final class LocationViewController: BaseViewController<LocationReactor> {
         let state = reactor.state
             .asDriver(onErrorJustReturn: .init())
         
-        state.map(\.locations)
+        state.map(\.data)
             .drive(
                 with: locationView,
-                onNext: { locationView, locations in
-                    locationView.setSnapshot(with: locations)
+                onNext: { locationView, data in
+                    locationView.setSnapshot(with: data)
                 })
             .disposed(by: disposeBag)
     }
 }
 
 extension LocationViewController {
-    private func presentPostCodeSelection() {
-        let vc = KakaoPostCodeViewController()
-        vc.onSelectAddress = { [weak self] address in
-            self?.selectedAddressRelay.accept(address)
-        }
-        vc.modalPresentationStyle = .overFullScreen
-        self.present(vc, animated: false)
-    }
+//    private func presentPostCodeSelection() {
+//        let vc = KakaoPostCodeViewController()
+//        vc.onSelectAddress = { [weak self] address in
+//            self?.selectedAddressRelay.accept(address)
+//        }
+//        vc.modalPresentationStyle = .overFullScreen
+//        self.present(vc, animated: false)
+//    }
 }
 
 #Preview {

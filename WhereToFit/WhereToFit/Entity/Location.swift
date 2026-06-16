@@ -5,6 +5,8 @@
 //  Created by 변예린 on 6/15/26.
 //
 
+import Foundation
+
 nonisolated
 struct Location: Hashable {
     let buttonType: LocationButtonType
@@ -13,8 +15,9 @@ struct Location: Hashable {
     let isSelected: Bool
     let latitude: Double
     let longitude: Double
+    let registrationDate: Date = .now
     
-    enum LocationButtonType {
+    enum LocationButtonType: Int {
         case myHome
         case office
         case additional

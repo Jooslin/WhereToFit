@@ -13,14 +13,10 @@ import RxSwift
 
 final class LocationView: UIView {
     let titleView = TitleView(text: "위치 지정", leftButtonImage: .arrowLeft, rightButtonImage: .edit)
-    let searchBar = SearchBar(placeholder: "주소로 검색하기").then {
-        $0.isTextInputEnabled = false
-    }
-    let currentLocationButton = DesignButton(config: .largeBorderBlue).then {
-        $0.title = "현재 위치로 지정"
-    }
     
-    fileprivate let searchBarTapGesture = UITapGestureRecognizer()
+    let currentLocationButton = DesignButton(config: .largeFilledBlue).then {
+        $0.title = "현재 위치로 지정하기"
+    }
     
     // collectionView
     private(set) lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout()).then {
@@ -28,10 +24,12 @@ final class LocationView: UIView {
     }
     private(set) lazy var dataSource = makeDiffableDataSource(collectionView)
     
+    // Reactive
+    fileprivate let addButtonTap = PublishRelay<Void>()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .white
-        searchBar.addGestureRecognizer(searchBarTapGesture)
         setLayout()
     }
     
@@ -44,54 +42,70 @@ final class LocationView: UIView {
 extension LocationView {
     private func setLayout() {
         addSubview(titleView)
-        addSubview(searchBar)
-        addSubview(currentLocationButton)
         addSubview(collectionView)
+        addSubview(currentLocationButton)
         
         titleView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
             $0.horizontalEdges.equalToSuperview()
         }
-        
-        searchBar.snp.makeConstraints {
+       
+        collectionView.snp.makeConstraints {
             $0.top.equalTo(titleView.snp.bottom).offset(12)
-            $0.horizontalEdges.equalToSuperview().inset(16)
-            $0.height.equalTo(48)
+            $0.horizontalEdges.equalToSuperview()
+            $0.bottom.equalTo(currentLocationButton.snp.top).inset(12)
         }
         
         currentLocationButton.snp.makeConstraints {
-            $0.top.equalTo(searchBar.snp.bottom).offset(12)
+            $0.bottom.equalTo(safeAreaLayoutGuide).inset(8)
             $0.horizontalEdges.equalToSuperview().inset(16)
             $0.height.equalTo(40)
-        }
-        
-        collectionView.snp.makeConstraints {
-            $0.top.equalTo(currentLocationButton.snp.bottom).offset(12)
-            $0.horizontalEdges.equalToSuperview()
-            $0.bottom.equalTo(safeAreaLayoutGuide)
         }
     }
 }
 
 //MARK: CollectionView DataSource
 extension LocationView {
-    private func makeDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, Location> {
-        let listCellRegistration = UICollectionView.CellRegistration<LocationListCell, Location> { cell, indexPath, item in
+    private func makeDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Section, Item> {
+        let listCellRegistration = UICollectionView.CellRegistration<LocationListCell, Item> { cell, indexPath, item in
             
-            cell.configure(item)
+            switch item {
+            case .location(let location):
+                cell.configure(location)
+            case .button:
+                break
+            }
+        }
+        
+        let buttonCellRegistration = UICollectionView.CellRegistration<LocationButtonCell, Item> { [weak self] cell, indexPath, item in
+            guard let self else { return }
+            cell.rx.addButtonTap
+                .bind(to: self.addButtonTap)
+                .disposed(by: cell.disposeBag)
         }
 
-        let dataSource = UICollectionViewDiffableDataSource<Int, Location>(collectionView: collectionView) { collectionView, indexPath, item in
-            collectionView.dequeueConfiguredReusableCell(using: listCellRegistration, for: indexPath, item: item)
+        let dataSource = UICollectionViewDiffableDataSource<Section, Item>(collectionView: collectionView) { [weak self] collectionView, indexPath, item in
+            guard let section = self?.dataSource.sectionIdentifier(for: indexPath.section) else {
+                fatalError("LocationCollectionView: 유효하지 않은 섹션입니다.")
+            }
+            
+            return switch section {
+            case .location:
+                collectionView.dequeueConfiguredReusableCell(using: listCellRegistration, for: indexPath, item: item)
+            case .button:
+                collectionView.dequeueConfiguredReusableCell(using: buttonCellRegistration, for: indexPath, item: item)
+            }
         }
         
         return dataSource
     }
     
-    func setSnapshot(with data: [Location]) {
-        var snapshot = NSDiffableDataSourceSnapshot<Int, Location>()
-        snapshot.appendSections([0])
-        snapshot.appendItems(data, toSection: 0)
+    func setSnapshot(with data: [Section: [Item]]) {
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
+        
+        snapshot.appendSections([.location, .button])
+        snapshot.appendItems(data[.location] ?? [], toSection: .location)
+        snapshot.appendItems(data[.button] ?? [], toSection: .button)
         
         dataSource.apply(snapshot, animatingDifferences: false)
     }
@@ -105,22 +119,30 @@ extension LocationView {
         configuration.contentInsetsReference = .layoutMargins
         
         return UICollectionViewCompositionalLayout(sectionProvider: { [weak self] sectionIndex, environment in
-            self?.listSectionLayout()
+            
+            guard let section = self?.dataSource.sectionIdentifier(for: sectionIndex) else { return nil }
+            
+            switch section {
+            case .location:
+                return self?.listSectionLayout()
+            case .button:
+                return self?.listSectionLayout(height: 40)
+            }
         }, configuration: configuration)
     }
     
-    private func listSectionLayout() -> NSCollectionLayoutSection {
+    private func listSectionLayout(height: CGFloat  = 81) -> NSCollectionLayoutSection {
         let item = NSCollectionLayoutItem(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
-                heightDimension: .absolute(81)
+                heightDimension: .absolute(height)
             )
         )
         
         let group = NSCollectionLayoutGroup.vertical(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
-                heightDimension: .absolute(81)
+                heightDimension: .absolute(height)
             ),
             subitems: [item]
         )
@@ -131,6 +153,20 @@ extension LocationView {
         return section
     }
     
+}
+
+extension LocationView {
+    nonisolated
+    enum Section: Int {
+        case location = 0
+        case button
+    }
+    
+    nonisolated
+    enum Item: Hashable {
+        case location(Location)
+        case button
+    }
 }
 
 extension Reactive where Base: LocationView {
@@ -146,15 +182,14 @@ extension Reactive where Base: LocationView {
         base.currentLocationButton.rx.tap
     }
     
-    var searchBarTap: ControlEvent<Void> {
-        let source = base.searchBarTapGesture.rx.event.map { _ in }
-        return ControlEvent(events: source)
-    }
-    
     var listCellSelected: Observable<Location> {
         base.collectionView.rx.itemSelected
             .compactMap { indexPath in
-                base.dataSource.itemIdentifier(for: indexPath)
+                guard case LocationView.Item.location(let location)? = base.dataSource.itemIdentifier(for: indexPath) else {
+                    return nil
+                }
+                
+                return location
             }
             .asObservable()
     }

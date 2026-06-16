@@ -20,10 +20,12 @@ final class LocationReactor: BaseReactor {
     enum Mutation {
         case setLoading(Bool)
         case setLocations([Location])
+        case setDataSource([LocationView.Item])
     }
     
     struct State {
         var isLoading: Bool = false
+        var data: [LocationView.Section: [LocationView.Item]] = [.button:[LocationView.Item.button]]
         var locations: [Location] = []
     }
     
@@ -60,6 +62,8 @@ final class LocationReactor: BaseReactor {
             newState.isLoading = isLoading
         case .setLocations(let locations):
             newState.locations = locations
+        case .setDataSource(let items):
+            newState.data[.location] = items
         }
         
         return newState
@@ -97,7 +101,12 @@ extension LocationReactor {
                 )
             ]
             
+            let items = locations.reduce([LocationView.Item]()) {
+                $0 + [LocationView.Item.location($1)]
+            }
+            
             observer.onNext(.setLocations(locations))
+            observer.onNext(.setDataSource(items))
             observer.onCompleted()
             
             return Disposables.create()
@@ -137,7 +146,12 @@ extension LocationReactor {
                     )
                 ]
                 
+                let items = locations.reduce([LocationView.Item]()) {
+                    $0 + [LocationView.Item.location($1)]
+                }
+                
                 observer.onNext(.setLocations(locations))
+                observer.onNext(.setDataSource(items))
                 observer.onCompleted()
                 
                 return Disposables.create()
