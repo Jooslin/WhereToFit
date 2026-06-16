@@ -165,6 +165,9 @@ extension LocationDetailViewController {
 
 extension LocationDetailViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-        detailView.nameTextField.isFirstResponder
+        guard detailView.nameTextField.isFirstResponder else { return false }
+        guard let touchView = touch.view else { return true }
+        
+        return !touchView.isDescendant(of: detailView.nameTextField)
     }
 }
