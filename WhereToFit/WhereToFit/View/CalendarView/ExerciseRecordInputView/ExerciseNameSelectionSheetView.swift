@@ -25,6 +25,7 @@ final class ExerciseNameSelectionSheetView: UIView {
         $0.title = "적용"
     }
 
+    private let tableHandler = ExerciseNameSelectionTableHandler()
     fileprivate let categorySelectedRelay = PublishRelay<SportsCategory>()
     fileprivate let sportSelectedRelay = PublishRelay<String>()
 
@@ -55,7 +56,6 @@ final class ExerciseNameSelectionSheetView: UIView {
         $0.showsVerticalScrollIndicator = true
         $0.backgroundColor = .white
         $0.rowHeight = 44
-        $0.register(ExerciseSportCell.self, forCellReuseIdentifier: ExerciseSportCell.reuseIdentifier)
     }
 
     private let categoryTableView = UITableView(frame: .zero, style: .plain).then {
@@ -63,7 +63,6 @@ final class ExerciseNameSelectionSheetView: UIView {
         $0.showsVerticalScrollIndicator = true
         $0.backgroundColor = .white
         $0.rowHeight = 44
-        $0.register(ExerciseCategoryCell.self, forCellReuseIdentifier: ExerciseCategoryCell.reuseIdentifier)
     }
 
     private let sportTableView = UITableView(frame: .zero, style: .plain).then {
@@ -71,7 +70,6 @@ final class ExerciseNameSelectionSheetView: UIView {
         $0.showsVerticalScrollIndicator = true
         $0.backgroundColor = .white
         $0.rowHeight = 44
-        $0.register(ExerciseSportCell.self, forCellReuseIdentifier: ExerciseSportCell.reuseIdentifier)
     }
 
     private lazy var listContainerView = UIView().then {
@@ -88,12 +86,6 @@ final class ExerciseNameSelectionSheetView: UIView {
         $0.distribution = .fillEqually
     }
 
-    private var categories: [SportsCategory] = []
-    private var sports: [String] = []
-    private var searchResults: [String] = []
-    private var selectedCategory: SportsCategory?
-    private var selectedSport: String?
-    private var isSearchActive = false
     private var searchResultHeightConstraint: Constraint?
 
     override init(frame: CGRect) {
@@ -119,22 +111,23 @@ extension ExerciseNameSelectionSheetView {
         selectedSport: String?,
         searchText: String
     ) {
-        self.categories = categories
-        self.selectedCategory = selectedCategory
-        self.sports = sports
-        self.searchResults = searchResults
-        self.selectedSport = selectedSport
-        isSearchActive = !searchText.isEmpty
+        let isSearchActive = !searchText.isEmpty
 
         if searchBar.text != searchText {
             searchBar.text = searchText
         }
 
+        tableHandler.update(
+            categories: categories,
+            selectedCategory: selectedCategory,
+            sports: sports,
+            searchResults: searchResults,
+            selectedSport: selectedSport
+        )
+
         searchResultHeightConstraint?.update(offset: isSearchActive ? 132 : 0)
         searchResultTableView.isHidden = !isSearchActive
-        searchResultTableView.reloadData()
-        categoryTableView.reloadData()
-        sportTableView.reloadData()
+        tableHandler.reloadTables()
     }
 }
 
@@ -228,77 +221,18 @@ private extension ExerciseNameSelectionSheetView {
     }
 
     func setTables() {
-        searchResultTableView.dataSource = self
-        searchResultTableView.delegate = self
-        categoryTableView.dataSource = self
-        categoryTableView.delegate = self
-        sportTableView.dataSource = self
-        sportTableView.delegate = self
+        tableHandler.configure(
+            searchResultTableView: searchResultTableView,
+            categoryTableView: categoryTableView,
+            sportTableView: sportTableView
+        )
+        tableHandler.onCategorySelected = { [weak self] category in
+            self?.categorySelectedRelay.accept(category)
+        }
+        tableHandler.onSportSelected = { [weak self] sport in
+            self?.sportSelectedRelay.accept(sport)
+        }
         searchResultTableView.isHidden = true
-    }
-}
-
-extension ExerciseNameSelectionSheetView: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch tableView {
-        case searchResultTableView:
-            return searchResults.count
-        case categoryTableView:
-            return categories.count
-        default:
-            return sports.count
-        }
-    }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if tableView == searchResultTableView {
-            guard let cell = tableView.dequeueReusableCell(
-                withIdentifier: ExerciseSportCell.reuseIdentifier,
-                for: indexPath
-            ) as? ExerciseSportCell else {
-                return UITableViewCell()
-            }
-
-            let sport = searchResults[indexPath.row]
-            cell.configure(title: sport, isSelected: sport == selectedSport)
-            return cell
-        }
-
-        if tableView == categoryTableView {
-            guard let cell = tableView.dequeueReusableCell(
-                withIdentifier: ExerciseCategoryCell.reuseIdentifier,
-                for: indexPath
-            ) as? ExerciseCategoryCell else {
-                return UITableViewCell()
-            }
-
-            let category = categories[indexPath.row]
-            cell.configure(title: category.rawValue, isSelected: category == selectedCategory)
-            return cell
-        }
-
-        guard let cell = tableView.dequeueReusableCell(
-            withIdentifier: ExerciseSportCell.reuseIdentifier,
-            for: indexPath
-        ) as? ExerciseSportCell else {
-            return UITableViewCell()
-        }
-
-        let sport = sports[indexPath.row]
-        cell.configure(title: sport, isSelected: sport == selectedSport)
-        return cell
-    }
-
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: false)
-
-        if tableView == categoryTableView {
-            categorySelectedRelay.accept(categories[indexPath.row])
-        } else if tableView == searchResultTableView {
-            sportSelectedRelay.accept(searchResults[indexPath.row])
-        } else {
-            sportSelectedRelay.accept(sports[indexPath.row])
-        }
     }
 }
 
@@ -313,96 +247,5 @@ extension Reactive where Base == ExerciseNameSelectionSheetView {
 
     var sportSelected: ControlEvent<String> {
         ControlEvent(events: base.sportSelectedRelay)
-    }
-}
-
-private final class ExerciseCategoryCell: UITableViewCell {
-    static let reuseIdentifier = "ExerciseCategoryCell"
-
-    private let titleLabel = UILabel(config: .body14Medium)
-
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-
-        setStyle()
-        setLayout()
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    func configure(title: String, isSelected: Bool) {
-        titleLabel.text = title
-        titleLabel.textColor = isSelected ? .gray900 : .gray500
-        contentView.backgroundColor = isSelected ? .gray50 : .white
-    }
-}
-
-private extension ExerciseCategoryCell {
-    func setStyle() {
-        selectionStyle = .none
-        backgroundColor = .white
-        contentView.layer.cornerRadius = 8
-    }
-
-    func setLayout() {
-        contentView.addSubview(titleLabel)
-
-        titleLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
-            $0.centerY.equalToSuperview()
-            $0.trailing.lessThanOrEqualToSuperview().inset(8)
-        }
-    }
-}
-
-private final class ExerciseSportCell: UITableViewCell {
-    static let reuseIdentifier = "ExerciseSportCell"
-
-    private let checkLabel = UILabel(text: "✓", config: .body14Medium, color: .primary400)
-    private let titleLabel = UILabel(config: .body14Medium)
-
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-
-        setStyle()
-        setLayout()
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    func configure(title: String, isSelected: Bool) {
-        titleLabel.text = title
-        titleLabel.textColor = isSelected ? .gray900 : .gray500
-        checkLabel.isHidden = !isSelected
-    }
-}
-
-private extension ExerciseSportCell {
-    func setStyle() {
-        selectionStyle = .none
-        backgroundColor = .white
-    }
-
-    func setLayout() {
-        contentView.addSubview(checkLabel)
-        contentView.addSubview(titleLabel)
-
-        checkLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
-            $0.centerY.equalToSuperview()
-            $0.width.equalTo(16)
-        }
-
-        titleLabel.snp.makeConstraints {
-            $0.leading.equalTo(checkLabel.snp.trailing).offset(8)
-            $0.centerY.equalToSuperview()
-            $0.trailing.lessThanOrEqualToSuperview().inset(8)
-        }
     }
 }

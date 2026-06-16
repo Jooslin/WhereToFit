@@ -187,7 +187,7 @@ private extension ExerciseRecordInputView {
         customButton.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(6)
             $0.leading.equalToSuperview().offset(16)
-            $0.trailing.lessThanOrEqualToSuperview().inset(16)
+            $0.width.equalTo(customButton.intrinsicContentSize.width)
             $0.height.equalTo(32)
         }
 
