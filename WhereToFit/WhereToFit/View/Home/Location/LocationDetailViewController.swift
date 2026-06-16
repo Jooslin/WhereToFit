@@ -98,21 +98,13 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             )
         
         state.map(\.address)
-            .drive(
-                with: detailView,
-                onNext: { detailView, address in
-                    detailView.addressTextField.text = address
-                }
-            )
+            .distinctUntilChanged()
+            .drive(detailView.addressTextField.rx.text)
             .disposed(by: disposeBag)
         
         state.map(\.name)
-            .drive(
-                with: detailView,
-                onNext: { detailView, name in
-                    detailView.nameTextField.text = name
-                }
-            )
+            .distinctUntilChanged()
+            .drive(detailView.nameTextField.rx.text)
             .disposed(by: disposeBag)
         
         state.map(\.registerButtonTitle)
