@@ -18,6 +18,7 @@ class BaseViewController<R: Reactor>: UIViewController, Stepper, ReactorKit.View
     
     let steps = PublishRelay<Step>()
     var disposeBag = DisposeBag()
+    private let baseDisposeBag = DisposeBag()
     private let keyboardDismissTapDelegate = KeyboardDismissTapDelegate()
     private let interactivePopGestureDelegate = InteractivePopGestureDelegate()
     
@@ -64,7 +65,7 @@ private extension BaseViewController {
             .bind(with: self) { owner, _ in
                 owner.view.endEditing(true)
             }
-            .disposed(by: disposeBag)
+            .disposed(by: baseDisposeBag)
     }
 }
 
