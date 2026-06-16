@@ -57,14 +57,25 @@ final class DurationPickerSheetView: UIView {
 
 extension DurationPickerSheetView {
     func updateSelectedDuration(_ duration: ExerciseRecordInputReactor.DurationValue) {
-        selectedDuration = duration
-        pickerView.selectRow(duration.hour, inComponent: 0, animated: false)
-        pickerView.selectRow(duration.minute, inComponent: 1, animated: false)
-        pickerView.selectRow(duration.second, inComponent: 2, animated: false)
+        let clampedDuration = clampedDuration(duration)
+        selectedDuration = clampedDuration
+        pickerView.selectRow(clampedDuration.hour, inComponent: 0, animated: false)
+        pickerView.selectRow(clampedDuration.minute, inComponent: 1, animated: false)
+        pickerView.selectRow(clampedDuration.second, inComponent: 2, animated: false)
     }
 }
 
 private extension DurationPickerSheetView {
+    func clampedDuration(
+        _ duration: ExerciseRecordInputReactor.DurationValue
+    ) -> ExerciseRecordInputReactor.DurationValue {
+        ExerciseRecordInputReactor.DurationValue(
+            hour: duration.hour.clamped(to: hours),
+            minute: duration.minute.clamped(to: minutes),
+            second: duration.second.clamped(to: seconds)
+        )
+    }
+
     func setStyle() {
         backgroundColor = .clear
     }
@@ -155,11 +166,11 @@ extension DurationPickerSheetView: UIPickerViewDataSource, UIPickerViewDelegate 
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
         switch component {
         case 0:
-            return "\(hours[row]) hours"
+            return "\(hours[row]) 시간"
         case 1:
-            return "\(minutes[row]) min"
+            return "\(minutes[row]) 분"
         default:
-            return "\(seconds[row]) sec"
+            return "\(seconds[row]) 초"
         }
     }
 
@@ -189,6 +200,16 @@ extension DurationPickerSheetView: UIPickerViewDataSource, UIPickerViewDelegate 
             second: second
         )
         durationChangedRelay.accept(selectedDuration)
+    }
+}
+
+private extension Int {
+    func clamped(to values: [Int]) -> Int {
+        guard let minimum = values.first,
+              let maximum = values.last
+        else { return self }
+
+        return Swift.min(Swift.max(self, minimum), maximum)
     }
 }
 
