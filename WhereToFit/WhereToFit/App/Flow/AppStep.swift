@@ -22,8 +22,8 @@ enum AppStep: Step {
     case myTab
     
     // Map
-    case mapFilter(FacilityFilter)
-    case mapFacilityDetail(FitnessFacility)
+    case mapFilter(FacilityFilter, priceSamples: [Int] = [], mode: MapFilterMode = .all)
+    case mapFacilityDetail(FitnessFacility, relatedPrograms: [FitnessFacility] = [])
 
     // My
     case profileManagement

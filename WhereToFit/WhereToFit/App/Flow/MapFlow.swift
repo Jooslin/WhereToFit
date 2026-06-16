@@ -13,8 +13,11 @@ final class MapFlow: Flow {
     private let navigationController = UINavigationController()
     private let mapReactor = MapReactor(
         fetchNearbyFacilitiesUseCase: FetchNearbyFacilitiesUseCase(
-            repository: MockFacilityRepository()
+            repository: SportsFacilityRepository()
         )
+    )
+    private let searchMapSuggestionsUseCase = SearchMapSuggestionsUseCase(
+        repository: NaverMapSearchRepository()
     )
 
     var root: any RxFlow.Presentable { navigationController }
@@ -28,13 +31,16 @@ final class MapFlow: Flow {
         switch step {
             // 지도 탭 첫 화면
         case .mapTab:
-            let vc = MapViewController(reactor: mapReactor)
+            let vc = MapViewController(
+                reactor: mapReactor,
+                searchMapSuggestionsUseCase: searchMapSuggestionsUseCase
+            )
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
 
             // 지도 탭 필터링 화면
-        case let .mapFilter(filter):
-            let vc = MapFilterViewController(filter: filter)
+        case let .mapFilter(filter, priceSamples, mode):
+            let vc = MapFilterViewController(filter: filter, priceSamples: priceSamples, mode: mode)
             vc.applyButtonTapped = { [weak self] filter in
                 self?.mapReactor.action.onNext(.applyFilter(filter))
             }
@@ -42,17 +48,17 @@ final class MapFlow: Flow {
             return .none
 
             // 지도 탭 시설 상세 화면
-        case let .mapFacilityDetail(facility):
-            let vc = FacilityDetailViewController(facility: facility)
+        case let .mapFacilityDetail(facility, relatedPrograms):
+            let vc = FacilityDetailViewController(facility: facility, relatedPrograms: relatedPrograms)
                 // 찜 버튼 클릭
-            vc.favoriteButtonTapped = { [weak self] in
-                self?.mapReactor.action.onNext(.toggleFavorite(facility.id))
+            vc.favoriteButtonTapped = { [weak self] selectedFacility in
+                self?.mapReactor.action.onNext(.toggleFavorite(selectedFacility.id))
             }
                 // 예약 버튼 클릭
-            vc.reservationButtonTapped = { [weak self] in
-                self?.mapReactor.action.onNext(.tapReservation(facility.id))
+            vc.reservationButtonTapped = { [weak self] selectedFacility in
+                self?.mapReactor.action.onNext(.tapReservation(selectedFacility.id))
             }
-            navigationController.present(vc, animated: true)
+            navigationController.pushViewController(vc, animated: true)
             return .none
             
         default:

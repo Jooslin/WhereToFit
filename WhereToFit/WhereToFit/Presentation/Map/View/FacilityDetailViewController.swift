@@ -778,7 +778,7 @@ final class FacilityDetailViewController: UIViewController {
     private func fallbackRelatedProgramTitles() -> [String] {
         switch facility.category {
         case .swimming:
-            return ["자유 수영"]
+            return ["수영"]
         case .tennis:
             return ["테니스장 대관", "테니스 레슨"]
         case .soccer:
