@@ -81,6 +81,11 @@ final class LocationEditListCell: LocationListCell {
             imageView.setContentCompressionResistancePriority(.required, for: .horizontal)
         }
     }
+    
+    override func configure(_ location: Location) {
+        super.configure(location)
+        contentView.backgroundColor = .white
+    }
 }
 
 extension LocationEditListCell {

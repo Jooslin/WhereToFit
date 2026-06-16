@@ -61,6 +61,7 @@ class TitleView: UIView {
         
         super.init(frame: .zero)
         
+        backgroundColor = .white
         configure(text: text, leftButtonImage: leftButtonImage, rightButtonImage: rightButtonImage)
         setLayout()
     }

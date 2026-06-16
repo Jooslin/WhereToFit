@@ -81,9 +81,7 @@ class LocationListCell: UICollectionViewListCell {
             $0.height.width.equalTo(24)
         }
     }
-}
-
-extension LocationListCell {
+    
     func configure(_ location: Location) {
         imageView.image = switch location.buttonType {
         case .myHome, .office:
@@ -94,5 +92,7 @@ extension LocationListCell {
         nameLabel.text = location.name
         addressLabel.text = location.address
         checkImageView.isHidden = !location.isSelected
+        
+        contentView.backgroundColor = location.isSelected ? .primary25 : .white
     }
 }
