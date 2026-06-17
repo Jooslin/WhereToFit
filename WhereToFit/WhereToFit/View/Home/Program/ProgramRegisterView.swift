@@ -14,9 +14,6 @@ import Then
 final class ProgramRegisterView: UIView {
     fileprivate let titleView = TitleView(text: "프로그램 등록", leftButtonImage: .arrowLeft)
     
-    private let facilityTitleLabel = UILabel(text: "시설", config: .body14Medium, color: .gray600)
-    private let programTitleLabel = UILabel(text: "프로그램", config: .body14Medium, color: .gray600)
-    private let sportsTitleLabel = UILabel(text: "운동 종목", config: .body14Medium, color: .gray600)
     private let regularLabel = UILabel(text: "주기적으로 갑니다", config: .body14Medium, color: .gray400)
     private let reservationLabel = UILabel(text: "예약한 날이 있습니다", config: .body14Medium, color: .gray400)
     
@@ -36,6 +33,29 @@ final class ProgramRegisterView: UIView {
     let regularButton = IconButton(image: .checkOff, selectedImage: .checkOn)
     let reservationButton = IconButton(image: .checkOff, selectedImage: .checkOn)
     
+}
+
+//MARK: Layout
+extension ProgramRegisterView {
+    private func setLayout() {
+        let facilityStack = makeVerticalStackView(title: "시설", view: facilityTextField)
+        let programStack = makeVerticalStackView(title: "프로그램", view: facilityTextField)
+        let sportsStack = makeVerticalStackView(title: "운동 종목", view: facilityTextField)
+        
+        
+    }
+    
+    private func makeVerticalStackView(title: String, view: UIView) -> UIStackView {
+        let titleLabel = UILabel(text: title, config: .body14Medium, color: .gray600)
+        
+        let stackView = UIStackView(arrangedSubviews: [titleLabel, view]).then {
+            $0.axis = .vertical
+            $0.alignment = .leading
+            $0.spacing = 6
+        }
+        
+        return stackView
+    }
 }
 
 extension Reactive where Base: ProgramRegisterView {
