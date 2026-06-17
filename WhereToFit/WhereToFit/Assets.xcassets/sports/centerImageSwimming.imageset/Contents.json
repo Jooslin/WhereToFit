@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "CenterImage03.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
