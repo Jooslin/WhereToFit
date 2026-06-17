@@ -5,18 +5,19 @@
 //  Created by Yeseul Jang on 6/14/26.
 //
 
+import ReactorKit
 import RxCocoa
 import RxSwift
 import UIKit
 
 final class ConditionInputViewController: UIViewController {
-    var onSave: ((CalendarReactor.ConditionValue) -> Void)?
-
     private let conditionInputView: ConditionInputView
+    private let reactor: CalendarReactor
     private let disposeBag = DisposeBag()
 
-    init(currentCondition: CalendarReactor.ConditionValue) {
-        conditionInputView = ConditionInputView(currentCondition: currentCondition)
+    init(reactor: CalendarReactor) {
+        self.reactor = reactor
+        conditionInputView = ConditionInputView(currentCondition: reactor.currentState.condition)
 
         super.init(nibName: nil, bundle: nil)
 
@@ -63,7 +64,7 @@ private extension ConditionInputViewController {
 
         conditionInputView.saveButton.rx.tap
             .bind(with: self) { owner, _ in
-                owner.onSave?(owner.conditionInputView.selectedCondition)
+                owner.reactor.action.onNext(.updateCondition(owner.conditionInputView.selectedCondition))
                 owner.dismiss(animated: true)
             }
             .disposed(by: disposeBag)

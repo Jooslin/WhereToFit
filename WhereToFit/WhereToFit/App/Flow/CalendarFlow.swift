@@ -11,6 +11,8 @@ import ReactorKit
 
 final class CalendarFlow: Flow {
     private let navigationController = UINavigationController()
+    private let calendarReactor = CalendarReactor()
+    private lazy var calendarViewController = CalendarViewController(reactor: calendarReactor)
     var root: any RxFlow.Presentable { navigationController }
     
     func navigate(to step: any RxFlow.Step) -> RxFlow.FlowContributors {
@@ -21,13 +23,17 @@ final class CalendarFlow: Flow {
         
         switch step {
         case .calendarTab:
-            if calendarViewController != nil {
+            if navigationController.viewControllers.contains(calendarViewController) {
                 return .none
             }
 
-            let vc = CalendarViewController(reactor: CalendarReactor())
-            navigationController.setViewControllers([vc], animated: false)
-            return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
+            navigationController.setViewControllers([calendarViewController], animated: false)
+            return .one(
+                flowContributor: .contribute(
+                    withNextPresentable: calendarViewController,
+                    withNextStepper: calendarViewController
+                )
+            )
 
         case .calendarWeightInput:
             presentWeightInput()
@@ -48,66 +54,41 @@ final class CalendarFlow: Flow {
 }
 
 private extension CalendarFlow {
-    var calendarViewController: CalendarViewController? {
-        navigationController.viewControllers.first { $0 is CalendarViewController } as? CalendarViewController
-    }
-
-    var calendarModalPresenter: UIViewController? {
-        navigationController.topViewController ?? calendarViewController
-    }
-
-    var canPresentCalendarModal: Bool {
-        navigationController.presentedViewController == nil
-            && calendarModalPresenter?.presentedViewController == nil
-    }
-
     func presentWeightInput() {
-        guard let calendarViewController,
-              let reactor = calendarViewController.reactor,
-              let presenter = calendarModalPresenter,
-              canPresentCalendarModal
+        guard navigationController.viewControllers.contains(calendarViewController),
+              navigationController.presentedViewController == nil // 모달 중복 방지
         else { return }
 
-        let viewController = WeightInputViewController(currentWeight: reactor.currentState.weight)
+        let viewController = WeightInputViewController(reactor: calendarReactor)
         viewController.modalPresentationStyle = .overFullScreen
         viewController.modalTransitionStyle = .crossDissolve
-        viewController.onSave = { [weak reactor] weight in
-            reactor?.action.onNext(.updateWeight(weight))
-        }
 
-        presenter.present(viewController, animated: true)
+        navigationController.present(viewController, animated: true)
     }
 
     func presentConditionInput() {
-        guard let calendarViewController,
-              let reactor = calendarViewController.reactor,
-              let presenter = calendarModalPresenter,
-              canPresentCalendarModal
+        guard navigationController.viewControllers.contains(calendarViewController),
+              navigationController.presentedViewController == nil
         else { return }
 
-        let viewController = ConditionInputViewController(currentCondition: reactor.currentState.condition)
+        let viewController = ConditionInputViewController(reactor: calendarReactor)
         viewController.modalPresentationStyle = .overFullScreen
         viewController.modalTransitionStyle = .crossDissolve
-        viewController.onSave = { [weak reactor] condition in
-            reactor?.action.onNext(.updateCondition(condition))
-        }
 
-        presenter.present(viewController, animated: true)
+        navigationController.present(viewController, animated: true)
     }
 
     func presentExerciseRecordInput() {
-        guard let calendarViewController,
-              let reactor = calendarViewController.reactor,
-              let presenter = calendarModalPresenter,
-              canPresentCalendarModal
+        guard navigationController.viewControllers.contains(calendarViewController),
+              navigationController.presentedViewController == nil
         else { return }
 
         let viewController = ExerciseRecordInputViewController(
-            reactor: ExerciseRecordInputReactor(selectedDate: reactor.currentState.selectedDate)
+            reactor: ExerciseRecordInputReactor(selectedDate: calendarReactor.currentState.selectedDate)
         )
         viewController.modalPresentationStyle = .overFullScreen
         viewController.modalTransitionStyle = .crossDissolve
 
-        presenter.present(viewController, animated: true)
+        navigationController.present(viewController, animated: true)
     }
 }

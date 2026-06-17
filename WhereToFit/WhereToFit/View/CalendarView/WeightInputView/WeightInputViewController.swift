@@ -5,18 +5,19 @@
 //  Created by Yeseul Jang on 6/14/26.
 //
 
+import ReactorKit
 import RxCocoa
 import RxSwift
 import UIKit
 
 final class WeightInputViewController: UIViewController {
-    var onSave: ((CalendarReactor.WeightValue) -> Void)?
-
     private let weightInputView: WeightInputView
+    private let reactor: CalendarReactor
     private let disposeBag = DisposeBag()
 
-    init(currentWeight: CalendarReactor.WeightValue) {
-        weightInputView = WeightInputView(currentWeight: currentWeight)
+    init(reactor: CalendarReactor) {
+        self.reactor = reactor
+        weightInputView = WeightInputView(currentWeight: reactor.currentState.weight)
 
         super.init(nibName: nil, bundle: nil)
 
@@ -49,7 +50,7 @@ private extension WeightInputViewController {
 
         weightInputView.saveButton.rx.tap
             .bind(with: self) { owner, _ in
-                owner.onSave?(owner.weightInputView.selectedWeight)
+                owner.reactor.action.onNext(.updateWeight(owner.weightInputView.selectedWeight))
                 owner.dismiss(animated: true)
             }
             .disposed(by: disposeBag)
