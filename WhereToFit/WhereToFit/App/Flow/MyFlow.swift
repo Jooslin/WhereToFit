@@ -11,6 +11,8 @@ import ReactorKit
 
 final class MyFlow: Flow {
     private let navigationController = UINavigationController()
+    private let myReactor = MyReactor()
+    private lazy var myViewController = MyViewController(reactor: myReactor)
     var root: any RxFlow.Presentable { navigationController }
 
     func navigate(to step: any RxFlow.Step) -> RxFlow.FlowContributors {
@@ -21,13 +23,17 @@ final class MyFlow: Flow {
 
         switch step {
         case .myTab:
-            if myViewController != nil {
+            if navigationController.viewControllers.contains(myViewController) {
                 return .none
             }
 
-            let vc = MyViewController(reactor: MyReactor())
-            navigationController.setViewControllers([vc], animated: false)
-            return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
+            navigationController.setViewControllers([myViewController], animated: false)
+            return .one(
+                flowContributor: .contribute(
+                    withNextPresentable: myViewController,
+                    withNextStepper: myViewController
+                )
+            )
 
         case .profileManagement:
             let vc = ProfileManagementViewController(reactor: ProfileManagementReactor())
@@ -66,11 +72,5 @@ final class MyFlow: Flow {
         default:
             return .one(flowContributor: .forwardToParentFlow(withStep: step))
         }
-    }
-}
-
-private extension MyFlow {
-    var myViewController: MyViewController? {
-        navigationController.viewControllers.first { $0 is MyViewController } as? MyViewController
     }
 }
