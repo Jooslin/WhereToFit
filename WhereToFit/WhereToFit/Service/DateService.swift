@@ -9,7 +9,6 @@ import Foundation
 final class DateService {
     private let calendar: Calendar
     private let nowProvider: () -> Date
-    private let weekdaySymbols = ["일", "월", "화", "수", "목", "금", "토"]
     
     init(nowProvider: @escaping () -> Date = { Date.now }) {
         var calendar = Calendar(identifier: .gregorian)
@@ -37,7 +36,7 @@ final class DateService {
             let date = calendar.date(byAdding: .day, value: offset, to: monday)!
             let day = calendar.component(.day, from: date)
             let weekday = calendar.component(.weekday, from: date)
-            let weekdayText = calendar.isDate(date, inSameDayAs: today) ? "오늘" : weekdaySymbols[weekday - 1]
+            let weekdayText = calendar.isDate(date, inSameDayAs: today) ? "오늘" : Weekday(dateCompWeekday: weekday).title
             
             return WeeklyDate(weekday: weekdayText, day: day)
         }
@@ -48,4 +47,30 @@ final class DateService {
 struct WeeklyDate: Hashable {
     let weekday: String
     let day: Int
+}
+
+enum Weekday: Int, Hashable, CaseIterable {
+    case monday = 0
+    case tuesday
+    case wednesday
+    case thursday
+    case friday
+    case saturday
+    case sunday
+    
+    init(dateCompWeekday: Int) {
+        self = Weekday(rawValue: (dateCompWeekday + 5) % 7)!
+    }
+    
+    var title: String {
+        switch self {
+        case .monday: "월"
+        case .tuesday: "화"
+        case .wednesday: "수"
+        case .thursday: "목"
+        case .friday: "금"
+        case .saturday: "토"
+        case .sunday: "일"
+        }
+    }
 }

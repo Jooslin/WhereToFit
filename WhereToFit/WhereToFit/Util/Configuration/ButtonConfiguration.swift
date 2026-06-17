@@ -42,6 +42,7 @@ struct ButtonConfiguration {
         //additional
         case additional
         case additionalIcon
+        case chip
         
         var padding: UIEdgeInsets {
             switch self {
@@ -59,6 +60,8 @@ struct ButtonConfiguration {
                     .init(top: 4, left: 12, bottom: 4, right: 12)
             case .additionalIcon:
                     .init(top: 6, left: 10, bottom: 6, right: 12)
+            case .chip:
+                    .init(top: 6, left: 12, bottom: 6, right: 12)
             }
         }
         
@@ -80,6 +83,8 @@ struct ButtonConfiguration {
                 return CGSize(width: 47, height: 25)
             case .additionalIcon:
                 return CGSize(width: 74, height: 29)
+            case .chip:
+                return CGSize(width: 36, height: 30)
             }
         }
         
@@ -91,6 +96,8 @@ struct ButtonConfiguration {
                 return .body14Semibold
             case .onboarding, .onboardingCard:
                 return .title16
+            case .chip:
+                return .body13Regular
             }
         }
     }
@@ -147,4 +154,7 @@ extension ButtonConfiguration {
     static let additional = make(size: .additional, style: .border, color: .white, titleColor: .gray800, borderColor: .gray200)
     static let iconAdditional = make(size: .additionalIcon, style: .border, color: .white, titleColor: .gray800, borderColor: .gray200)
     static let selectedIconAdditional = make(size: .additionalIcon, style: .border, color: .primary25, titleColor: .primary600, borderColor: .primary200)
+    
+    static let chip = make(size: .chip, style: .border, color: .white, titleColor: .gray600, borderColor: .gray200)
+    static let selectedChip = make(size: .chip, style: .border, color: .primary25, titleColor: .primary600, borderColor: .primary200)
 }
