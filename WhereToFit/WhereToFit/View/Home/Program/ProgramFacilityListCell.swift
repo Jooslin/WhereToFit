@@ -55,11 +55,21 @@ extension ProgramFacilityListCell {
     func configure(with item: ProgramFacilitySearchView.Item) {
         nameLabel.text = item.name
         addressLabel.text = item.address
-        distanceLabel.text = "\(String(format: "%.2f", item.distance))km"
+        distanceLabel.text = "\(formattedDistance(item.distance))km"
     }
     
     func hideSeparateBar(_ isLast: Bool) {
         separateBar.isHidden = isLast
+    }
+    
+    private func formattedDistance(_ distance: Double) -> String {
+        let roundedDistance = Int((distance * 100).rounded())
+        
+        if roundedDistance % 10 == 0 {
+            return String(format: "%.1f", Double(roundedDistance) / 100)
+        }
+        
+        return String(format: "%.2f", Double(roundedDistance) / 100)
     }
 }
 
