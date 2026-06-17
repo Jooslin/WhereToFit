@@ -50,7 +50,7 @@ extension ProgramFacilitySearchView {
 //MARK: CollectionView DataSource
 extension ProgramFacilitySearchView {
     private func makeDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, Location> {
-        let listCellRegistration = UICollectionView.CellRegistration<LocationEditListCell, Location> { [weak self] cell, indexPath, item in
+        let listCellRegistration = UICollectionView.CellRegistration<ProgramFacilityListCell, Location> { [weak self] cell, indexPath, item in
             guard let self else { return }
             cell.configure(item)
             
@@ -92,14 +92,14 @@ extension ProgramFacilitySearchView {
         let item = NSCollectionLayoutItem(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
-                heightDimension: .absolute(73)
+                heightDimension: .estimated(77)
             )
         )
         
         let group = NSCollectionLayoutGroup.vertical(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
-                heightDimension: .absolute(73)
+                heightDimension: .estimated(77)
             ),
             subitems: [item]
         )

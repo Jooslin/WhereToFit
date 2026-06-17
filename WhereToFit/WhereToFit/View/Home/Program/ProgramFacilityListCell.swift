@@ -74,7 +74,8 @@ extension ProgramFacilityListCell {
         
         stackView.snp.makeConstraints {
             $0.horizontalEdges.equalToSuperview()
-            $0.verticalEdges.equalToSuperview().inset(16)
+            $0.top.equalToSuperview().offset(16)
+            $0.bottom.equalToSuperview().inset(20)
         }
         
         separateBar.snp.makeConstraints {
