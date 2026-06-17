@@ -21,8 +21,10 @@ final class CalendarView: UIView {
         $0.showsVerticalScrollIndicator = false
     }
     private let contentView = UIView()
+    private let contentContainerView = UIView()
     private let calendarContentView = UIView()
     private let reportContentView = ReportContentView()
+    private var currentContentView: UIView?
 
     fileprivate let segmentedControl = UISegmentedControl(items: ["캘린더", "리포트"]).then {
         $0.selectedSegmentIndex = 0
@@ -146,8 +148,12 @@ extension CalendarView {
     }
 
     func updateContentMode(_ mode: ContentMode) {
-        calendarContentView.isHidden = mode != .calendar
-        reportContentView.isHidden = mode != .report
+        switch mode {
+        case .calendar:
+            replaceContentView(with: calendarContentView)
+        case .report:
+            replaceContentView(with: reportContentView)
+        }
     }
 }
 
@@ -163,8 +169,7 @@ private extension CalendarView {
 
         [
             segmentedControl,
-            calendarContentView,
-            reportContentView
+            contentContainerView
         ].forEach(contentView.addSubview)
 
         [
@@ -196,17 +201,13 @@ private extension CalendarView {
             $0.height.equalTo(52)
         }
 
-        calendarContentView.snp.makeConstraints {
+        contentContainerView.snp.makeConstraints {
             $0.top.equalTo(segmentedControl.snp.bottom).offset(16)
-            $0.horizontalEdges.equalToSuperview()
-            $0.bottom.equalToSuperview().inset(24)
-        }
-
-        reportContentView.snp.makeConstraints {
-            $0.top.equalTo(segmentedControl.snp.bottom)
             $0.horizontalEdges.equalToSuperview()
             $0.bottom.equalToSuperview()
         }
+
+        replaceContentView(with: calendarContentView)
 
         calendarCardView.snp.makeConstraints {
             $0.top.equalToSuperview()
@@ -264,7 +265,17 @@ private extension CalendarView {
             $0.bottom.equalToSuperview()
         }
 
-        reportContentView.isHidden = true
+    }
+
+    func replaceContentView(with nextContentView: UIView) {
+        guard currentContentView !== nextContentView else { return }
+
+        currentContentView?.removeFromSuperview()
+        contentContainerView.addSubview(nextContentView)
+        nextContentView.snp.remakeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        currentContentView = nextContentView
     }
 
     func setCalendarSelection() {
