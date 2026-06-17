@@ -17,6 +17,11 @@ final class ProgramRegisterViewController: BaseViewController<ProgramRegisterRea
         view = registerView
     }
     
+    override func viewWillAppear(_ animate: Bool) {
+        super.viewWillAppear(animate)
+        tabBarController?.tabBar.isHidden = true
+    }
+    
     override func bind(reactor: ProgramRegisterReactor) {
         bindAction(reactor: reactor)
         bindState(reactor: reactor)
