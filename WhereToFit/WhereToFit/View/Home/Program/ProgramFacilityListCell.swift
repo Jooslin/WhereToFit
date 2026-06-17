@@ -45,8 +45,10 @@ final class ProgramFacilityListCell: UICollectionViewListCell {
 
 //MARK: Configure
 extension ProgramFacilityListCell {
-    func configure(_ location: Location) {
-        
+    func configure(with item: ProgramFacilitySearchView.Item) {
+        nameLabel.text = item.name
+        addressLabel.text = item.address
+        distanceLabel.text = "\(String(format: "%.2f", item.distance))km"
     }
     
     func hideSeparateBar(_ isLast: Bool) {

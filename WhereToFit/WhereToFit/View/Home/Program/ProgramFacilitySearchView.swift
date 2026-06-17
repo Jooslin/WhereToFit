@@ -49,10 +49,10 @@ extension ProgramFacilitySearchView {
 
 //MARK: CollectionView DataSource
 extension ProgramFacilitySearchView {
-    private func makeDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, Location> {
-        let listCellRegistration = UICollectionView.CellRegistration<ProgramFacilityListCell, Location> { [weak self] cell, indexPath, item in
+    private func makeDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, Item> {
+        let listCellRegistration = UICollectionView.CellRegistration<ProgramFacilityListCell, Item> { [weak self] cell, indexPath, item in
             guard let self else { return }
-            cell.configure(item)
+            cell.configure(with: item)
             
             let itemNumber = self.dataSource.snapshot().numberOfItems(inSection: 0)
             let isLast = indexPath.item == itemNumber - 1
@@ -60,15 +60,15 @@ extension ProgramFacilitySearchView {
         
         }
 
-        let dataSource = UICollectionViewDiffableDataSource<Int, Location>(collectionView: collectionView) { collectionView, indexPath, item in
+        let dataSource = UICollectionViewDiffableDataSource<Int, Item>(collectionView: collectionView) { collectionView, indexPath, item in
             collectionView.dequeueConfiguredReusableCell(using: listCellRegistration, for: indexPath, item: item)
         }
         
         return dataSource
     }
     
-    func setSnapshot(with data: [Location]) {
-        var snapshot = NSDiffableDataSourceSnapshot<Int, Location>()
+    func setSnapshot(with data: [Item]) {
+        var snapshot = NSDiffableDataSourceSnapshot<Int, Item>()
         snapshot.appendSections([0])
         snapshot.appendItems(data, toSection: 0)
         
@@ -111,12 +111,24 @@ extension ProgramFacilitySearchView {
     }
 }
 
+//MARK: CollectionView Item
+extension ProgramFacilitySearchView {
+    nonisolated
+    struct Item: Hashable {
+        let id: UUID
+        let name: String
+        let address: String
+        let distance: Double
+    }
+}
+
+//MARK: Reactive
 extension Reactive where Base: ProgramFacilitySearchView {
     var backButtonTap: ControlEvent<Void> {
         base.titleView.rx.leftButtonTap
     }
     
-    var listCellSelected: Observable<Location> {
+    var listCellSelected: Observable<ProgramFacilitySearchView.Item> {
         base.collectionView.rx.itemSelected
             .compactMap { indexPath in
                 base.dataSource.itemIdentifier(for: indexPath)
