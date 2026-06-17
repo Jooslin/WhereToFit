@@ -45,7 +45,6 @@ final class MapViewController: BaseViewController<MapReactor> {
     private var markerFacilities: [FitnessFacility] = []
     private var displayedFacilities: [FitnessFacility] = []
     private var searchSuggestions: [MapSearchSuggestion] = []
-    private var latestSearchSuggestionQuery = ""
     private var selectedFacility: FitnessFacility?
     private var shouldUpdateListForVisibleMapBounds = false
     private var bottomPanelDetent: BottomPanelDetent = .collapsed
@@ -351,35 +350,12 @@ final class MapViewController: BaseViewController<MapReactor> {
     }
 
     private func updateSearchSuggestions(for query: String) {
-        latestSearchSuggestionQuery = query
-
         guard query.isEmpty == false else {
             showSearchSuggestions([])
             return
         }
 
-        // 입력 즉시 로컬 시설 결과를 먼저 보여주고, 네이버 결과는 도착하면 뒤에 합쳐 UX 지연을 줄입니다.
-        let localSuggestions = makeLocalSearchSuggestions(for: query)
-        showSearchSuggestions(localSuggestions)
-
-        guard query.count >= 2 else { return }
-
-        Task { [weak self] in
-            guard let self else { return }
-            let remoteSuggestions = await fetchRemoteSearchSuggestions(for: query)
-
-            await MainActor.run {
-                // 사용자가 그 사이에 다른 검색어를 입력했다면 오래된 네이버 응답은 버립니다.
-                guard self.latestSearchSuggestionQuery == query else { return }
-                let currentLocalSuggestions = self.makeLocalSearchSuggestions(for: query)
-                self.showSearchSuggestions(
-                    self.mergeSearchSuggestions(
-                        currentLocalSuggestions,
-                        remoteSuggestions
-                    )
-                )
-            }
-        }
+        showSearchSuggestions(makeLocalSearchSuggestions(for: query))
     }
 
     private func fetchRemoteSearchSuggestions(for query: String) async -> [MapSearchSuggestion] {
@@ -395,13 +371,6 @@ final class MapViewController: BaseViewController<MapReactor> {
             facilities: reactor?.currentState.markerFacilities ?? markerFacilities,
             referenceCoordinate: searchDistanceReferenceCoordinate
         )
-    }
-
-    private func mergeSearchSuggestions(
-        _ localSuggestions: [MapSearchSuggestion],
-        _ remoteSuggestions: [MapSearchSuggestion]
-    ) -> [MapSearchSuggestion] {
-        searchMapSuggestionsUseCase.mergeSuggestions(localSuggestions, remoteSuggestions)
     }
 
     private func showSearchSuggestions(_ suggestions: [MapSearchSuggestion]) {
