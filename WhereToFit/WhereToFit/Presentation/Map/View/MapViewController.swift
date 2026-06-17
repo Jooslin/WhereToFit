@@ -540,7 +540,7 @@ final class MapViewController: BaseViewController<MapReactor> {
         let visiblePrograms = visibleProgramFacilitiesInCurrentMapBounds()
 
         if shouldIncludeFacilityCellsInVisibleList {
-            return uniqueFacilities(visibleFacilities + visiblePrograms)
+            return sortByCurrentRecommendationState(uniqueFacilities(visibleFacilities + visiblePrograms))
         }
 
         guard visiblePrograms.isEmpty,
@@ -557,14 +557,15 @@ final class MapViewController: BaseViewController<MapReactor> {
             ? markerFacilities
             : unfilteredMarkerFacilities
 
-        return visibleMarkerFacilitiesInCurrentMapBounds(from: sourceFacilities)
+        let visibleFacilities = visibleMarkerFacilitiesInCurrentMapBounds(from: sourceFacilities)
             .filter(matchesCurrentSearchAndFilter)
-            .sorted { $0.distanceInMeters < $1.distanceInMeters }
+
+        return sortByCurrentRecommendationState(visibleFacilities)
     }
 
     private func visibleProgramFacilitiesInCurrentMapBounds() -> [FitnessFacility] {
         guard shouldUpdateListForVisibleMapBounds else {
-            return allFacilities.sorted { $0.distanceInMeters < $1.distanceInMeters }
+            return sortByCurrentRecommendationState(allFacilities)
         }
 
         let visibleSourceIDs = Set(
@@ -572,12 +573,26 @@ final class MapViewController: BaseViewController<MapReactor> {
                 .compactMap(\.sourceFacilityID)
         )
 
-        return allFacilities
+        let visiblePrograms = allFacilities
             .filter { facility in
                 guard let sourceFacilityID = facility.sourceFacilityID else { return false }
                 return visibleSourceIDs.contains(sourceFacilityID)
             }
-            .sorted { $0.distanceInMeters < $1.distanceInMeters }
+
+        return sortByCurrentRecommendationState(visiblePrograms)
+    }
+
+    private func sortByCurrentRecommendationState(_ facilities: [FitnessFacility]) -> [FitnessFacility] {
+        guard reactor?.currentState.filter.isAIRecommendationEnabled == true else {
+            return facilities.sorted { $0.distanceInMeters < $1.distanceInMeters }
+        }
+
+        return facilities.sorted {
+            if $0.matchingRate == $1.matchingRate {
+                return $0.distanceInMeters < $1.distanceInMeters
+            }
+            return $0.matchingRate > $1.matchingRate
+        }
     }
 
     private var shouldShowVisibleFacilityFallback: Bool {

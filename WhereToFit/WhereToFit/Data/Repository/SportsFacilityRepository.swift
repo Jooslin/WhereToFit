@@ -552,6 +552,7 @@ fileprivate extension SportsFacilityRepository {
         return Int(earthRadius * 2 * atan2(sqrt(haversine), sqrt(1 - haversine)))
     }
 
+    // MARK: 매칭률 생성 함수
     nonisolated static func makeMatchingRate(price: Int, category: FacilityCategory) -> Int {
         let baseScore = 74 + (FacilityCategory.allCases.firstIndex(of: category) ?? 0) * 3
         let priceBonus = price == 0 ? 12 : max(0, 10 - price / 10_000)
