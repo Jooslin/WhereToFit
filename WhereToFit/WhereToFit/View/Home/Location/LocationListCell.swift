@@ -27,6 +27,9 @@ class LocationListCell: UICollectionViewListCell {
         super.init(frame: frame)
         contentView.backgroundColor = .white
         
+        contentView.layer.cornerRadius = 8
+        contentView.clipsToBounds = true
+        
         setAttributes()
         setLayout()
     }
