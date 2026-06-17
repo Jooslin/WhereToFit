@@ -436,7 +436,8 @@ final class FacilityDetailViewController: UIViewController {
         let row = makeTwoColumnRow(
             title: facility.facilityType ?? "\(facility.category.title) 이용",
             value: priceSectionValue,
-            valueConfig: .body15
+            valueConfig: .body15,
+            allowsValueFontScaling: true
         )
         sectionStackView.addArrangedSubview(makeCard(containing: row))
         return sectionStackView
@@ -509,17 +510,25 @@ final class FacilityDetailViewController: UIViewController {
     private func makeTwoColumnRow(
         title: String,
         value: String,
-        valueConfig: LabelConfiguration = .body14Regular
+        valueConfig: LabelConfiguration = .body14Regular,
+        allowsValueFontScaling: Bool = false
     ) -> UIView {
         let containerView = UIView()
         let titleLabel = UILabel(text: title, config: .body14Regular, color: .gray600)
         let valueLabel = UILabel(text: value, config: valueConfig, color: .gray900).then {
             $0.textAlignment = .right
-            $0.numberOfLines = 0
+            $0.numberOfLines = allowsValueFontScaling ? 2 : 0
+            $0.lineBreakMode = .byWordWrapping
+            $0.adjustsFontSizeToFitWidth = allowsValueFontScaling
+            $0.minimumScaleFactor = allowsValueFontScaling ? 0.7 : 1
         }
 
         containerView.addSubview(titleLabel)
         containerView.addSubview(valueLabel)
+
+        titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        valueLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        valueLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
 
         titleLabel.snp.makeConstraints {
             $0.top.leading.bottom.equalToSuperview()
