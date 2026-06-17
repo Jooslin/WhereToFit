@@ -531,6 +531,10 @@ fileprivate extension SportsFacilityRepository {
             return nil
         }
 
+        if price == 0 {
+            return "무료"
+        }
+
         let formattedPrice = price.formatted()
         return "\(formattedPrice)원"
     }
