@@ -51,6 +51,7 @@ extension ProgramFacilitySearchView {
             $0.horizontalEdges.equalToSuperview()
             $0.bottom.equalTo(safeAreaLayoutGuide)
         }
+
     }
 }
 

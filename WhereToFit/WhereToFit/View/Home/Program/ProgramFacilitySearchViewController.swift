@@ -10,16 +10,21 @@ import RxSwift
 import ReactorKit
 import RxCocoa
 
-final class LocationEditViewController: BaseViewController<LocationReactor> {
-    let locationView = LocationEditView()
+final class ProgramFacilitySearchViewController: BaseViewController<LocationReactor> {
+    let searchView = ProgramFacilitySearchView()
     
     override func loadView() {
-        view = locationView
+        view = searchView
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let items = [
+            ProgramFacilitySearchView.Item(id: UUID(), name: "올림픽수영장", address: "서울 송파구 올림픽로 424", distance: 1.0)
+        ]
+        
+        searchView.setSnapshot(with: items)
     }
     
     override func bind(reactor: LocationReactor) {
@@ -33,36 +38,19 @@ final class LocationEditViewController: BaseViewController<LocationReactor> {
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
-        locationView.rx.backButtonTap
+        searchView.rx.backButtonTap
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { AppStep.pageBack }
             .bind(to: steps)
             .disposed(by: disposeBag)
         
-        locationView.rx.editButtonTap
-            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
-            .map { AppStep.locationDetail(.edit($0)) }
-            .bind(to: steps)
-            .disposed(by: disposeBag)
-        
-        locationView.rx.deleteButtonTap
-            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
-            .subscribe(onNext: { location in
-                print(location)
-            })
-            .disposed(by: disposeBag)
     }
     
     private func bindState(reactor: LocationReactor) {
-        let state = reactor.state
-            .asDriver(onErrorJustReturn: .init())
         
-        state.map(\.locations)
-            .drive(
-                with: locationView,
-                onNext: { locationView, locations in
-                    locationView.setSnapshot(with: locations)
-                })
-            .disposed(by: disposeBag)
     }
+}
+
+#Preview {
+    ProgramFacilitySearchViewController()
 }

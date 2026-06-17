@@ -10,8 +10,13 @@ import SnapKit
 import Then
 
 final class ProgramFacilityListCell: UICollectionViewListCell {
-    let imageView = RoundImageView(image: .locationPinFilled, type: .circle).then {
+    let imageBackgroundView = UIView().then {
         $0.backgroundColor = .gray50
+        $0.layer.cornerRadius = 16
+        $0.clipsToBounds = true
+    }
+    
+    let imageView = UIImageView(image: .locationPinFilled).then {
         $0.tintColor = .gray400
     }
     
@@ -65,14 +70,18 @@ extension ProgramFacilityListCell {
             $0.alignment = .leading
         }
         
-        let stackView = UIStackView(arrangedSubviews: [imageView, labelStack, distanceLabel]).then {
+        let stackView = UIStackView(arrangedSubviews: [imageBackgroundView, labelStack, distanceLabel]).then {
             $0.axis = .horizontal
             $0.spacing = 16
             $0.alignment = .center
+            
+            labelStack.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            labelStack.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         }
         
-        addSubview(stackView)
+        contentView.addSubview(stackView)
         contentView.addSubview(separateBar)
+        imageBackgroundView.addSubview(imageView)
         
         stackView.snp.makeConstraints {
             $0.horizontalEdges.equalToSuperview()
@@ -84,6 +93,15 @@ extension ProgramFacilityListCell {
             $0.horizontalEdges.equalToSuperview()
             $0.bottom.equalToSuperview().inset(4)
             $0.height.equalTo(0.5)
+        }
+        
+        imageBackgroundView.snp.makeConstraints {
+            $0.width.height.equalTo(32)
+        }
+        
+        imageView.snp.makeConstraints {
+            $0.width.height.equalTo(24)
+            $0.center.equalToSuperview()
         }
     }
 }
