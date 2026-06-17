@@ -33,7 +33,6 @@ final class ProgramFacilitySearchView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setLayout()
-        collectionView.isHidden = true
     }
     
     @available(*, unavailable)
