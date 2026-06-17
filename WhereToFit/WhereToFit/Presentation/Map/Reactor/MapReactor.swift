@@ -22,6 +22,8 @@ final class MapReactor: BaseReactor {
         case selectFacility(String?)
         case toggleFavorite(String)
         case tapReservation(String)
+        case updateVisibleFacilityIDs([String])
+        case setSearchErrorMessage(String?)
         case didOpenReservationURL
     }
 
@@ -37,6 +39,8 @@ final class MapReactor: BaseReactor {
         case setSelectedFacilityID(String?)
         case setFavorite(String, Bool)
         case setReservationURLToOpen(URL?)
+        case setVisibleFacilityIDs(Set<String>)
+        case setSearchErrorMessage(String?)
         case setErrorMessage(String?)
     }
 
@@ -49,9 +53,33 @@ final class MapReactor: BaseReactor {
         var filter = FacilityFilter.empty
         var selectedFacilityID: String?
         var reservationURLToOpen: URL?
+        var visibleFacilityIDs = Set<String>()
+        var searchErrorMessage: String?
         var isLoading = false
         var isProgramLoading = false
         var errorMessage: String?
+
+        var emptyStateMessage: String {
+            if let searchErrorMessage {
+                return searchErrorMessage
+            }
+
+            if let errorMessage {
+                return errorMessage
+            }
+
+            // VC는 지도 bounds만 알고 있으므로, 보이는 시설 id만 전달하고 문구 판단은 Reactor에서 처리합니다.
+            if visibleFacilityIDs.isEmpty {
+                return "주변에 시설, 프로그램이 없습니다."
+            }
+
+            return "조건에 맞는 프로그램이 없습니다."
+        }
+
+        var hasEmptyStateError: Bool {
+            searchErrorMessage != nil || errorMessage != nil
+        }
+
         var selectedFacility: FitnessFacility? {
             guard let selectedFacilityID else { return nil }
             return facilities.first { $0.id == selectedFacilityID }
@@ -200,6 +228,7 @@ final class MapReactor: BaseReactor {
             )
             return .concat([
                 .just(.setSearchText(searchText)),
+                .just(.setSearchErrorMessage(nil)),
                 .just(.setMarkerFacilities(markerFacilities)),
                 .just(.setFacilities(facilities)),
                 .just(.setSelectedFacilityID(nil))
@@ -265,7 +294,10 @@ final class MapReactor: BaseReactor {
             return updateFilter(filter)
 
         case let .selectFacility(id):
-            return .just(.setSelectedFacilityID(id))
+            return .concat([
+                .just(.setSelectedFacilityID(id)),
+                .just(.setSearchErrorMessage(nil))
+            ])
 
         case let .toggleFavorite(id):
             let willFavorite = favoriteIDs.contains(id) == false
@@ -280,6 +312,16 @@ final class MapReactor: BaseReactor {
             let url = currentState.facilities.first { $0.id == id }?.reservationURL
                 ?? currentState.markerFacilities.first { $0.id == id }?.reservationURL
             return .just(.setReservationURLToOpen(url))
+
+        case let .updateVisibleFacilityIDs(ids):
+            let visibleFacilityIDs = Set(ids)
+            guard visibleFacilityIDs != currentState.visibleFacilityIDs else {
+                return .empty()
+            }
+            return .just(.setVisibleFacilityIDs(visibleFacilityIDs))
+
+        case let .setSearchErrorMessage(message):
+            return .just(.setSearchErrorMessage(message))
 
         case .didOpenReservationURL:
             return .just(.setReservationURLToOpen(nil))
@@ -333,6 +375,12 @@ final class MapReactor: BaseReactor {
 
         case let .setReservationURLToOpen(url):
             newState.reservationURLToOpen = url
+
+        case let .setVisibleFacilityIDs(ids):
+            newState.visibleFacilityIDs = ids
+
+        case let .setSearchErrorMessage(message):
+            newState.searchErrorMessage = message
 
         case let .setErrorMessage(message):
             newState.errorMessage = message
