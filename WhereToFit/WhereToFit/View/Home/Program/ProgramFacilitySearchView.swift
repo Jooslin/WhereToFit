@@ -13,6 +13,7 @@ import RxSwift
 
 final class ProgramFacilitySearchView: UIView {
     let titleView = TitleView(text: "시설 검색", leftButtonImage: .arrowLeft)
+    let searchBar = SearchBar(placeholder: "주소나 이름으로 검색하기")
     private(set) lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout()).then {
         $0.layoutMargins = .init(top: 0, left: 16, bottom: 0, right: 16)
     }
@@ -32,6 +33,7 @@ final class ProgramFacilitySearchView: UIView {
 extension ProgramFacilitySearchView {
     private func setLayout() {
         addSubview(titleView)
+        addSubview(searchBar)
         addSubview(collectionView)
         
         titleView.snp.makeConstraints {
@@ -39,8 +41,13 @@ extension ProgramFacilitySearchView {
             $0.horizontalEdges.equalToSuperview()
         }
         
+        searchBar.snp.makeConstraints {
+            $0.top.equalTo(titleView.snp.bottom).offset(12)
+            $0.horizontalEdges.equalToSuperview().inset(16)
+        }
+        
         collectionView.snp.makeConstraints {
-            $0.top.equalTo(titleView.snp.bottom)
+            $0.top.equalTo(searchBar.snp.bottom).offset(12)
             $0.horizontalEdges.equalToSuperview()
             $0.bottom.equalTo(safeAreaLayoutGuide)
         }
