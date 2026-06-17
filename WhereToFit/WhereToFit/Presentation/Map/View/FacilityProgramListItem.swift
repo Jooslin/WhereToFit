@@ -74,12 +74,12 @@ private extension FitnessFacility {
     }
 
     var listPriceText: String {
-        // 모달 리스트에서는 사용자가 빠르게 비교할 수 있도록 프로그램 가격은 시작가 형태로 표시합니다.
-        if sourceKind == .facility {
+        // 모달 리스트에서는 사용자가 빠르게 비교할 수 있도록 가격을 시작가 형태로 표시합니다.
+        if priceText == "무료" || priceText == "상세 정보 확인" {
             return priceText
         }
 
-        return price == 0 ? "무료" : "\(priceText)~"
+        return "\(priceText)~"
     }
 
     var programListTitle: String {

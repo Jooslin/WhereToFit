@@ -567,14 +567,29 @@ final class MapViewController: BaseViewController<MapReactor> {
     }
 
     private func visibleDisplayFacilitiesInCurrentMapBounds() -> [FitnessFacility] {
+        let visibleFacilities = visibleFacilityCellsInCurrentMapBounds()
         let visiblePrograms = visibleProgramFacilitiesInCurrentMapBounds()
+
+        if shouldIncludeFacilityCellsInVisibleList {
+            return uniqueFacilities(visibleFacilities + visiblePrograms)
+        }
+
         guard visiblePrograms.isEmpty,
               shouldShowVisibleFacilityFallback else {
             return visiblePrograms
         }
 
         // 필터가 전혀 없고 아직 프로그램이 없는 경우에는 빈 모달 대신 시설 셀을 fallback으로 보여줍니다.
-        return visibleMarkerFacilitiesInCurrentMapBounds(from: markerFacilities)
+        return visibleFacilities
+    }
+
+    private func visibleFacilityCellsInCurrentMapBounds() -> [FitnessFacility] {
+        let sourceFacilities = unfilteredMarkerFacilities.isEmpty
+            ? markerFacilities
+            : unfilteredMarkerFacilities
+
+        return visibleMarkerFacilitiesInCurrentMapBounds(from: sourceFacilities)
+            .filter(matchesCurrentSearchAndFilter)
             .sorted { $0.distanceInMeters < $1.distanceInMeters }
     }
 
@@ -607,6 +622,42 @@ final class MapViewController: BaseViewController<MapReactor> {
             && filter.maximumPrice == nil
             && filter.days.isEmpty
             && filter.timeSlots.isEmpty
+    }
+
+    private var shouldIncludeFacilityCellsInVisibleList: Bool {
+        guard let state = reactor?.currentState else { return false }
+        let searchText = state.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let filter = state.filter
+
+        return searchText.isEmpty == false
+            || filter.categories.isEmpty == false
+            || filter.minimumPrice != nil
+            || filter.maximumPrice != nil
+            || filter.days.isEmpty == false
+            || filter.timeSlots.isEmpty == false
+    }
+
+    private func matchesCurrentSearchAndFilter(_ facility: FitnessFacility) -> Bool {
+        guard let state = reactor?.currentState else { return true }
+        let normalizedSearchText = state.searchText
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        let filter = state.filter
+
+        let matchesSearch = normalizedSearchText.isEmpty
+            || facility.name.lowercased().contains(normalizedSearchText)
+            || facility.address.lowercased().contains(normalizedSearchText)
+            || facility.category.title.lowercased().contains(normalizedSearchText)
+        let matchesCategory = filter.categories.isEmpty || filter.categories.contains(facility.category)
+        let matchesKnownPriceRange = (filter.minimumPrice.map { facility.price >= $0 } ?? true)
+            && (filter.maximumPrice.map { facility.price <= $0 } ?? true)
+        let matchesPrice = facility.priceText == "상세 정보 확인" || matchesKnownPriceRange
+        let matchesDay = filter.days.isEmpty
+            || Set(facility.availableDays).isDisjoint(with: filter.days) == false
+        let matchesTime = filter.timeSlots.isEmpty
+            || filter.timeSlots.contains { facility.availableTimeRange.overlaps($0.range) }
+
+        return matchesSearch && matchesCategory && matchesPrice && matchesDay && matchesTime
     }
 
     private func visibleMarkerFacilitiesForMapContext() -> [FitnessFacility] {
