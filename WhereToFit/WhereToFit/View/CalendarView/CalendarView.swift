@@ -5,20 +5,29 @@
 //  Created by Yeseul Jang on 6/10/26.
 //
 
+import RxCocoa
+import RxSwift
 import SnapKit
 import Then
 import UIKit
 
 final class CalendarView: UIView {
+    enum ContentMode {
+        case calendar
+        case report
+    }
+
     private let scrollView = UIScrollView().then {
         $0.showsVerticalScrollIndicator = false
     }
     private let contentView = UIView()
+    private let calendarContentView = UIView()
+    private let reportContentView = ReportContentView()
 
-    private let segmentedControl = UISegmentedControl(items: ["캘린더", "리포트"]).then {
+    fileprivate let segmentedControl = UISegmentedControl(items: ["캘린더", "리포트"]).then {
         $0.selectedSegmentIndex = 0
         $0.selectedSegmentTintColor = .white
-        $0.backgroundColor = .gray50
+        $0.backgroundColor = .gray25
         $0.setTitleTextAttributes([
             .foregroundColor: UIColor.primary400,
             .font: LabelConfiguration.body14Medium.font
@@ -37,6 +46,8 @@ final class CalendarView: UIView {
     }
 
     private let calendarView = UICalendarView().then {
+        let calendar = Calendar(identifier: .gregorian)
+
         $0.calendar = Calendar(identifier: .gregorian)
         $0.locale = Locale(identifier: "ko_KR")
         $0.tintColor = .primary400
@@ -45,35 +56,47 @@ final class CalendarView: UIView {
             start: DateComponents(calendar: Calendar(identifier: .gregorian), year: 2026, month: 1, day: 1).date ?? Date(),
             end: DateComponents(calendar: Calendar(identifier: .gregorian), year: 2026, month: 12, day: 31).date ?? Date()
         )
-        $0.visibleDateComponents = DateComponents(year: 2026, month: 5)
+        $0.visibleDateComponents = calendar.dateComponents([.year, .month], from: Date())
     }
 
     private let selectedDateLabel = UILabel(text: "5월 18일 월요일", config: .body16Medium)
+    fileprivate let todayButtonContainer = UIControl()
     private let todayButton = UIButton(type: .system).then {
         $0.setTitle("오늘", for: .normal)
         $0.setTitleColor(.gray600, for: .normal)
         $0.titleLabel?.font = LabelConfiguration.body12Medium.font
         $0.backgroundColor = .gray50
         $0.layer.cornerRadius = 16
+        $0.isUserInteractionEnabled = false
     }
 
-    private let weightCard = CalendarInfoCardView(title: "몸무게", value: "54.2", unit: "kg")
-    private let conditionCard = CalendarInfoCardView(title: "컨디션", value: "최악", unit: nil)
+    fileprivate let weightCard = CalendarInfoCardView(title: "몸무게", value: "54.2", unit: "kg")
+    fileprivate let conditionCard = CalendarInfoCardView(
+        title: "컨디션",
+        value: "최악",
+        unit: nil,
+        valueImage: CalendarReactor.ConditionValue.worst.image
+    )
 
     private let exerciseTitleLabel = UILabel(text: "운동", config: .body16Medium)
 
     private lazy var exerciseCollectionView = UICollectionView(frame: .zero, collectionViewLayout: makeExerciseCollectionViewLayout()).then {
-        $0.backgroundColor = .gray50
+        $0.backgroundColor = .gray25
         $0.layer.cornerRadius = 12
         $0.clipsToBounds = true
         $0.showsVerticalScrollIndicator = false
         $0.isScrollEnabled = false
-        $0.dataSource = self
         $0.register(CalendarExerciseCell.self, forCellWithReuseIdentifier: CalendarExerciseCell.reuseIdentifier)
+        $0.register(
+            CalendarExerciseFooterView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
+            withReuseIdentifier: CalendarExerciseFooterView.reuseIdentifier
+        )
     }
 
     private let calendar = Calendar(identifier: .gregorian)
-    private var exerciseItems: [CalendarReactor.ExerciseItem] = []
+    fileprivate let dateSelectedRelay = PublishRelay<Date>()
+    private var isUpdatingSelectedDate = false
     private var exerciseCollectionViewHeightConstraint: Constraint?
 
     override init(frame: CGRect) {
@@ -82,7 +105,6 @@ final class CalendarView: UIView {
         setStyle()
         setLayout()
         setCalendarSelection()
-        setAction()
     }
 
     @available(*, unavailable)
@@ -92,10 +114,40 @@ final class CalendarView: UIView {
 }
 
 extension CalendarView {
-    func updateExerciseItems(_ items: [CalendarReactor.ExerciseItem]) {
-        exerciseItems = items
+    func updateWeight(_ weight: CalendarReactor.WeightValue) {
+        weightCard.updateValue(weight.displayText)
+    }
+
+    func updateCondition(_ condition: CalendarReactor.ConditionValue) {
+        conditionCard.updateValue(condition.displayText)
+        conditionCard.updateValueImage(condition.image)
+    }
+
+    func setExerciseCollectionViewDataSource(_ dataSource: UICollectionViewDataSource) {
+        exerciseCollectionView.dataSource = dataSource
+    }
+
+    func reloadExerciseItems(count: Int) {
         exerciseCollectionView.reloadData()
-        exerciseCollectionViewHeightConstraint?.update(offset: CGFloat(items.count) * 60 + 24)
+        exerciseCollectionViewHeightConstraint?.update(offset: CGFloat(count) * 60 + 88)
+    }
+
+    func updateSelectedDate(_ date: Date, text: String) {
+        let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
+
+        if let selection = calendarView.selectionBehavior as? UICalendarSelectionSingleDate {
+            isUpdatingSelectedDate = true
+            selection.setSelected(dateComponents, animated: true)
+            isUpdatingSelectedDate = false
+        }
+
+        calendarView.setVisibleDateComponents(dateComponents, animated: true)
+        selectedDateLabel.text = text
+    }
+
+    func updateContentMode(_ mode: ContentMode) {
+        calendarContentView.isHidden = mode != .calendar
+        reportContentView.isHidden = mode != .report
     }
 }
 
@@ -111,16 +163,22 @@ private extension CalendarView {
 
         [
             segmentedControl,
+            calendarContentView,
+            reportContentView
+        ].forEach(contentView.addSubview)
+
+        [
             calendarCardView,
             selectedDateLabel,
-            todayButton,
             weightCard,
             conditionCard,
             exerciseTitleLabel,
             exerciseCollectionView
-        ].forEach(contentView.addSubview)
+        ].forEach(calendarContentView.addSubview)
 
         calendarCardView.addSubview(calendarView)
+        calendarCardView.addSubview(todayButtonContainer)
+        todayButtonContainer.addSubview(todayButton)
 
         scrollView.snp.makeConstraints {
             $0.leading.trailing.top.equalTo(safeAreaLayoutGuide)
@@ -138,8 +196,20 @@ private extension CalendarView {
             $0.height.equalTo(52)
         }
 
-        calendarCardView.snp.makeConstraints {
+        calendarContentView.snp.makeConstraints {
             $0.top.equalTo(segmentedControl.snp.bottom).offset(16)
+            $0.horizontalEdges.equalToSuperview()
+            $0.bottom.equalToSuperview().inset(24)
+        }
+
+        reportContentView.snp.makeConstraints {
+            $0.top.equalTo(segmentedControl.snp.bottom)
+            $0.horizontalEdges.equalToSuperview()
+            $0.bottom.equalToSuperview()
+        }
+
+        calendarCardView.snp.makeConstraints {
+            $0.top.equalToSuperview()
             $0.horizontalEdges.equalToSuperview().inset(16)
             $0.height.equalTo(372)
         }
@@ -151,72 +221,57 @@ private extension CalendarView {
         selectedDateLabel.snp.makeConstraints {
             $0.top.equalTo(calendarCardView.snp.bottom).offset(18)
             $0.leading.equalToSuperview().offset(16)
-            $0.centerY.equalTo(todayButton)
-            $0.trailing.lessThanOrEqualTo(todayButton.snp.leading).offset(-12)
+            $0.trailing.equalToSuperview().inset(16)
+        }
+
+        todayButtonContainer.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(18)
+            $0.trailing.equalToSuperview().inset(2)
+            $0.width.equalTo(80)
+            $0.height.equalTo(50)
         }
 
         todayButton.snp.makeConstraints {
-            $0.top.equalTo(calendarCardView.snp.bottom).offset(14)
-            $0.trailing.equalToSuperview().inset(16)
-            $0.width.equalTo(52)
-            $0.height.equalTo(32)
+            $0.center.equalToSuperview()
+            $0.width.equalTo(58)
+            $0.height.equalTo(35)
         }
 
         weightCard.snp.makeConstraints {
             $0.top.equalTo(selectedDateLabel.snp.bottom).offset(8)
             $0.leading.equalToSuperview().offset(16)
-            $0.trailing.equalTo(contentView.snp.centerX).offset(-8)
+            $0.trailing.equalTo(calendarContentView.snp.centerX).offset(-8)
             $0.height.equalTo(76)
         }
 
         conditionCard.snp.makeConstraints {
             $0.top.equalTo(weightCard)
-            $0.leading.equalTo(contentView.snp.centerX).offset(8)
+            $0.leading.equalTo(calendarContentView.snp.centerX).offset(8)
             $0.trailing.equalToSuperview().inset(16)
             $0.height.equalTo(weightCard)
         }
 
         exerciseTitleLabel.snp.makeConstraints {
             $0.top.equalTo(weightCard.snp.bottom).offset(18)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().offset(16)
+            $0.trailing.equalToSuperview().inset(16)
         }
 
         exerciseCollectionView.snp.makeConstraints {
             $0.top.equalTo(exerciseTitleLabel.snp.bottom).offset(10)
             $0.horizontalEdges.equalToSuperview().inset(16)
             exerciseCollectionViewHeightConstraint = $0.height.equalTo(24).constraint
-            $0.bottom.equalToSuperview().inset(24)
+            $0.bottom.equalToSuperview()
         }
+
+        reportContentView.isHidden = true
     }
 
     func setCalendarSelection() {
         let selection = UICalendarSelectionSingleDate(delegate: self)
-        let selectedDate = DateComponents(calendar: calendar, year: 2026, month: 5, day: 18)
+        let selectedDate = calendar.dateComponents([.year, .month, .day], from: Date())
         selection.setSelected(selectedDate, animated: false)
         calendarView.selectionBehavior = selection
-    }
-
-    func setAction() {
-        todayButton.addTarget(self, action: #selector(todayButtonTapped), for: .touchUpInside)
-    }
-
-    @objc func todayButtonTapped() {
-        let today = Date()
-        let todayComponents = calendar.dateComponents([.year, .month, .day], from: today)
-        calendarView.setVisibleDateComponents(todayComponents, animated: true)
-
-        if let selection = calendarView.selectionBehavior as? UICalendarSelectionSingleDate {
-            selection.setSelected(todayComponents, animated: true)
-        }
-
-        updateSelectedDateLabel(date: today)
-    }
-
-    func updateSelectedDateLabel(date: Date) {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "M월 d일 EEEE"
-        selectedDateLabel.text = formatter.string(from: date)
     }
 
     func makeExerciseCollectionViewLayout() -> UICollectionViewLayout {
@@ -234,87 +289,49 @@ private extension CalendarView {
 
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
+        section.boundarySupplementaryItems = [
+            NSCollectionLayoutBoundarySupplementaryItem(
+                layoutSize: NSCollectionLayoutSize(
+                    widthDimension: .fractionalWidth(1),
+                    heightDimension: .absolute(64)
+                ),
+                elementKind: UICollectionView.elementKindSectionFooter,
+                alignment: .bottom
+            )
+        ]
         return UICollectionViewCompositionalLayout(section: section)
     }
 }
 
 extension CalendarView: UICalendarSelectionSingleDateDelegate {
     func dateSelection(_ selection: UICalendarSelectionSingleDate, didSelectDate dateComponents: DateComponents?) {
+        guard !isUpdatingSelectedDate else { return }
         guard let dateComponents,
               let date = dateComponents.date
         else { return }
 
-        updateSelectedDateLabel(date: date)
+        dateSelectedRelay.accept(date)
     }
 }
 
-extension CalendarView: UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        exerciseItems.count
+extension Reactive where Base == CalendarView {
+    var todayButtonTap: ControlEvent<Void> {
+        base.todayButtonContainer.rx.controlEvent(.touchUpInside)
     }
 
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: CalendarExerciseCell.reuseIdentifier,
-            for: indexPath
-        ) as? CalendarExerciseCell else {
-            return UICollectionViewCell()
-        }
-
-        cell.configure(item: exerciseItems[indexPath.item], hidesDivider: indexPath.item == exerciseItems.count - 1)
-        return cell
-    }
-}
-
-private final class CalendarInfoCardView: UIView {
-    private let titleLabel: UILabel
-    private let valueLabel: UILabel
-    private let unitLabel: UILabel?
-
-    init(title: String, value: String, unit: String?) {
-        titleLabel = UILabel(text: title, config: .body12Medium, color: .gray500)
-        valueLabel = UILabel(text: value, config: .title24)
-        unitLabel = unit.map { UILabel(text: $0, config: .body12Medium, color: .gray500) }
-
-        super.init(frame: .zero)
-
-        setStyle()
-        setLayout()
+    var dateSelected: ControlEvent<Date> {
+        ControlEvent(events: base.dateSelectedRelay)
     }
 
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
-
-private extension CalendarInfoCardView {
-    func setStyle() {
-        backgroundColor = .gray50
-        layer.cornerRadius = 12
+    var weightCardTap: ControlEvent<Void> {
+        base.weightCard.rx.controlEvent(.touchUpInside)
     }
 
-    func setLayout() {
-        addSubview(titleLabel)
-        addSubview(valueLabel)
+    var conditionCardTap: ControlEvent<Void> {
+        base.conditionCard.rx.controlEvent(.touchUpInside)
+    }
 
-        if let unitLabel {
-            addSubview(unitLabel)
-        }
-
-        titleLabel.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(12)
-            $0.horizontalEdges.equalToSuperview().inset(16)
-        }
-
-        valueLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
-            $0.bottom.equalToSuperview().inset(12)
-        }
-
-        unitLabel?.snp.makeConstraints {
-            $0.leading.equalTo(valueLabel.snp.trailing).offset(6)
-            $0.lastBaseline.equalTo(valueLabel)
-        }
+    var selectedSegmentIndex: ControlProperty<Int> {
+        base.segmentedControl.rx.selectedSegmentIndex
     }
 }
