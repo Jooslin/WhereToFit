@@ -18,7 +18,6 @@ final class SearchBar: UIView {
         $0.clearButtonMode = .whileEditing // 글자 입력중일때 우측에 'x' 지우기 버튼 표시
         $0.returnKeyType = .search // 키보드 엔터키 모양을 '검색' 모양으로 변경
     }
-
     private let searchImageView = UIImageView(image: .search.withRenderingMode(.alwaysTemplate)).then {
         $0.contentMode = .scaleAspectFit
         $0.tintColor = .gray400
@@ -31,6 +30,11 @@ final class SearchBar: UIView {
     var text: String? {
         get { textField.text }
         set { textField.text = newValue }
+    }
+    
+    var isTextInputEnabled: Bool {
+        get { textField.isUserInteractionEnabled }
+        set { textField.isUserInteractionEnabled = newValue }
     }
 
     init(placeholder: String) {

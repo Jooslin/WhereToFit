@@ -27,11 +27,21 @@ struct ButtonConfiguration {
     }
     
     enum ButtonSize {
+        // DesignButton
         case small
         case medium
         case large
+        
+        // OnboardingButton
         case onboarding
         case onboardingCard
+        
+        // IconButton
+        case icon
+        
+        //additional
+        case additional
+        case additionalIcon
         
         var padding: UIEdgeInsets {
             switch self {
@@ -43,24 +53,44 @@ struct ButtonConfiguration {
                     .init(top: 16, left: 24, bottom: 16, right: 24)
             case .onboardingCard:
                     .init(top: 18, left: 0, bottom: 14, right: 0)
+            case .icon:
+                    .init(top: 0, left: 0, bottom: 0, right: 0)
+            case .additional:
+                    .init(top: 4, left: 12, bottom: 4, right: 12)
+            case .additionalIcon:
+                    .init(top: 6, left: 10, bottom: 6, right: 12)
             }
         }
         
         var size: CGSize {
             switch self {
-            case .small: return CGSize(width: 80, height: 38)
-            case .medium: return CGSize(width: 222, height: 48)
-            case .large: return CGSize(width: 343, height: 48)
-            case .onboarding: return CGSize(width: 343, height: 60)
-            case .onboardingCard: return CGSize(width: 100, height: 100)
+            case .small:
+                return CGSize(width: 80, height: 38)
+            case .medium:
+                return CGSize(width: 222, height: 48)
+            case .large:
+                return CGSize(width: 343, height: 48)
+            case .onboarding:
+                return CGSize(width: 343, height: 60)
+            case .onboardingCard:
+                return CGSize(width: 100, height: 100)
+            case .icon:
+                return CGSize(width: 24, height: 24)
+            case .additional:
+                return CGSize(width: 47, height: 25)
+            case .additionalIcon:
+                return CGSize(width: 74, height: 29)
             }
         }
         
         var labelConfig: LabelConfiguration {
             switch self {
-            case .small: return .body12Medium
-            case .medium, .large: return .body14Semibold
-            case .onboarding, .onboardingCard: return .title16
+            case .small, .icon, .additional, .additionalIcon:
+                return .body12Medium
+            case .medium, .large:
+                return .body14Semibold
+            case .onboarding, .onboardingCard:
+                return .title16
             }
         }
     }
@@ -109,4 +139,12 @@ extension ButtonConfiguration {
     //MARK: Onboarding
     static let onboarding = make(size: .onboarding, style: .fill, color: .gray50, titleColor: .gray600)
     static let onboardingCard = make(size: .onboardingCard, style: .fill, color: .gray50, titleColor: .gray600)
+    
+    //MARK: IconButton
+    static let icon = make(size: .icon, style: .fill, color: .clear, titleColor: .gray900)
+    
+    //MARK: Additional Button
+    static let additional = make(size: .additional, style: .border, color: .white, titleColor: .gray800, borderColor: .gray200)
+    static let iconAdditional = make(size: .additionalIcon, style: .border, color: .white, titleColor: .gray800, borderColor: .gray200)
+    static let selectedIconAdditional = make(size: .additionalIcon, style: .border, color: .primary25, titleColor: .primary600, borderColor: .primary200)
 }

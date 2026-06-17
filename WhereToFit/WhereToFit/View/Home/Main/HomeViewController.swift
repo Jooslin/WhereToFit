@@ -17,8 +17,9 @@ final class HomeViewController: BaseViewController<HomeReactor> {
         view = homeView
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        tabBarController?.tabBar.isHidden = false
     }
     
     override func bind(reactor: HomeReactor) {
