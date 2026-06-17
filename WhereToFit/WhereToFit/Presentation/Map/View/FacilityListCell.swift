@@ -11,7 +11,7 @@ import SnapKit
 import Then
 
 /// 지도 하단 모달에서 시설 셀과 프로그램 셀을 함께 표현하는 재사용 셀입니다.
-/// 다른 화면에서 같은 UI가 필요하면 `FacilityProgramListItemViewModel`을 만들어 `configure(with:)`로 주입하면 됩니다.
+/// 다른 화면에서 같은 UI가 필요하면 `FacilityProgramListItem`을 만들어 `configure(with:)`로 주입하면 됩니다.
 final class FacilityListCell: UITableViewCell {
     static let reuseIdentifier = "FacilityListCell"
 
@@ -67,21 +67,21 @@ final class FacilityListCell: UITableViewCell {
     }
 
     func configure(with facility: FitnessFacility) {
-        configure(with: FacilityProgramListItemViewModel(facility: facility))
+        configure(with: FacilityProgramListItem(facility: facility))
     }
 
-    /// 셀 UI는 ViewModel만 바라보게 두어, API 모델이 바뀌어도 셀 레이아웃 재사용이 쉽도록 합니다.
-    func configure(with viewModel: FacilityProgramListItemViewModel) {
-        matchingLabel.text = viewModel.badgeText
-        distanceLabel.text = viewModel.distanceText
-        titleLabel.text = viewModel.title
-        detailLabel.text = viewModel.detailText
-        reservationBadgeView.isHidden = viewModel.showsReservationBadge == false
-        priceLabel.text = viewModel.priceText
-        thumbnailView.backgroundColor = viewModel.thumbnailBackgroundColor
+    /// 셀 UI는 facilityProgramListItem만 바라보게 두어, API 모델이 바뀌어도 셀 레이아웃 재사용이 쉽도록 합니다.
+    func configure(with facilityProgramListItem: FacilityProgramListItem) {
+        matchingLabel.text = facilityProgramListItem.badgeText
+        distanceLabel.text = facilityProgramListItem.distanceText
+        titleLabel.text = facilityProgramListItem.title
+        detailLabel.text = facilityProgramListItem.detailText
+        reservationBadgeView.isHidden = facilityProgramListItem.showsReservationBadge == false
+        priceLabel.text = facilityProgramListItem.priceText
+        thumbnailView.backgroundColor = facilityProgramListItem.thumbnailBackgroundColor
 
-        let placeholderImage = UIImage(named: viewModel.placeholderImageName) ?? UIImage(named: "homeBackground")
-        if let imageURL = viewModel.imageURL {
+        let placeholderImage = UIImage(named: facilityProgramListItem.placeholderImageName) ?? UIImage(named: "homeBackground")
+        if let imageURL = facilityProgramListItem.imageURL {
             thumbnailView.kf.setImage(with: imageURL, placeholder: placeholderImage)
         } else {
             thumbnailView.image = placeholderImage

@@ -35,7 +35,7 @@ final class FacilityDetailViewController: UIViewController {
     private var programCardFacilities: [FitnessFacility] = []
     private let interactivePopGestureDelegate = InteractivePopGestureDelegate()
     private var priceSectionValue: String {
-        let listPriceText = FacilityProgramListItemViewModel(facility: facility).priceText
+        let listPriceText = FacilityProgramListItem(facility: facility).priceText
         guard listPriceText == "상세 정보 확인" else {
             return listPriceText
         }

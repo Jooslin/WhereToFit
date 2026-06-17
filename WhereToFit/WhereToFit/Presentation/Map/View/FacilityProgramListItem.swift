@@ -1,5 +1,5 @@
 //
-//  FacilityProgramListItemViewModel.swift
+//  FacilityProgramListItem.swift
 //  WhereToFit
 //
 //  Created by 김주희 on 6/16/26.
@@ -10,7 +10,7 @@ import UIKit
 
 /// 시설/프로그램 리스트 셀에 필요한 표시값만 모아둔 모델입니다.
 /// `FitnessFacility` 전체를 셀이 직접 해석하지 않도록 하여, 다른 개발자가 같은 셀을 안전하게 재사용할 수 있습니다.
-struct FacilityProgramListItemViewModel {
+struct FacilityProgramListItem {
     let badgeText: String
     let distanceText: String
     let title: String
