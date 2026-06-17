@@ -1,6 +1,6 @@
 //
 //  AppStep.swift
-//  Gymap
+//  WhereToFit
 //
 //  Created by 변예린 on 5/19/26.
 //
@@ -25,6 +25,11 @@ enum AppStep: Step {
     // Map
     case mapFilter(FacilityFilter, priceSamples: [Int] = [], mode: MapFilterMode = .all)
     case mapFacilityDetail(FitnessFacility, relatedPrograms: [FitnessFacility] = [])
+
+    // Calendar
+    case calendarWeightInput
+    case calendarConditionInput
+    case calendarExerciseRecordInput
 
     // My
     case profileManagement

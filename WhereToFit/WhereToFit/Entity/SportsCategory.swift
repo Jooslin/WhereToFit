@@ -7,7 +7,7 @@
 import Foundation
 import UIKit
 
-enum SportsCategory: String, Hashable {
+enum SportsCategory: String, CaseIterable, Hashable {
     case health = "헬스"
     case fitness = "피트니스"
     case yogaPilates = "요가/필라"
