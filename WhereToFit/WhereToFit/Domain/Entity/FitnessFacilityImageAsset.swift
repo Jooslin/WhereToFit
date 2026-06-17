@@ -22,6 +22,10 @@ nonisolated extension FitnessFacility {
     }
 
     func placeholderImageName(for context: FacilityImageContext) -> String {
+        guard category == .multipurpose else {
+            return category.placeholderImageName(for: context)
+        }
+
         let searchText = [
             name,
             locationName,
@@ -34,43 +38,48 @@ nonisolated extension FitnessFacility {
         .joined(separator: " ")
 
         if let imageName = Self.keywordImageName(for: searchText) {
-            return context == .facility ? facilityImageName(for: imageName) : imageName
+            return Self.contextualImageName(imageName, for: context)
         }
 
         return category.placeholderImageName(for: context)
     }
 
-    private func facilityImageName(for programImageName: String) -> String {
-        switch programImageName {
-        case "Soccer":
-            return "CenterImageSoccer"
-        case "Swimming":
-            return "CenterImageSwimming"
-        case "Tennis":
-            return "CenterImageTennis"
+    nonisolated private static func contextualImageName(
+        _ imageName: String,
+        for context: FacilityImageContext
+    ) -> String {
+        guard context == .facility else {
+            return imageName
+        }
+
+        switch imageName {
+        case "sportsAqua":
+            return "centerImageSwimming"
+        case "sportsTennis":
+            return "centerImageTennis"
         default:
-            return programImageName
+            return imageName
         }
     }
 
-    private static func keywordImageName(for text: String) -> String? {
+    nonisolated private static func keywordImageName(for text: String) -> String? {
         let normalizedText = text.normalizedFacilityImageSearchText
         let candidates: [(keywords: [String], imageName: String)] = [
-            (["수영", "수중", "아쿠아"], "Swimming"),
-            (["테니스", "정구", "배드민턴", "탁구"], "Tennis"),
-            (["축구", "풋살"], "Soccer"),
-            (["농구", "배구"], "Basketball"),
-            (["클라이밍", "암벽"], "Climbing"),
-            (["사이클", "자전거", "스피닝"], "Cycle"),
-            (["러닝", "달리기", "마라톤"], "Running"),
-            (["등산", "트레킹", "하이킹"], "Hiking"),
-            (["스케이트", "빙상"], "Skating"),
-            (["필라테스", "리포머"], "Pilates"),
-            (["요가"], "Yoga"),
-            (["태권도", "무술", "무도", "격투", "검도", "유도"], "TKD"),
-            (["에어로빅", "댄스", "무용", "발레"], "Airobic"),
-            (["스트레칭", "체조"], "Stretching"),
-            (["헬스", "피트니스", "체력단련", "웨이트", "근력"], "Gym")
+            (["수영", "수중", "아쿠아"], "sportsAqua"),
+            (["테니스", "정구", "배드민턴", "탁구"], "sportsTennis"),
+            (["축구", "풋살"], "sportsSoccer"),
+            (["농구", "배구"], "sportsBall"),
+            (["클라이밍", "암벽"], "sportsOthers"),
+            (["사이클", "자전거", "스피닝"], "sportsCycle"),
+            (["러닝", "달리기", "마라톤"], "sportsRunning"),
+            (["등산", "트레킹", "하이킹"], "sportsHiking"),
+            (["스케이트", "빙상"], "sportsIce"),
+            (["필라테스", "리포머"], "sportsPilates"),
+            (["요가"], "sportsYoga"),
+            (["태권도", "무술", "무도", "격투", "검도", "유도"], "sportsMartial"),
+            (["에어로빅", "댄스", "무용", "발레"], "sportsDance"),
+            (["스트레칭", "체조"], "sportsGymnastic"),
+            (["헬스", "피트니스", "체력단련", "웨이트", "근력"], "sportsHealth")
         ]
 
         return candidates.first { candidate in
@@ -80,55 +89,52 @@ nonisolated extension FitnessFacility {
 }
 
 private extension FacilityCategory {
-    func placeholderImageName(for context: FacilityImageContext) -> String {
-        let programImageName: String
-
+    nonisolated func placeholderImageName(for context: FacilityImageContext) -> String {
         switch self {
-        case .soccer, .futsal, .baseball, .floorball:
-            programImageName = "Soccer"
-        case .basketball, .volleyball, .bowling, .billiards, .gateball:
-            programImageName = "Basketball"
-        case .badminton, .tableTennis, .tennis, .squash, .racquetball, .pickleball, .golf, .parkGolf:
-            programImageName = "Tennis"
-        case .gym, .healthPT, .bodybuilding, .gx, .trx, .circuitTraining, .spinningBike, .fitBalance, .womensCircuitExercise, .running, .jogging, .athletics, .cycling, .runBike, .triathlon, .lifeSports, .childSports, .infantSports, .jumpRope, .womensHealthClass, .bodySkillRelease, .boccia:
-            programImageName = "Gym"
-        case .yoga, .powerYoga:
-            programImageName = "Yoga"
-        case .pilates, .snpe:
-            programImageName = "Pilates"
         case .swimming, .survivalSwimming, .aquaticHealthGymnastics, .aquaRobics, .aquaWalking, .aquathlon, .artisticSwimming, .scubaDiving:
-            programImageName = "Swimming"
-        case .climbing, .sBoard, .hiking:
-            programImageName = "Climbing"
+            return context == .facility ? "centerImageSwimming" : "sportsAqua"
+        case .basketball, .volleyball, .bowling, .billiards, .gateball, .floorball:
+            return "sportsBall"
+        case .badminton, .tableTennis, .tennis, .squash, .racquetball, .pickleball, .golf, .parkGolf:
+            return context == .facility ? "centerImageTennis" : "sportsTennis"
+        case .soccer, .futsal, .baseball:
+            return "sportsSoccer"
+        case .cycling, .runBike, .triathlon, .spinningBike:
+            return "sportsCycle"
+        case .dance, .lineDance, .broadcastDance, .bellyDance, .sportsDance, .zumbaDance, .dietDance, .ballet, .traditionalDance, .koreanDance, .aerobics, .dietRobics, .seniorRobics, .taebo, .jumpingDiet, .jumpingTrampoline:
+            return "sportsDance"
+        case .gym, .healthPT, .bodybuilding:
+            return "sportsHealth"
+        case .gx, .trx, .circuitTraining, .fitBalance, .womensCircuitExercise:
+            return "sportsFitness"
+        case .gymnastics, .kuksundo, .koreanQigong, .taiChi, .lifeGymnastics, .stretching:
+            return "sportsGymnastic"
+        case .hiking:
+            return "sportsHiking"
         case .skating, .speedSkating, .figureSkating, .skiing, .rollerSkating:
-            programImageName = "Skating"
-        case .dance, .lineDance, .broadcastDance, .bellyDance, .sportsDance, .zumbaDance, .dietDance, .ballet, .traditionalDance, .koreanDance, .gymnastics, .kuksundo, .koreanQigong, .taiChi, .lifeGymnastics, .stretching, .aerobics, .dietRobics, .seniorRobics, .taebo, .jumpingDiet, .jumpingTrampoline:
-            programImageName = "Airobic"
+            return "sportsIce"
         case .kendo, .boxing, .judo, .taekwondo, .taekkyeon, .fencing, .traditionalArchery:
-            programImageName = "TKD"
+            return "sportsMartial"
+        case .climbing, .sBoard:
+            return "sportsOthers"
+        case .yoga, .powerYoga:
+            return "sportsYoga"
+        case .pilates, .snpe:
+            return "sportsPilates"
+        case .lifeSports, .childSports, .infantSports, .jumpRope, .womensHealthClass, .bodySkillRelease:
+            return "sportsRecreational"
+        case .running, .jogging, .athletics:
+            return "sportsRunning"
+        case .boccia:
+            return "sportsAdaptive"
         case .multipurpose:
-            programImageName = "Gym"
-        }
-
-        if context == .program {
-            return programImageName
-        }
-
-        switch programImageName {
-        case "Soccer":
-            return "CenterImageSoccer"
-        case "Swimming":
-            return "CenterImageSwimming"
-        case "Tennis":
-            return "CenterImageTennis"
-        default:
-            return programImageName
+            return "sportsHealth"
         }
     }
 }
 
 private extension String {
-    var normalizedFacilityImageSearchText: String {
+    nonisolated var normalizedFacilityImageSearchText: String {
         lowercased()
             .replacingOccurrences(of: " ", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)

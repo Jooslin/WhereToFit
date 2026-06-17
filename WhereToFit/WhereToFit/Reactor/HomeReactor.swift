@@ -208,6 +208,7 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
             levels: [.beginner],
             isDisabledAccessible: true,
             priceAmount: 50000,
+            rawPriceText: "50,000원",
             priceUnit: .month,
             priceNote: "라켓 대여 가능",
             days: ["월", "수", "금"],
@@ -230,6 +231,7 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
             levels: [.all],
             isDisabledAccessible: false,
             priceAmount: 60000,
+            rawPriceText: "60,000원",
             priceUnit: .month,
             priceNote: nil,
             days: ["화", "목"],
@@ -252,6 +254,7 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
             levels: [.beginner, .intermediate],
             isDisabledAccessible: true,
             priceAmount: 80000,
+            rawPriceText: "80,000원",
             priceUnit: .month,
             priceNote: "매트 개인 지참",
             days: ["월", "수"],
@@ -274,6 +277,7 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
             levels: [.beginner],
             isDisabledAccessible: false,
             priceAmount: 40000,
+            rawPriceText: "40,000원",
             priceUnit: .month,
             priceNote: nil,
             days: ["토"],
@@ -296,6 +300,7 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
             levels: [.all],
             isDisabledAccessible: true,
             priceAmount: 120000,
+            rawPriceText: "120,000원",
             priceUnit: .month,
             priceNote: "월 8회 기준",
             days: ["월", "화", "목"],
@@ -318,6 +323,7 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
             levels: [.all],
             isDisabledAccessible: true,
             priceAmount: 20000,
+            rawPriceText: "20,000원",
             priceUnit: .month,
             priceNote: nil,
             days: ["화", "목"],
@@ -340,6 +346,23 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
     
     func fetchFacilities(limit: Int, offset: Int, order: SearchOrder) -> RxSwift.Single<SupabasePage<Facility>> {
         return Single.just(page(from: sampleFacilities, limit: limit, offset: offset, order: order))
+    }
+
+    func fetchFacilities(
+        limit: Int,
+        offset: Int,
+        order: SearchOrder,
+        includesTotalCount: Bool
+    ) -> RxSwift.Single<SupabasePage<Facility>> {
+        return Single.just(
+            page(
+                from: sampleFacilities,
+                limit: limit,
+                offset: offset,
+                order: order,
+                includesTotalCount: includesTotalCount
+            )
+        )
     }
     
     func searchFacilities(
@@ -367,6 +390,21 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
     func fetchPrograms(limit: Int = 50, offset: Int = 0 , order: SearchOrder = .ascending) -> RxSwift.Single<SupabasePage<Program>> {
         return Single.just(page(from: samplePrograms, limit: limit, offset: offset, order: order))
     }
+
+    func fetchPrograms(
+        facilityIDs: [String],
+        limit: Int,
+        offset: Int,
+        order: SearchOrder
+    ) -> RxSwift.Single<SupabasePage<Program>> {
+        let requestedIDs = Set(facilityIDs)
+        let filteredPrograms = samplePrograms.filter { program in
+            guard let publicFacilityID = program.publicFacilityID else { return false }
+            return requestedIDs.contains(publicFacilityID)
+        }
+
+        return Single.just(page(from: filteredPrograms, limit: limit, offset: offset, order: order))
+    }
     
     func searchPrograms(keyword: String, limit: Int, offset: Int, order: SearchOrder) -> RxSwift.Single<SupabasePage<Program>> {
         let trimmedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -379,7 +417,13 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
         return Single.just(page(from: filteredPrograms, limit: limit, offset: offset, order: order))
     }
     
-    private func page(from programs: [Program], limit: Int, offset: Int, order: SearchOrder) -> SupabasePage<Program> {
+    private func page(
+        from programs: [Program],
+        limit: Int,
+        offset: Int,
+        order: SearchOrder,
+        includesTotalCount: Bool = false
+    ) -> SupabasePage<Program> {
         let sortedPrograms = programs.sorted { lhs, rhs in
             switch order {
             case .ascending:
@@ -394,10 +438,20 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
         let items = startIndex < endIndex ? Array(sortedPrograms[startIndex..<endIndex]) : []
         let nextOffset = endIndex < sortedPrograms.count ? endIndex : nil
         
-        return SupabasePage(items: items, nextOffset: nextOffset)
+        return SupabasePage(
+            items: items,
+            nextOffset: nextOffset,
+            totalCount: includesTotalCount ? sortedPrograms.count : nil
+        )
     }
     
-    private func page(from facilities: [Facility], limit: Int, offset: Int, order: SearchOrder) -> SupabasePage<Facility> {
+    private func page(
+        from facilities: [Facility],
+        limit: Int,
+        offset: Int,
+        order: SearchOrder,
+        includesTotalCount: Bool = false
+    ) -> SupabasePage<Facility> {
         let sortedFacilities = facilities.sorted { lhs, rhs in
             switch order {
             case .ascending:
@@ -412,7 +466,11 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
         let items = startIndex < endIndex ? Array(sortedFacilities[startIndex..<endIndex]) : []
         let nextOffset = endIndex < sortedFacilities.count ? endIndex : nil
         
-        return SupabasePage(items: items, nextOffset: nextOffset)
+        return SupabasePage(
+            items: items,
+            nextOffset: nextOffset,
+            totalCount: includesTotalCount ? sortedFacilities.count : nil
+        )
     }
     
     private static func facility(id: String, name: String, type: String) -> Facility {

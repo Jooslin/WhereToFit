@@ -40,9 +40,10 @@ final class FetchNearbyFacilitiesUseCase {
 
             let matchesCategory = filter.categories.isEmpty || filter.categories.contains(facility.category)
             
-            // 최소~최대 가격 범위 안에 있는지 확인
-            let matchesPrice = (filter.minimumPrice.map { facility.price >= $0 } ?? true)
+            let matchesKnownPriceRange = (filter.minimumPrice.map { facility.price >= $0 } ?? true)
                 && (filter.maximumPrice.map { facility.price <= $0 } ?? true)
+            // 가격을 숫자로 판단할 수 없는 항목은 가격 필터와 관계없이 노출합니다.
+            let matchesPrice = shouldIgnorePriceFilter(for: facility) || matchesKnownPriceRange
             // 선택한 시간대, 요일에 포함되는지 확인
             let matchesDay = filter.days.isEmpty
                 || Set(facility.availableDays).isDisjoint(with: filter.days) == false
@@ -64,5 +65,9 @@ final class FetchNearbyFacilitiesUseCase {
         }
 
         return filtered.sorted { $0.distanceInMeters < $1.distanceInMeters }
+    }
+
+    private func shouldIgnorePriceFilter(for facility: FitnessFacility) -> Bool {
+        facility.priceText == "상세 정보 확인"
     }
 }

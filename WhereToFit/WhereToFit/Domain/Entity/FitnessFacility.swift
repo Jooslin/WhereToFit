@@ -425,6 +425,9 @@ nonisolated struct FitnessFacility: Equatable, Identifiable {
     var priceText: String {
         if let priceDisplayText,
            priceDisplayText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+            if priceDisplayText == "0원" || priceDisplayText == "0 원" {
+                return "무료"
+            }
             return priceDisplayText
         }
         return price == 0 ? "무료" : "\(price.formatted())원"
