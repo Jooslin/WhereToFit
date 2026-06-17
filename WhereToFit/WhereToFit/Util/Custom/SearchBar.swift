@@ -11,7 +11,12 @@ import Then
 import RxCocoa
 import RxSwift
 
+
+// MARK: - 커스텀 서치바
 final class SearchBar: UIView {
+    
+    
+    // MARK: - UI Components (화면 요소)
     fileprivate let textField = UITextField().then {
         $0.font = LabelConfiguration.body14Regular.font
         $0.textColor = .gray900
@@ -23,10 +28,14 @@ final class SearchBar: UIView {
         $0.tintColor = .gray400
     }
 
+    
+    // MARK: - Properties (속성)
+    // 뷰의 기본 크기 지정
     override var intrinsicContentSize: CGSize {
         CGSize(width: UIView.noIntrinsicMetric, height: 48)
     }
 
+    // 입력 텍스트 계산 프로퍼티
     var text: String? {
         get { textField.text }
         set { textField.text = newValue }
@@ -37,6 +46,8 @@ final class SearchBar: UIView {
         set { textField.isUserInteractionEnabled = newValue }
     }
 
+    
+    // MARK: - Initialization (초기화)
     init(placeholder: String) {
         super.init(frame: .zero)
         configure(placeholder: placeholder)
@@ -48,14 +59,15 @@ final class SearchBar: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
+    
+    // MARK: - Lifecycle (뷰 생명주기)
     override func layoutSubviews() {
         super.layoutSubviews()
         layer.cornerRadius = bounds.height / 2
-        layer.borderColor = UIColor.gray200.cgColor
     }
 
     private func configure(placeholder: String) {
-        backgroundColor = .white
+        backgroundColor = .systemBackground
         layer.borderWidth = 1
         layer.borderColor = UIColor.gray200.cgColor
         textField.attributedPlaceholder = NSAttributedString(
@@ -82,8 +94,20 @@ final class SearchBar: UIView {
     }
 }
 
+
+// MARK: - RxSwift Extension
 extension Reactive where Base: SearchBar {
+    
+    // 서치바 텍스트 실시간 관찰, 값 삽입
     var text: ControlProperty<String?> {
         base.textField.rx.text
+    }
+    
+    // 검색 했을 때 이벤트 방출
+    var search: ControlEvent<String?> {
+        let source = base.textField.rx
+            .controlEvent(.editingDidEndOnExit)
+            .map { base.textField.text } // 현재 텍스트 값 추출
+        return ControlEvent(events: source)
     }
 }

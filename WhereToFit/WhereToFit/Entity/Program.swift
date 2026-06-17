@@ -24,6 +24,7 @@ struct Program: Hashable {
     let isDisabledAccessible: Bool? // 장애인 가능 여부
     
     let priceAmount: Int? // 가격
+    let rawPriceText: String? // 가격 원문
     let priceUnit: PriceUnit? // 가격 기준 시간 단위
     let priceNote: String? // 가격 특이사항 - ex. 일 10인 이상 시 가격
     
@@ -53,6 +54,7 @@ extension Program {
         self.isDisabledAccessible = dto.isDisabledAccessible
 
         self.priceAmount = dto.priceAmount
+        self.rawPriceText = dto.price
         self.priceUnit = dto.priceUnit.map { PriceUnit($0) }
         self.priceNote = dto.priceNote
         

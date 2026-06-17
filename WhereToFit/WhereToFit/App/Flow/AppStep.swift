@@ -21,6 +21,10 @@ enum AppStep: Step {
     case mapTab
     case calendarTab
     case myTab
+    
+    // Map
+    case mapFilter(FacilityFilter, priceSamples: [Int] = [], mode: MapFilterMode = .all)
+    case mapFacilityDetail(FitnessFacility, relatedPrograms: [FitnessFacility] = [])
 
     // Calendar
     case calendarWeightInput

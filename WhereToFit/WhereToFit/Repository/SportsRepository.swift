@@ -54,6 +54,13 @@ protocol SportsRepositoryProtocol {
         offset: Int,
         order: SearchOrder
     ) -> Single<SupabasePage<Facility>>
+
+    func fetchFacilities(
+        limit: Int,
+        offset: Int,
+        order: SearchOrder,
+        includesTotalCount: Bool
+    ) -> Single<SupabasePage<Facility>>
     
     func searchFacilities(
         keyword: String,
@@ -64,6 +71,13 @@ protocol SportsRepositoryProtocol {
     ) -> Single<SupabasePage<Facility>>
     
     func fetchPrograms(
+        limit: Int,
+        offset: Int,
+        order: SearchOrder
+    ) -> Single<SupabasePage<Program>>
+
+    func fetchPrograms(
+        facilityIDs: [String],
         limit: Int,
         offset: Int,
         order: SearchOrder
@@ -89,12 +103,27 @@ final class SportsRepository: SportsRepositoryProtocol {
         offset: Int = 0,
         order: SearchOrder = .ascending
     ) -> Single<SupabasePage<Facility>> {
+        fetchFacilities(
+            limit: limit,
+            offset: offset,
+            order: order,
+            includesTotalCount: false
+        )
+    }
+
+    func fetchFacilities(
+        limit: Int = 50,
+        offset: Int = 0,
+        order: SearchOrder = .ascending,
+        includesTotalCount: Bool
+    ) -> Single<SupabasePage<Facility>> {
         Single.async { [networkService] in
             let page: SupabasePage<PublicFacilityDTO> = try await networkService.fetchSupabaseData(
                 api: .facility,
                 limit: limit,
                 offset: offset,
-                order: order
+                order: order,
+                includesTotalCount: includesTotalCount
             )
             
             return page.map(Facility.init)
@@ -138,6 +167,32 @@ final class SportsRepository: SportsRepositoryProtocol {
             return page.map(Program.init)
         }
     }
+
+    func fetchPrograms(
+        facilityIDs: [String],
+        limit: Int = 50,
+        offset: Int = 0,
+        order: SearchOrder = .ascending
+    ) -> Single<SupabasePage<Program>> {
+        Single.async { [networkService] in
+            guard facilityIDs.isEmpty == false else {
+                return SupabasePage(items: [], nextOffset: nil)
+            }
+
+            let filterValue = "in.(\(facilityIDs.joined(separator: ",")))"
+            let page: SupabasePage<ClassInformationDTO> = try await networkService.fetchSupabaseData(
+                api: .classInfo,
+                filters: [
+                    "public_facility_id": filterValue
+                ],
+                limit: limit,
+                offset: offset,
+                order: order
+            )
+
+            return page.map(Program.init)
+        }
+    }
     
     func searchPrograms(
         keyword: String,
@@ -164,7 +219,8 @@ private extension SupabasePage {
     func map<MappedItem>(_ transform: (T) -> MappedItem) -> SupabasePage<MappedItem> {
         SupabasePage<MappedItem>(
             items: items.map(transform),
-            nextOffset: nextOffset
+            nextOffset: nextOffset,
+            totalCount: totalCount
         )
     }
 }

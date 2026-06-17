@@ -66,6 +66,7 @@ fastlane/test_output
 *.xcconfig
 AGENTS.md
 .codex/
+.DS_Store
 
 # Local secrets
 .env
