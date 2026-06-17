@@ -19,9 +19,21 @@ final class ProgramFacilitySearchView: UIView {
     }
     private(set) lazy var dataSource = makeDiffableDataSource(collectionView)
     
+    let emptyLabel = UILabel(text: "검색 결과가 없어요", config: .body16Medium, color: .gray600)
+    let emptyButton = IconButton(config: .iconAdditional, iconSize: .tiny).then {
+        $0.normalImage = .plus
+    }
+    private(set) lazy var emptyStack = UIStackView(arrangedSubviews: [emptyLabel, emptyButton]).then {
+        $0.axis = .vertical
+        $0.spacing = 24
+        $0.alignment = .center
+        $0.isHidden = true
+    }
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setLayout()
+        collectionView.isHidden = true
     }
     
     @available(*, unavailable)
@@ -35,6 +47,7 @@ extension ProgramFacilitySearchView {
         addSubview(titleView)
         addSubview(searchBar)
         addSubview(collectionView)
+        addSubview(emptyStack)
         
         titleView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
@@ -50,6 +63,11 @@ extension ProgramFacilitySearchView {
             $0.top.equalTo(searchBar.snp.bottom).offset(12)
             $0.horizontalEdges.equalToSuperview()
             $0.bottom.equalTo(safeAreaLayoutGuide)
+        }
+        
+        emptyStack.snp.makeConstraints {
+            $0.centerX.equalToSuperview()
+            $0.centerY.equalToSuperview().multipliedBy(0.85)
         }
 
     }
