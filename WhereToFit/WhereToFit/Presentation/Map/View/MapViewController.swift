@@ -53,21 +53,6 @@ private struct FacilityMarkerGroup {
 final class MapViewController: BaseViewController<MapReactor> {
     private let mapView = MapView()
     private let searchMapSuggestionsUseCase: SearchMapSuggestionsUseCase
-    private var searchTextField: SearchBar { mapView.searchTextField }
-    private var searchSuggestionTableView: UITableView { mapView.searchSuggestionTableView }
-    private var naverMapView: NMFNaverMapView { mapView.naverMapView }
-    private var missingKeyView: UIView { mapView.missingKeyView }
-    private var currentLocationButton: UIButton { mapView.currentLocationButton }
-    private var bottomPanelView: UIView { mapView.bottomPanelView }
-    private var tableView: UITableView { mapView.tableView }
-    private var loadingIndicatorView: UIActivityIndicatorView { mapView.loadingIndicatorView }
-    private var emptyStateLabel: UILabel { mapView.emptyStateLabel }
-    private var allFilterButton: UIButton { mapView.allFilterButton }
-    private var aiButton: UIButton { mapView.aiButton }
-    private var categoryButton: UIButton { mapView.categoryButton }
-    private var dayButton: UIButton { mapView.dayButton }
-    private var timeButton: UIButton { mapView.timeButton }
-    private var priceButton: UIButton { mapView.priceButton }
 
     private var allFacilities: [FitnessFacility] = []
     private var unfilteredFacilities: [FitnessFacility] = []
@@ -112,10 +97,10 @@ final class MapViewController: BaseViewController<MapReactor> {
         configureFilterButtonActions()
         configureMap()
         configureTraitChangeHandling()
-        tableView.dataSource = self
-        tableView.delegate = self
-        searchSuggestionTableView.dataSource = self
-        searchSuggestionTableView.delegate = self
+        mapView.tableView.dataSource = self
+        mapView.tableView.delegate = self
+        mapView.searchSuggestionTableView.dataSource = self
+        mapView.searchSuggestionTableView.delegate = self
         moveCamera(to: defaultCoordinate)
         reactor?.action.onNext(.viewDidLoad)
     }
@@ -131,14 +116,14 @@ final class MapViewController: BaseViewController<MapReactor> {
     }
 
     override func bind(reactor: MapReactor) {
-        searchTextField.rx.text.orEmpty
+        mapView.searchTextField.rx.text.orEmpty
             .distinctUntilChanged()
             .skip(1)
             .map(MapReactor.Action.searchTextChanged)
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
-        searchTextField.rx.search
+        mapView.searchTextField.rx.search
             .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { $0.isEmpty == false }
             .subscribe(onNext: { [weak self] query in
@@ -146,7 +131,7 @@ final class MapViewController: BaseViewController<MapReactor> {
             })
             .disposed(by: disposeBag)
 
-        searchTextField.rx.text.orEmpty
+        mapView.searchTextField.rx.text.orEmpty
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .distinctUntilChanged()
             .debounce(.milliseconds(MapMetric.searchDebounceMilliseconds), scheduler: MainScheduler.instance)
@@ -204,7 +189,7 @@ final class MapViewController: BaseViewController<MapReactor> {
             .distinctUntilChanged()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] isLoading in
-                isLoading ? self?.loadingIndicatorView.startAnimating() : self?.loadingIndicatorView.stopAnimating()
+                isLoading ? self?.mapView.loadingIndicatorView.startAnimating() : self?.mapView.loadingIndicatorView.stopAnimating()
                 self?.updateDisplayedFacilities()
             })
             .disposed(by: disposeBag)
@@ -249,7 +234,7 @@ final class MapViewController: BaseViewController<MapReactor> {
             .distinctUntilChanged()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] isConfigured in
-                self?.missingKeyView.isHidden = isConfigured
+                self?.mapView.missingKeyView.isHidden = isConfigured
             })
             .disposed(by: disposeBag)
 
@@ -267,37 +252,37 @@ final class MapViewController: BaseViewController<MapReactor> {
     private func configureBottomPanelGesture() {
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handleBottomPanelPan(_:)))
         panGesture.delegate = self
-        bottomPanelView.addGestureRecognizer(panGesture)
+        mapView.bottomPanelView.addGestureRecognizer(panGesture)
     }
 
     private func configureFilterButtonActions() {
-        allFilterButton.addAction(UIAction { [weak self] _ in
+        mapView.allFilterButton.addAction(UIAction { [weak self] _ in
             self?.presentFilterModal(mode: .all)
         }, for: .touchUpInside)
 
-        aiButton.addAction(UIAction { [weak self] _ in
+        mapView.aiButton.addAction(UIAction { [weak self] _ in
             self?.reactor?.action.onNext(.toggleAIRecommendation)
         }, for: .touchUpInside)
 
-        categoryButton.addAction(UIAction { [weak self] _ in
+        mapView.categoryButton.addAction(UIAction { [weak self] _ in
             self?.presentFilterModal(mode: .category)
         }, for: .touchUpInside)
-        dayButton.addAction(UIAction { [weak self] _ in
+        mapView.dayButton.addAction(UIAction { [weak self] _ in
             self?.presentFilterModal(mode: .schedule)
         }, for: .touchUpInside)
-        timeButton.addAction(UIAction { [weak self] _ in
+        mapView.timeButton.addAction(UIAction { [weak self] _ in
             self?.presentFilterModal(mode: .schedule)
         }, for: .touchUpInside)
-        priceButton.addAction(UIAction { [weak self] _ in
+        mapView.priceButton.addAction(UIAction { [weak self] _ in
             self?.presentFilterModal(mode: .price)
         }, for: .touchUpInside)
     }
 
     private func configureMap() {
-        naverMapView.showZoomControls = false
-        naverMapView.showLocationButton = false
-        naverMapView.mapView.addCameraDelegate(delegate: self)
-        naverMapView.mapView.touchDelegate = self
+        mapView.naverMapView.showZoomControls = false
+        mapView.naverMapView.showLocationButton = false
+        mapView.naverMapView.mapView.addCameraDelegate(delegate: self)
+        mapView.naverMapView.mapView.touchDelegate = self
         applyMapAppearance()
         locationService.locationUpdated = { [weak self] coordinate in
             DispatchQueue.main.async {
@@ -312,7 +297,7 @@ final class MapViewController: BaseViewController<MapReactor> {
                 self.moveCamera(to: self.defaultCoordinate)
             }
         }
-        currentLocationButton.addTarget(self, action: #selector(didTapCurrentLocationButton), for: .touchUpInside)
+        mapView.currentLocationButton.addTarget(self, action: #selector(didTapCurrentLocationButton), for: .touchUpInside)
     }
 
     private func configureTraitChangeHandling() {
@@ -324,9 +309,9 @@ final class MapViewController: BaseViewController<MapReactor> {
 
     private func applyMapAppearance() {
         let isDarkMode = traitCollection.userInterfaceStyle == .dark
-        naverMapView.mapView.isNightModeEnabled = isDarkMode
-        naverMapView.backgroundColor = .systemBackground
-        naverMapView.mapView.backgroundColor = .systemBackground
+        mapView.naverMapView.mapView.isNightModeEnabled = isDarkMode
+        mapView.naverMapView.backgroundColor = .systemBackground
+        mapView.naverMapView.mapView.backgroundColor = .systemBackground
     }
 
     private func presentFilterModal(mode: MapFilterMode) {
@@ -391,15 +376,15 @@ final class MapViewController: BaseViewController<MapReactor> {
 
     private func showSearchSuggestions(_ suggestions: [MapSearchSuggestion]) {
         searchSuggestions = suggestions
-        searchSuggestionTableView.reloadData()
-        searchSuggestionTableView.isHidden = suggestions.isEmpty
+        mapView.searchSuggestionTableView.reloadData()
+        mapView.searchSuggestionTableView.isHidden = suggestions.isEmpty
         mapView.updateSearchSuggestionHeight(
             min(CGFloat(suggestions.count) * SearchSuggestionCell.rowHeight, MapMetric.searchSuggestionMaximumHeight)
         )
     }
 
     private func selectSearchSuggestion(_ suggestion: MapSearchSuggestion) {
-        searchTextField.text = suggestion.title
+        mapView.searchTextField.text = suggestion.title
         showSearchSuggestions([])
         view.endEditing(true)
         reactor?.action.onNext(.selectFacility(suggestion.facilityID))
@@ -472,9 +457,9 @@ final class MapViewController: BaseViewController<MapReactor> {
         displayedFacilities = []
         errorMessage = "\"\(query)\" 위치를 찾을 수 없습니다."
         isShowingFacilityEmptyState = false
-        emptyStateLabel.text = errorMessage
-        emptyStateLabel.isHidden = false
-        tableView.isHidden = true
+        mapView.emptyStateLabel.text = errorMessage
+        mapView.emptyStateLabel.isHidden = false
+        mapView.tableView.isHidden = true
         setBottomPanelDetent(.medium, animated: true)
     }
 
@@ -488,16 +473,16 @@ final class MapViewController: BaseViewController<MapReactor> {
             displayedFacilities = visibleDisplayFacilitiesInCurrentMapBounds()
         }
 
-        if loadingIndicatorView.isAnimating {
+        if mapView.loadingIndicatorView.isAnimating {
             isShowingFacilityEmptyState = false
-            emptyStateLabel.isHidden = true
+            mapView.emptyStateLabel.isHidden = true
         } else {
-            emptyStateLabel.text = emptyStateMessage()
+            mapView.emptyStateLabel.text = emptyStateMessage()
             isShowingFacilityEmptyState = displayedFacilities.isEmpty && errorMessage == nil
-            emptyStateLabel.isHidden = displayedFacilities.isEmpty == false
+            mapView.emptyStateLabel.isHidden = displayedFacilities.isEmpty == false
         }
-        tableView.isHidden = displayedFacilities.isEmpty
-        tableView.reloadData()
+        mapView.tableView.isHidden = displayedFacilities.isEmpty
+        mapView.tableView.reloadData()
 
         if isShowingFacilityEmptyState {
             bottomPanelDetent = .collapsed
@@ -609,7 +594,7 @@ final class MapViewController: BaseViewController<MapReactor> {
     }
 
     private func visibleMarkerFacilitiesInCurrentMapBounds(from facilities: [FitnessFacility]) -> [FitnessFacility] {
-        let visibleBounds = naverMapView.mapView.contentBounds
+        let visibleBounds = mapView.naverMapView.mapView.contentBounds
         return facilities.filter { facility in
             let position = NMGLatLng(
                 lat: facility.coordinate.latitude,
@@ -634,7 +619,7 @@ final class MapViewController: BaseViewController<MapReactor> {
     }
 
     private func isFacilityVisibleInCurrentMapBounds(_ facility: FitnessFacility) -> Bool {
-        naverMapView.mapView.contentBounds.hasPoint(
+        mapView.naverMapView.mapView.contentBounds.hasPoint(
             NMGLatLng(
                 lat: facility.coordinate.latitude,
                 lng: facility.coordinate.longitude
@@ -750,7 +735,7 @@ final class MapViewController: BaseViewController<MapReactor> {
     }
 
     private var markerPresentationStyle: MarkerPresentationStyle {
-        let zoomLevel = naverMapView.mapView.zoomLevel
+        let zoomLevel = mapView.naverMapView.mapView.zoomLevel
 
         // 줌 레벨 기준은 UI 가독성 기준입니다. 숫자를 바꾸면 마커 전환 시점이 함께 바뀝니다.
         if zoomLevel >= MapZoomLevel.gymMarkerMinimum {
@@ -794,7 +779,7 @@ final class MapViewController: BaseViewController<MapReactor> {
                 self.moveCamera(to: facility.coordinate)
                 return true
             }
-            marker.mapView = naverMapView.mapView
+            marker.mapView = mapView.naverMapView.mapView
             return marker
         }
     }
@@ -832,7 +817,7 @@ final class MapViewController: BaseViewController<MapReactor> {
                 }
                 return true
             }
-            marker.mapView = naverMapView.mapView
+            marker.mapView = mapView.naverMapView.mapView
             return marker
         }
     }
@@ -958,14 +943,14 @@ final class MapViewController: BaseViewController<MapReactor> {
 
     private func updateCurrentLocation(_ coordinate: GeoCoordinate) {
         currentUserCoordinate = coordinate
-        naverMapView.mapView.locationOverlay.location = NMGLatLng(
+        mapView.naverMapView.mapView.locationOverlay.location = NMGLatLng(
             lat: coordinate.latitude,
             lng: coordinate.longitude
         )
-        naverMapView.mapView.locationOverlay.hidden = false
+        mapView.naverMapView.mapView.locationOverlay.hidden = false
         moveCamera(to: coordinate)
 
-        let query = searchTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let query = mapView.searchTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if query.isEmpty == false {
             updateSearchSuggestions(for: query)
         }
@@ -979,7 +964,7 @@ final class MapViewController: BaseViewController<MapReactor> {
             NMFCameraUpdate(scrollTo: target)
         }
         cameraUpdate.animation = .easeIn
-        naverMapView.mapView.moveCamera(cameraUpdate)
+        mapView.naverMapView.mapView.moveCamera(cameraUpdate)
     }
 
     @objc private func didTapCurrentLocationButton() {
@@ -1016,7 +1001,7 @@ final class MapViewController: BaseViewController<MapReactor> {
 
 extension MapViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if tableView === searchSuggestionTableView {
+        if tableView === mapView.searchSuggestionTableView {
             return searchSuggestions.count
         }
 
@@ -1024,7 +1009,7 @@ extension MapViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if tableView === searchSuggestionTableView {
+        if tableView === mapView.searchSuggestionTableView {
             guard let cell = tableView.dequeueReusableCell(
                 withIdentifier: SearchSuggestionCell.reuseIdentifier,
                 for: indexPath
@@ -1049,7 +1034,7 @@ extension MapViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if tableView === searchSuggestionTableView {
+        if tableView === mapView.searchSuggestionTableView {
             selectSearchSuggestion(searchSuggestions[indexPath.row])
             return
         }
@@ -1092,7 +1077,7 @@ extension MapViewController: NMFMapViewTouchDelegate {
 
 extension MapViewController: UIGestureRecognizerDelegate {
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        guard gestureRecognizer.view === bottomPanelView else {
+        guard gestureRecognizer.view === mapView.bottomPanelView else {
             return true
         }
 
@@ -1100,7 +1085,7 @@ extension MapViewController: UIGestureRecognizerDelegate {
             return false
         }
 
-        let location = gestureRecognizer.location(in: bottomPanelView)
+        let location = gestureRecognizer.location(in: mapView.bottomPanelView)
         return location.y <= 56
     }
 }
