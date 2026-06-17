@@ -22,7 +22,9 @@ final class ProgramFacilityListCell: UICollectionViewListCell {
     
     let nameLabel = UILabel(config: .body16Medium, lines: 1)
     let addressLabel = UILabel(config: .body12Regular, color: .gray500)
-    let distanceLabel = UILabel(config: .body12Regular, color: .gray600)
+    let distanceLabel = UILabel(config: .body12Regular, color: .gray600).then {
+        $0.textAlignment = .right
+    }
     
     let separateBar = UIView().then {
         $0.backgroundColor = .gray100
