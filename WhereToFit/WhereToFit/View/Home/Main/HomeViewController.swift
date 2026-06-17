@@ -34,7 +34,14 @@ final class HomeViewController: BaseViewController<HomeReactor> {
             .disposed(by: disposeBag)
         
         homeView.rx.locationButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { AppStep.locationSetting }
+            .bind(to: steps)
+            .disposed(by: disposeBag)
+        
+        homeView.rx.registerButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .map { AppStep.programRegistration }
             .bind(to: steps)
             .disposed(by: disposeBag)
     }

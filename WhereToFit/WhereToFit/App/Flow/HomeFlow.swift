@@ -40,16 +40,19 @@ final class HomeFlow: Flow {
                     sportsRepository: sportsRepository
                 ))
             navigationController.pushViewController(vc, animated: true)
+            
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
             
         case .locationSetting:
             let vc = LocationViewController(reactor: locationReactor)
             navigationController.pushViewController(vc, animated: true)
+            
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
             
         case .locationEdit:
             let vc = LocationEditViewController(reactor: locationReactor)
             navigationController.pushViewController(vc, animated: true)
+            
             return .one(flowContributor:
                     .contribute(withNextPresentable: vc, withNextStepper: vc))
             
@@ -62,8 +65,16 @@ final class HomeFlow: Flow {
             }
             let vc = LocationDetailViewController(reactor: reactor)
             navigationController.pushViewController(vc, animated: true)
+            
             return .one(flowContributor:
                     .contribute(withNextPresentable: vc, withNextStepper: vc))
+            
+        case .programRegistration:
+            let vc = ProgramRegisterViewController(reactor: ProgramRegisterReactor())
+            navigationController.pushViewController(vc, animated: true)
+            
+            return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
+            
         default:
             return .one(flowContributor: .forwardToParentFlow(withStep: step))
         }
