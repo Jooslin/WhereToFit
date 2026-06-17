@@ -18,12 +18,6 @@ private enum BottomPanelDetent {
     case expanded
 }
 
-private enum MarkerPresentationStyle: Equatable {
-    case gym
-    case sameCoordinateCount
-    case nearbyCount(clusterGridSizeMeters: Int)
-}
-
 private enum MapMetric {
     static let collapsedBottomPanelHeight: CGFloat = 180
     static let mediumBottomPanelHeight: CGFloat = 380
@@ -40,19 +34,10 @@ private enum MapAnimationMetric {
     static let bottomPanelInitialVelocity: CGFloat = 0.45
 }
 
-private enum MapZoomLevel {
-    static let gymMarkerMinimum: Double = 15
-    static let sameCoordinateCountMarkerMinimum: Double = 14
-}
-
-private struct FacilityMarkerGroup {
-    let coordinate: GeoCoordinate
-    var facilities: [FitnessFacility]
-}
-
 final class MapViewController: BaseViewController<MapReactor> {
     private let mapView = MapView()
     private let searchMapSuggestionsUseCase: SearchMapSuggestionsUseCase
+    private let markerRenderer = MapMarkerRenderer()
 
     private var allFacilities: [FitnessFacility] = []
     private var unfilteredFacilities: [FitnessFacility] = []
@@ -62,16 +47,15 @@ final class MapViewController: BaseViewController<MapReactor> {
     private var searchSuggestions: [MapSearchSuggestion] = []
     private var latestSearchSuggestionQuery = ""
     private var selectedFacility: FitnessFacility?
-    private var markers: [NMFMarker] = []
-    private var renderedMarkerPresentationStyle: MarkerPresentationStyle?
     private var shouldUpdateListForVisibleMapBounds = false
     private var bottomPanelDetent: BottomPanelDetent = .collapsed
     private var bottomPanelHeightAtPanStart: CGFloat = MapMetric.collapsedBottomPanelHeight
     private var isShowingFacilityEmptyState = false
+    private var emptyStateMessage = "조건에 맞는 프로그램이 없습니다."
+    private var hasEmptyStateError = false
     private let locationService = LocationService()
     private var currentUserCoordinate: GeoCoordinate?
     private let defaultCoordinate = GeoCoordinate(latitude: 37.576022, longitude: 126.976900) // 기본 좌표 광화문
-    private var errorMessage: String?
 
     init(
         reactor: MapReactor?,
@@ -96,6 +80,7 @@ final class MapViewController: BaseViewController<MapReactor> {
         configureBottomPanelGesture()
         configureFilterButtonActions()
         configureMap()
+        configureMarkerRenderer()
         configureTraitChangeHandling()
         mapView.tableView.dataSource = self
         mapView.tableView.delegate = self
@@ -145,10 +130,12 @@ final class MapViewController: BaseViewController<MapReactor> {
             .distinctUntilChanged()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] facilities in
-                self?.markerFacilities = facilities
-                self?.renderMarkers(facilities)
-                self?.requestProgramsForVisibleMarkerFacilities()
-                self?.updateDisplayedFacilities()
+                guard let self else { return }
+                self.markerFacilities = facilities
+                self.markerRenderer.render(facilities, on: self.mapView.naverMapView.mapView)
+                self.syncVisibleFacilityIDsWithReactor()
+                self.requestProgramsForVisibleMarkerFacilities()
+                self.updateDisplayedFacilities()
             })
             .disposed(by: disposeBag)
 
@@ -159,6 +146,7 @@ final class MapViewController: BaseViewController<MapReactor> {
             .subscribe(onNext: { [weak self] facilities in
                 guard let self else { return }
                 self.unfilteredMarkerFacilities = facilities
+                self.syncVisibleFacilityIDsWithReactor()
                 self.requestProgramsForVisibleMarkerFacilities()
                 self.updateDisplayedFacilities()
             })
@@ -195,11 +183,21 @@ final class MapViewController: BaseViewController<MapReactor> {
             .disposed(by: disposeBag)
 
         reactor.state
-            .map(\.errorMessage)
+            .map(\.emptyStateMessage)
             .distinctUntilChanged()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] message in
-                self?.errorMessage = message
+                self?.emptyStateMessage = message
+                self?.updateDisplayedFacilities()
+            })
+            .disposed(by: disposeBag)
+
+        reactor.state
+            .map(\.hasEmptyStateError)
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] hasError in
+                self?.hasEmptyStateError = hasError
                 self?.updateDisplayedFacilities()
             })
             .disposed(by: disposeBag)
@@ -300,10 +298,42 @@ final class MapViewController: BaseViewController<MapReactor> {
         mapView.currentLocationButton.addTarget(self, action: #selector(didTapCurrentLocationButton), for: .touchUpInside)
     }
 
+    private func configureMarkerRenderer() {
+        markerRenderer.didTapFacilityMarker = { [weak self] facility in
+            guard let self else { return }
+            let facilityIDs = self.markerFacilities
+                .filter { $0.coordinate.isSameLocation(as: facility.coordinate) }
+                .compactMap(\.sourceFacilityID)
+            self.reactor?.action.onNext(.loadProgramsForFacilities(facilityIDs))
+            self.reactor?.action.onNext(.selectFacility(facility.id))
+            self.moveCamera(to: facility.coordinate)
+        }
+
+        markerRenderer.didTapFacilityGroupMarker = { [weak self] group, opensClusterOnTap in
+            guard let self,
+                  let primaryFacility = group.facilities.first else { return }
+
+            let facilityIDs = group.facilities.compactMap(\.sourceFacilityID)
+            self.reactor?.action.onNext(.loadProgramsForFacilities(facilityIDs))
+
+            if opensClusterOnTap, group.facilities.count > 1 {
+                self.reactor?.action.onNext(.selectFacility(nil))
+                self.shouldUpdateListForVisibleMapBounds = true
+                self.moveCamera(to: group.coordinate, zoom: MapMarkerRenderer.clusterExpansionZoom)
+            } else {
+                self.reactor?.action.onNext(.selectFacility(primaryFacility.id))
+                self.moveCamera(to: group.coordinate)
+            }
+        }
+    }
+
     private func configureTraitChangeHandling() {
         registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (viewController: Self, _) in
             viewController.applyMapAppearance()
-            viewController.renderMarkers(viewController.markerFacilities)
+            viewController.markerRenderer.render(
+                viewController.markerFacilities,
+                on: viewController.mapView.naverMapView.mapView
+            )
         }
     }
 
@@ -388,8 +418,8 @@ final class MapViewController: BaseViewController<MapReactor> {
         showSearchSuggestions([])
         view.endEditing(true)
         reactor?.action.onNext(.selectFacility(suggestion.facilityID))
+        reactor?.action.onNext(.setSearchErrorMessage(nil))
         shouldUpdateListForVisibleMapBounds = true
-        errorMessage = nil
         moveCamera(to: suggestion.coordinate, zoom: suggestion.preferredZoom)
         setBottomPanelDetent(.medium, animated: true)
     }
@@ -434,30 +464,23 @@ final class MapViewController: BaseViewController<MapReactor> {
         }
 
         reactor?.action.onNext(.selectFacility(result.selectedFacilityID))
+        reactor?.action.onNext(.setSearchErrorMessage(nil))
         shouldUpdateListForVisibleMapBounds = true
-        errorMessage = nil
         moveCamera(to: result.coordinate, zoom: result.preferredZoom)
         setBottomPanelDetent(.medium, animated: true)
         return true
     }
 
-    private func centerCoordinate(of facilities: [FitnessFacility]) -> GeoCoordinate {
-        guard facilities.isEmpty == false else {
-            return defaultCoordinate
-        }
-
-        let latitude = facilities.map(\.coordinate.latitude).reduce(0, +) / Double(facilities.count)
-        let longitude = facilities.map(\.coordinate.longitude).reduce(0, +) / Double(facilities.count)
-        return GeoCoordinate(latitude: latitude, longitude: longitude)
-    }
-
     private func showSearchFailure(for query: String) {
+        let message = "\"\(query)\" 위치를 찾을 수 없습니다."
         reactor?.action.onNext(.selectFacility(nil))
+        reactor?.action.onNext(.setSearchErrorMessage(message))
         showSearchSuggestions([])
         displayedFacilities = []
-        errorMessage = "\"\(query)\" 위치를 찾을 수 없습니다."
+        emptyStateMessage = message
+        hasEmptyStateError = true
         isShowingFacilityEmptyState = false
-        mapView.emptyStateLabel.text = errorMessage
+        mapView.emptyStateLabel.text = message
         mapView.emptyStateLabel.isHidden = false
         mapView.tableView.isHidden = true
         setBottomPanelDetent(.medium, animated: true)
@@ -477,8 +500,8 @@ final class MapViewController: BaseViewController<MapReactor> {
             isShowingFacilityEmptyState = false
             mapView.emptyStateLabel.isHidden = true
         } else {
-            mapView.emptyStateLabel.text = emptyStateMessage()
-            isShowingFacilityEmptyState = displayedFacilities.isEmpty && errorMessage == nil
+            mapView.emptyStateLabel.text = emptyStateMessage
+            isShowingFacilityEmptyState = displayedFacilities.isEmpty && hasEmptyStateError == false
             mapView.emptyStateLabel.isHidden = displayedFacilities.isEmpty == false
         }
         mapView.tableView.isHidden = displayedFacilities.isEmpty
@@ -537,10 +560,7 @@ final class MapViewController: BaseViewController<MapReactor> {
 
     private func requestProgramsForVisibleMarkerFacilities() {
         // 전체 프로그램을 미리 받지 않고, 현재 지도에 보이는 시설 ID에 대해서만 프로그램을 요청합니다.
-        let sourceFacilities = unfilteredMarkerFacilities.isEmpty
-            ? markerFacilities
-            : unfilteredMarkerFacilities
-        let facilityIDs = visibleMarkerFacilitiesInCurrentMapBounds(from: sourceFacilities)
+        let facilityIDs = visibleMarkerFacilitiesForMapContext()
             .compactMap(\.sourceFacilityID)
         guard facilityIDs.isEmpty == false else { return }
         reactor?.action.onNext(.loadProgramsForFacilities(facilityIDs))
@@ -589,8 +609,17 @@ final class MapViewController: BaseViewController<MapReactor> {
             && filter.timeSlots.isEmpty
     }
 
-    private func visibleMarkerFacilitiesInCurrentMapBounds() -> [FitnessFacility] {
-        visibleMarkerFacilitiesInCurrentMapBounds(from: markerFacilities)
+    private func visibleMarkerFacilitiesForMapContext() -> [FitnessFacility] {
+        let sourceFacilities = unfilteredMarkerFacilities.isEmpty
+            ? markerFacilities
+            : unfilteredMarkerFacilities
+        return visibleMarkerFacilitiesInCurrentMapBounds(from: sourceFacilities)
+    }
+
+    private func syncVisibleFacilityIDsWithReactor() {
+        let visibleFacilityIDs = visibleMarkerFacilitiesForMapContext()
+            .map { $0.sourceFacilityID ?? $0.id }
+        reactor?.action.onNext(.updateVisibleFacilityIDs(visibleFacilityIDs))
     }
 
     private func visibleMarkerFacilitiesInCurrentMapBounds(from facilities: [FitnessFacility]) -> [FitnessFacility] {
@@ -602,20 +631,6 @@ final class MapViewController: BaseViewController<MapReactor> {
             )
             return visibleBounds.hasPoint(position)
         }
-    }
-
-    private func emptyStateMessage() -> String {
-        if let errorMessage {
-            return errorMessage
-        }
-
-        // 지도 안에 시설 자체가 없는 경우와, 시설은 있지만 필터 조건에 맞지 않는 경우를 구분합니다.
-        let visibleMarkerFacilities = visibleMarkerFacilitiesInCurrentMapBounds(from: unfilteredMarkerFacilities)
-        if visibleMarkerFacilities.isEmpty {
-            return "주변에 시설, 프로그램이 없습니다."
-        }
-
-        return "조건에 맞는 프로그램이 없습니다."
     }
 
     private func isFacilityVisibleInCurrentMapBounds(_ facility: FitnessFacility) -> Bool {
@@ -709,222 +724,6 @@ final class MapViewController: BaseViewController<MapReactor> {
 
         default:
             break
-        }
-    }
-
-    private func renderMarkers(_ facilities: [FitnessFacility]) {
-        let presentationStyle = markerPresentationStyle
-        renderedMarkerPresentationStyle = presentationStyle
-        markers.forEach { $0.mapView = nil }
-
-        // 가까이서는 개별 gym 마커, 중간 줌에서는 같은 좌표 묶음, 멀리서는 근처 시설 클러스터를 사용합니다.
-        switch presentationStyle {
-        case .gym:
-            markers = makeGymMarkers(from: facilities)
-        case .sameCoordinateCount:
-            markers = makeCountMarkers(from: makeSameCoordinateMarkerGroups(from: facilities))
-        case let .nearbyCount(clusterGridSizeMeters):
-            markers = makeCountMarkers(
-                from: makeNearbyMarkerGroups(
-                    from: facilities,
-                    clusterGridSizeMeters: clusterGridSizeMeters
-                ),
-                opensClusterOnTap: true
-            )
-        }
-    }
-
-    private var markerPresentationStyle: MarkerPresentationStyle {
-        let zoomLevel = mapView.naverMapView.mapView.zoomLevel
-
-        // 줌 레벨 기준은 UI 가독성 기준입니다. 숫자를 바꾸면 마커 전환 시점이 함께 바뀝니다.
-        if zoomLevel >= MapZoomLevel.gymMarkerMinimum {
-            return .gym
-        }
-
-        if zoomLevel >= MapZoomLevel.sameCoordinateCountMarkerMinimum {
-            return .sameCoordinateCount
-        }
-
-        return .nearbyCount(clusterGridSizeMeters: nearbyClusterGridSizeMeters(for: zoomLevel))
-    }
-
-    private func refreshMarkersIfNeededForCurrentZoom() {
-        let currentStyle = markerPresentationStyle
-        guard renderedMarkerPresentationStyle != currentStyle else { return }
-        renderMarkers(markerFacilities)
-    }
-
-    private func makeGymMarkers(from facilities: [FitnessFacility]) -> [NMFMarker] {
-        let markerIconImage = makeGymMarkerImage()
-        return facilities.map { facility in
-            let marker = NMFMarker(
-                position: NMGLatLng(
-                    lat: facility.coordinate.latitude,
-                    lng: facility.coordinate.longitude
-                )
-            )
-            marker.iconImage = NMFOverlayImage(image: markerIconImage)
-            marker.width = markerIconImage.size.width
-            marker.height = markerIconImage.size.height
-            marker.anchor = CGPoint(x: 0.5, y: 0.5)
-            marker.touchHandler = { [weak self] _ in
-                guard let self else { return true }
-                // 같은 좌표에 시설/프로그램이 여러 개 있을 수 있어 해당 좌표의 모든 시설 ID로 프로그램을 요청합니다.
-                let facilityIDs = self.markerFacilities
-                    .filter { $0.coordinate.isSameLocation(as: facility.coordinate) }
-                    .compactMap(\.sourceFacilityID)
-                self.reactor?.action.onNext(.loadProgramsForFacilities(facilityIDs))
-                self.reactor?.action.onNext(.selectFacility(facility.id))
-                self.moveCamera(to: facility.coordinate)
-                return true
-            }
-            marker.mapView = mapView.naverMapView.mapView
-            return marker
-        }
-    }
-
-    private func makeCountMarkers(
-        from markerGroups: [FacilityMarkerGroup],
-        opensClusterOnTap: Bool = false
-    ) -> [NMFMarker] {
-        return markerGroups.compactMap { group in
-            guard let primaryFacility = group.facilities.first else { return nil }
-
-            let markerIconImage = makeFacilityCountMarkerImage(for: group.facilities)
-            let marker = NMFMarker(
-                position: NMGLatLng(
-                    lat: group.coordinate.latitude,
-                    lng: group.coordinate.longitude
-                )
-            )
-            marker.iconImage = NMFOverlayImage(image: markerIconImage)
-            marker.width = markerIconImage.size.width
-            marker.height = markerIconImage.size.height
-            marker.anchor = CGPoint(x: 0.5, y: 0.5)
-            marker.touchHandler = { [weak self] _ in
-                guard let self else { return true }
-                let facilityIDs = group.facilities.compactMap(\.sourceFacilityID)
-                self.reactor?.action.onNext(.loadProgramsForFacilities(facilityIDs))
-                if opensClusterOnTap, group.facilities.count > 1 {
-                    // 먼 줌의 클러스터를 누르면 바로 특정 시설을 고르지 않고, 묶음 중심으로 확대해 선택 범위를 좁힙니다.
-                    self.reactor?.action.onNext(.selectFacility(nil))
-                    self.shouldUpdateListForVisibleMapBounds = true
-                    self.moveCamera(to: group.coordinate, zoom: MapZoomLevel.sameCoordinateCountMarkerMinimum)
-                } else {
-                    self.reactor?.action.onNext(.selectFacility(primaryFacility.id))
-                    self.moveCamera(to: group.coordinate)
-                }
-                return true
-            }
-            marker.mapView = mapView.naverMapView.mapView
-            return marker
-        }
-    }
-
-    private func makeGymMarkerImage() -> UIImage {
-        let size = CGSize(width: 34, height: 34)
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = UIScreen.main.scale
-
-        return UIGraphicsImageRenderer(size: size, format: format).image { _ in
-            let bounds = CGRect(origin: .zero, size: size).insetBy(dx: 1, dy: 1)
-            let circlePath = UIBezierPath(ovalIn: bounds)
-            UIColor.systemBackground.withAlphaComponent(0.8).setFill()
-            circlePath.fill()
-            UIColor.primary100.setStroke()
-            circlePath.lineWidth = 1
-            circlePath.stroke()
-
-            guard let icon = UIImage(named: "gym")?.withRenderingMode(.alwaysOriginal) else { return }
-            let iconRect = CGRect(x: 9, y: 9, width: 16, height: 16)
-            icon.draw(in: iconRect, blendMode: .normal, alpha: 1)
-        }
-    }
-
-    private func makeSameCoordinateMarkerGroups(from facilities: [FitnessFacility]) -> [FacilityMarkerGroup] {
-        facilities.reduce(into: []) { groups, facility in
-            if let index = groups.firstIndex(where: { $0.coordinate.isSameLocation(as: facility.coordinate) }) {
-                groups[index].facilities.append(facility)
-            } else {
-                groups.append(FacilityMarkerGroup(coordinate: facility.coordinate, facilities: [facility]))
-            }
-        }
-    }
-
-    private func makeNearbyMarkerGroups(
-        from facilities: [FitnessFacility],
-        clusterGridSizeMeters: Int
-    ) -> [FacilityMarkerGroup] {
-        // 지도 라이브러리 클러스터링 대신 미터 단위 격자로 묶어 카테고리별 숫자 마커를 직접 만듭니다.
-        let gridSize = Double(clusterGridSizeMeters)
-        let groupedFacilities = Dictionary(grouping: facilities) { facility in
-            nearbyClusterKey(for: facility.coordinate, gridSizeMeters: gridSize)
-        }
-
-        return groupedFacilities.values.map { facilities in
-            FacilityMarkerGroup(
-                coordinate: centerCoordinate(of: facilities),
-                facilities: facilities
-            )
-        }
-    }
-
-    private func nearbyClusterKey(for coordinate: GeoCoordinate, gridSizeMeters: Double) -> String {
-        let latitudeMeters = coordinate.latitude * 111_320
-        let longitudeMeters = coordinate.longitude
-            * 111_320
-            * cos(coordinate.latitude * .pi / 180)
-        let latitudeIndex = Int(floor(latitudeMeters / gridSizeMeters))
-        let longitudeIndex = Int(floor(longitudeMeters / gridSizeMeters))
-        return "\(latitudeIndex)-\(longitudeIndex)"
-    }
-
-    private func nearbyClusterGridSizeMeters(for zoomLevel: Double) -> Int {
-        switch zoomLevel {
-        case ..<8:
-            return 20_000
-        case ..<9:
-            return 14_000
-        case ..<10:
-            return 10_000
-        case ..<11:
-            return 7_000
-        case ..<12:
-            return 5_000
-        case ..<13:
-            return 3_000
-        default:
-            return 1_800
-        }
-    }
-
-    private func makeFacilityCountMarkerImage(for facilities: [FitnessFacility]) -> UIImage {
-        FacilityCountMarkerView(items: makeFacilityCountMarkerItems(for: facilities)).renderedImage()
-    }
-
-    private func makeFacilityCountMarkerItems(for facilities: [FitnessFacility]) -> [FacilityCountMarkerView.Item] {
-        markerIconCounts(for: facilities).map { iconName, count in
-            return FacilityCountMarkerView.Item(
-                icon: UIImage(named: iconName)?.withRenderingMode(.alwaysOriginal)
-                    ?? UIImage(named: "gym")?.withRenderingMode(.alwaysOriginal),
-                count: count
-            )
-        }
-    }
-
-    private func markerIconCounts(for facilities: [FitnessFacility]) -> [(iconName: String, count: Int)] {
-        let countsByIconName = facilities.reduce(into: [String: Int]()) { counts, facility in
-            counts[facility.category.markerIconName, default: 0] += 1
-        }
-        var seenIconNames = Set<String>()
-
-        // FacilityCategory 순서를 유지해 마커 안의 아이콘 표시 순서가 매번 흔들리지 않게 합니다.
-        return FacilityCategory.allCases.compactMap { category in
-            let iconName = category.markerIconName
-            guard seenIconNames.insert(iconName).inserted,
-                  let count = countsByIconName[iconName] else { return nil }
-            return (iconName: iconName, count: count)
         }
     }
 
@@ -1048,7 +847,8 @@ extension MapViewController: UITableViewDataSource, UITableViewDelegate {
 extension MapViewController: NMFMapViewCameraDelegate {
     func mapViewCameraIdle(_ mapView: NMFMapView) {
         shouldUpdateListForVisibleMapBounds = true
-        refreshMarkersIfNeededForCurrentZoom()
+        markerRenderer.refreshIfNeeded(for: markerFacilities, on: self.mapView.naverMapView.mapView)
+        syncVisibleFacilityIDsWithReactor()
         requestProgramsForVisibleMarkerFacilities()
 
         if let selectedFacility,
@@ -1087,12 +887,5 @@ extension MapViewController: UIGestureRecognizerDelegate {
 
         let location = gestureRecognizer.location(in: mapView.bottomPanelView)
         return location.y <= 56
-    }
-}
-
-private extension GeoCoordinate {
-    func isSameLocation(as other: GeoCoordinate) -> Bool {
-        abs(latitude - other.latitude) < 0.000001
-            && abs(longitude - other.longitude) < 0.000001
     }
 }
