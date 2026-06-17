@@ -7,17 +7,21 @@
 
 import UIKit
 import SnapKit
+import Then
 
 final class HomeTitleView: TitleView {
     init() {
+        let leftButton = IconButton(config: .icon, style: .bothImage).then {
+            $0.normalImage = .locationPinFilled
+            $0.title = "지역"
+            $0.normalRightImage = .arrowDown
+            $0.titleLabel.apply(font: .systemFont(ofSize: 20, weight: .semibold))
+        }
+        
         super.init(
             leftButtonImage: .locationPinFilled,
             rightButtonImage: .alarm,
-            leftButton: IconButton(
-                title: "지역",
-                labelConfig: .title20Semibold,
-                rightImage: .arrowDown
-            )
+            leftButton: leftButton
         )
         
         leftButton.setContentHuggingPriority(.required, for: .horizontal)
@@ -27,8 +31,6 @@ final class HomeTitleView: TitleView {
             $0.verticalEdges.equalToSuperview().inset(12)
             $0.leading.equalToSuperview().inset(16)
         }
-        
-        leftButton.applyColor(.gray900)
     }
     
     @available(*, unavailable)

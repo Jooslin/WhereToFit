@@ -33,6 +33,13 @@ final class MainFlow: Flow {
         case .main:
             return navigateToMain()
             
+        case .pageBack:
+            pop(animated: true)
+            return .none
+            
+        case .alert(title: let title, message: let message):
+            return presentAlert(title: title, message: message)
+            
         default:
             return .one(flowContributor: .forwardToParentFlow(withStep: step))
         }
