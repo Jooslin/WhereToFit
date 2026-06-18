@@ -12,9 +12,6 @@ nonisolated struct UserProfile: Equatable, Sendable {
     let nickname: String // 닉네임
     let birthDate: Date // 생년월일
     let gender: UserGender // 성별
-    let residenceAddress: String? // 거주지역
-    let residenceLatitude: Double? // 지역 좌표
-    let residenceLongitude: Double? // 지역 좌표
     let height: Double? // 신장
     let initialWeight: Double? // 몸무게
     let exerciseExperience: ExerciseExperience? // 운동 경험
@@ -24,6 +21,24 @@ nonisolated struct UserProfile: Equatable, Sendable {
     let usesPublicFacility: Bool // 시설 이용 여부
     let createdAt: Date // 만든 날짜 ( 몸무게, 신장 표시 때 필요)
     let updatedAt: Date // 업데이트 여부 
+}
+
+nonisolated struct UserLocation: Equatable, Sendable {
+    let id: UUID
+    let name: String
+    let address: String
+    let latitude: Double
+    let longitude: Double
+    let isSelected: Bool
+    let kind: UserLocationKind
+    let createdAt: Date
+    let updatedAt: Date
+}
+
+nonisolated enum UserLocationKind: String, Equatable, Sendable {
+    case home
+    case office
+    case custom
 }
 
 nonisolated enum UserGender: String, Equatable, Sendable {
