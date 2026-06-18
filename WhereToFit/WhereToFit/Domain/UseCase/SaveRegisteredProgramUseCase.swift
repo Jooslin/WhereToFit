@@ -9,11 +9,11 @@ import Foundation
 import RxSwift
 
 /*
- 등록하기 버튼 탭
+ 예시로 등록하기 버튼 탭 하면
  -> ViewController가 Reactor에 Action 전달
  -> Reactor가 SaveRegisteredProgramUseCase.Input 생성
  -> saveRegisteredProgramUseCase.execute(input) 호출
- -> Repository가 CoreData에 저장
+ -> Repository가 CoreData에 저장하는 식으로 이루어집니다.
 */
 
 final class SaveRegisteredProgramUseCase {
@@ -47,7 +47,7 @@ final class SaveRegisteredProgramUseCase {
         self.calendar = calendar
     }
 
-    // 입력값을 앱 저장 규칙에 맞게 RegisteredProgram으로 변환한 뒤 Repository에 저장
+    // 입력값을 앱 저장 규칙에 맞게 RegisteredProgram으로 변환한 뒤 Repository에 저장합니다.
     func execute(_ input: Input) -> Single<RegisteredProgram> {
         let now = Date()
         let program = RegisteredProgram(
