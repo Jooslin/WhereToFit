@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 import Then
 
-final class ProgramFacilityListCell: UICollectionViewListCell {
+final class FacilitySearchListCell: UICollectionViewListCell {
     let imageBackgroundView = UIView().then {
         $0.backgroundColor = .gray50
         $0.layer.cornerRadius = 16
@@ -51,8 +51,8 @@ final class ProgramFacilityListCell: UICollectionViewListCell {
 }
 
 //MARK: Configure
-extension ProgramFacilityListCell {
-    func configure(with item: ProgramFacilitySearchView.Item) {
+extension FacilitySearchListCell {
+    func configure(with item: FacilitySearchView.Item) {
         nameLabel.text = item.name
         addressLabel.text = item.address
         distanceLabel.text = "\(formattedDistance(item.distance))km"
@@ -74,7 +74,7 @@ extension ProgramFacilityListCell {
 }
 
 //MARK: Layout
-extension ProgramFacilityListCell {
+extension FacilitySearchListCell {
     private func setLayout() {
         let labelStack = UIStackView(arrangedSubviews: [nameLabel, addressLabel]).then {
             $0.axis = .vertical

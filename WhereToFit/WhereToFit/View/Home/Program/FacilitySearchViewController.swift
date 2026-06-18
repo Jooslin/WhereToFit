@@ -10,8 +10,8 @@ import RxSwift
 import ReactorKit
 import RxCocoa
 
-final class ProgramFacilitySearchViewController: BaseViewController<LocationReactor> {
-    let searchView = ProgramFacilitySearchView()
+final class FacilitySearchViewController: BaseViewController<LocationReactor> {
+    let searchView = FacilitySearchView()
     
     override func loadView() {
         view = searchView
@@ -21,7 +21,7 @@ final class ProgramFacilitySearchViewController: BaseViewController<LocationReac
         super.viewDidLoad()
         
         let items = [
-            ProgramFacilitySearchView.Item(id: UUID(), name: "올림픽수영장", address: "서울 송파구 올림픽로 424", distance: 1.0)
+            FacilitySearchView.Item(id: UUID(), name: "올림픽수영장", address: "서울 송파구 올림픽로 424", distance: 1.0)
         ]
         
         searchView.setSnapshot(with: items)
@@ -52,5 +52,5 @@ final class ProgramFacilitySearchViewController: BaseViewController<LocationReac
 }
 
 #Preview {
-    ProgramFacilitySearchViewController()
+    FacilitySearchViewController()
 }

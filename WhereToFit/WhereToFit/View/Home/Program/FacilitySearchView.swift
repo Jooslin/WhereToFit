@@ -11,7 +11,7 @@ import SnapKit
 import RxCocoa
 import RxSwift
 
-final class ProgramFacilitySearchView: UIView {
+final class FacilitySearchView: UIView {
     let titleView = TitleView(text: "시설 검색", leftButtonImage: .arrowLeft)
     let searchBar = SearchBar(placeholder: "주소나 이름으로 검색하기")
     private(set) lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout()).then {
@@ -41,7 +41,7 @@ final class ProgramFacilitySearchView: UIView {
     }
 }
 
-extension ProgramFacilitySearchView {
+extension FacilitySearchView {
     private func setLayout() {
         addSubview(titleView)
         addSubview(searchBar)
@@ -73,9 +73,9 @@ extension ProgramFacilitySearchView {
 }
 
 //MARK: CollectionView DataSource
-extension ProgramFacilitySearchView {
+extension FacilitySearchView {
     private func makeDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, Item> {
-        let listCellRegistration = UICollectionView.CellRegistration<ProgramFacilityListCell, Item> { [weak self] cell, indexPath, item in
+        let listCellRegistration = UICollectionView.CellRegistration<FacilitySearchListCell, Item> { [weak self] cell, indexPath, item in
             guard let self else { return }
             cell.configure(with: item)
             
@@ -103,7 +103,7 @@ extension ProgramFacilitySearchView {
 
 
 //MARK: CollectionView Layout
-extension ProgramFacilitySearchView {
+extension FacilitySearchView {
     private func makeCompositionalLayout() -> UICollectionViewCompositionalLayout {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
         configuration.contentInsetsReference = .layoutMargins
@@ -137,7 +137,7 @@ extension ProgramFacilitySearchView {
 }
 
 //MARK: CollectionView Item
-extension ProgramFacilitySearchView {
+extension FacilitySearchView {
     nonisolated
     struct Item: Hashable {
         let id: UUID
@@ -148,12 +148,12 @@ extension ProgramFacilitySearchView {
 }
 
 //MARK: Reactive
-extension Reactive where Base: ProgramFacilitySearchView {
+extension Reactive where Base: FacilitySearchView {
     var backButtonTap: ControlEvent<Void> {
         base.titleView.rx.leftButtonTap
     }
     
-    var listCellSelected: Observable<ProgramFacilitySearchView.Item> {
+    var listCellSelected: Observable<FacilitySearchView.Item> {
         base.collectionView.rx.itemSelected
             .compactMap { indexPath in
                 base.dataSource.itemIdentifier(for: indexPath)
