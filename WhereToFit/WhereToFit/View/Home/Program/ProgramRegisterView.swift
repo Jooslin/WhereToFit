@@ -22,7 +22,7 @@ final class ProgramRegisterView: UIView {
     private let regularLabel = UILabel(text: "주기적으로 갑니다", config: .body14Medium, color: .gray400)
     private let reservationLabel = UILabel(text: "예약한 날이 있습니다", config: .body14Medium, color: .gray400)
     
-    let facilityTextField = DesignTextField().then {
+    let facilityTextField = TouchableDesignTextField().then {
         $0.placeholder = "이용 시설 검색"
     }
     
@@ -30,7 +30,7 @@ final class ProgramRegisterView: UIView {
         $0.placeholder = "프로그램명을 입력해주세요"
     }
     
-    let sportsTextField = DesignTextField().then {
+    let sportsTextField = TouchableDesignTextField().then {
         $0.placeholder = "운동 종목을 선택해주세요"
     }
     
@@ -45,15 +45,15 @@ final class ProgramRegisterView: UIView {
     
     private(set) lazy var weekdayButtons = generateWeekdayButtonStack()
     
-    let dateTextField = DesignTextField().then {
+    let dateTextField = TouchableDesignTextField().then {
         $0.placeholder = "날짜를 선택해주세요"
     }
     
-    let startTimeTextField = DesignTextField().then {
+    let startTimeTextField = TouchableDesignTextField().then {
         $0.placeholder = "시간을 선택해주세요"
     }
     
-    let endTimeTextField = DesignTextField().then {
+    let endTimeTextField = TouchableDesignTextField().then {
         $0.placeholder = "시간을 선택해주세요"
     }
     
