@@ -34,9 +34,12 @@ final class ProgramDateReactor: BaseReactor {
     
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
-        case .selectDate(let date):
+        case .selectDate(let dateComp):
+            let date = dateService.startOfDay(dateComp)
             return .just(.setDate(date))
-        case .deselectDate(let date):
+            
+        case .deselectDate(let dateComp):
+            let date = dateService.startOfDay(dateComp)
             return .just(.deleteDate(date))
         }
     }
@@ -53,8 +56,4 @@ final class ProgramDateReactor: BaseReactor {
         
         return newState
     }
-}
-
-extension ProgramDateReactor {
-    
 }
