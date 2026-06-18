@@ -28,7 +28,7 @@ final class OnboardingFacilityView: OnboardingBaseView {
         $0.setImage(.plus, for: .normal)
     }
     
-    override init(frame: CGRect = .zero, step: OnboardingStep = .facilityExperience) {
+    override init(frame: CGRect = .zero, step: OnboardingStep = .facility) {
         super.init(frame: frame, step: step)
         setLayout()
     }
