@@ -11,7 +11,7 @@ import ReactorKit
 import RxCocoa
 
 final class FacilitySearchViewController: BaseViewController<FacilitySearchReactor> {
-    var onSelectFacility: ((UUID) -> Void)?
+    var onSelectFacility: ((UUID) -> Void)? // ProgramRegisterReactor 데이터 전달용 클로저
     let searchView = FacilitySearchView()
     
     override func loadView() {

@@ -41,6 +41,12 @@ final class DateService {
             return WeeklyDate(weekday: weekdayText, day: day)
         }
     }
+    
+    func startOfDay(_ dateComp: DateComponents) -> Date {
+        calendar.startOfDay(
+            for: calendar.date(from: dateComp)!
+        )
+    }
 }
 
 //MARK: Entity

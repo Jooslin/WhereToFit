@@ -9,6 +9,8 @@ import UIKit
 import RxSwift
 import ReactorKit
 import RxCocoa
+import SnapKit
+import Then
 
 final class ProgramRegisterViewController: BaseViewController<ProgramRegisterReactor> {
     private let registerView = ProgramRegisterView()
@@ -40,6 +42,14 @@ final class ProgramRegisterViewController: BaseViewController<ProgramRegisterRea
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { AppStep.facilitySearch }
             .bind(to: steps)
+            .disposed(by: disposeBag)
+        
+        registerView.dateTextField.rx.tap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .withUnretained(self)
+            .subscribe(onNext: { `self`, _ in
+                
+            })
             .disposed(by: disposeBag)
     }
     
