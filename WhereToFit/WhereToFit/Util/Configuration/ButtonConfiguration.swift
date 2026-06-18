@@ -138,6 +138,8 @@ extension ButtonConfiguration {
     static let mediumBorderBlue = make(size: .medium, style: .border, color: .white, titleColor: .primary400)
     static let largeBorderBlue = make(size: .large, style: .border, color: .white, titleColor: .primary400)
     
+    static let largeBorderGray = make(size: .large, style: .border, color: .white, titleColor: .gray900, borderColor: .gray400)
+    
     //MARK: SelectedBorder
     static let selectedSmallBorderBlue = make(size: .small, style: .border, color: .primary25, titleColor: .primary600, borderColor: .primary200)
     static let selectedOnboarding = make(size: .onboarding, style: .border, color: .primary25, titleColor: .primary600, borderColor: .primary200)
