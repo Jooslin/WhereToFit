@@ -91,7 +91,12 @@ final class HomeFlow: Flow {
             vc.onSelectDate = { [weak self] dates in
                 self?.programRegisterReactor?.action.onNext(.selectDates(dates))
             }
+            
             vc.modalPresentationStyle = .pageSheet
+            if let sheet = vc.sheetPresentationController {
+                sheet.detents = [.medium()]
+                sheet.prefersGrabberVisible = true
+            }
             
             navigationController.present(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
