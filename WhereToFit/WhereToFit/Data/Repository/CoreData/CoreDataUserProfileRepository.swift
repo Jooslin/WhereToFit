@@ -58,19 +58,9 @@ final class CoreDataUserProfileRepository: UserProfileRepositoryProtocol {
         id: UUID,
         context: NSManagedObjectContext
     ) throws -> NSManagedObject? {
-        let idMatchedObject = try context.fetchObjects(
+        try context.fetchObjects(
             entityName: "UserProfileEntity",
-            predicate: NSPredicate(format: "%K == %@", "id", id as CVarArg),
-            fetchLimit: 1
-        ).first
-
-        if let idMatchedObject {
-            return idMatchedObject
-        }
-
-        return try context.fetchObjects(
-            entityName: "UserProfileEntity",
-            sortDescriptors: [NSSortDescriptor(key: "updatedAt", ascending: false)],
+            predicate: NSPredicate(format: "%K == %@", "id", id as NSUUID),
             fetchLimit: 1
         ).first
     }

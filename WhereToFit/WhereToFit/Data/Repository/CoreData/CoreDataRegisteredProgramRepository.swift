@@ -40,7 +40,7 @@ final class CoreDataRegisteredProgramRepository: RegisteredProgramRepositoryProt
                 do {
                     let object = try context.fetchObjects(
                         entityName: "RegisteredProgramEntity",
-                        predicate: NSPredicate(format: "%K == %@", "id", program.id as CVarArg),
+                        predicate: NSPredicate(format: "%K == %@", "id", program.id as NSUUID),
                         fetchLimit: 1
                     ).first ?? context.insertObject(entityName: "RegisteredProgramEntity")
 
@@ -62,7 +62,7 @@ final class CoreDataRegisteredProgramRepository: RegisteredProgramRepositoryProt
                 do {
                     let objects = try context.fetchObjects(
                         entityName: "RegisteredProgramEntity",
-                        predicate: NSPredicate(format: "%K == %@", "id", id as CVarArg)
+                        predicate: NSPredicate(format: "%K == %@", "id", id as NSUUID)
                     )
                     objects.forEach(context.delete)
                     try context.save()

@@ -112,7 +112,7 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
                 do {
                     let existingObject = try context.fetchObjects(
                         entityName: "ExerciseRecordEntity",
-                        predicate: NSPredicate(format: "%K == %@", "healthKitUUID", healthKitUUID as CVarArg),
+                        predicate: NSPredicate(format: "%K == %@", "healthKitUUID", healthKitUUID as NSUUID),
                         fetchLimit: 1
                     ).first
 
@@ -215,7 +215,7 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
     ) throws -> NSManagedObject? {
         try context.fetchObjects(
             entityName: entityName,
-            predicate: NSPredicate(format: "%K == %@", "id", id as CVarArg),
+            predicate: NSPredicate(format: "%K == %@", "id", id as NSUUID),
             fetchLimit: 1
         ).first
     }

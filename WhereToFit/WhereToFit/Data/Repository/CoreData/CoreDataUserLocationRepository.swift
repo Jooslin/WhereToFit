@@ -22,7 +22,7 @@ final class CoreDataUserLocationRepository: UserLocationRepositoryProtocol {
                 do {
                     let objects = try context.fetchObjects(
                         entityName: "UserLocationEntity",
-                        predicate: NSPredicate(format: "%K == %@", "userProfileID", userProfileID as CVarArg),
+                        predicate: NSPredicate(format: "%K == %@", "userProfileID", userProfileID as NSUUID),
                         sortDescriptors: [NSSortDescriptor(key: "createdAt", ascending: false)]
                     )
                     single(.success(objects.compactMap(Self.makeUserLocation)))
@@ -42,7 +42,7 @@ final class CoreDataUserLocationRepository: UserLocationRepositoryProtocol {
                     let object = try context.fetchObjects(
                         entityName: "UserLocationEntity",
                         predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
-                            NSPredicate(format: "%K == %@", "userProfileID", userProfileID as CVarArg),
+                            NSPredicate(format: "%K == %@", "userProfileID", userProfileID as NSUUID),
                             NSPredicate(format: "%K == %@", "isSelected", NSNumber(value: true))
                         ]),
                         sortDescriptors: [NSSortDescriptor(key: "updatedAt", ascending: false)],
@@ -72,7 +72,7 @@ final class CoreDataUserLocationRepository: UserLocationRepositoryProtocol {
 
                     let object = try context.fetchObjects(
                         entityName: "UserLocationEntity",
-                        predicate: NSPredicate(format: "%K == %@", "id", location.id as CVarArg),
+                        predicate: NSPredicate(format: "%K == %@", "id", location.id as NSUUID),
                         fetchLimit: 1
                     ).first ?? context.insertObject(entityName: "UserLocationEntity")
 
@@ -94,7 +94,7 @@ final class CoreDataUserLocationRepository: UserLocationRepositoryProtocol {
                 do {
                     let objects = try context.fetchObjects(
                         entityName: "UserLocationEntity",
-                        predicate: NSPredicate(format: "%K == %@", "id", id as CVarArg)
+                        predicate: NSPredicate(format: "%K == %@", "id", id as NSUUID)
                     )
                     objects.forEach(context.delete)
                     try context.save()
@@ -118,11 +118,11 @@ final class CoreDataUserLocationRepository: UserLocationRepositoryProtocol {
             predicate: NSPredicate(
                 format: "%K == %@ AND %K == %@ AND %K != %@",
                 "userProfileID",
-                userProfileID as CVarArg,
+                userProfileID as NSUUID,
                 "isSelected",
                 NSNumber(value: true),
                 "id",
-                exceptID as CVarArg
+                exceptID as NSUUID
             )
         )
         objects.forEach {
