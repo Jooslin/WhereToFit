@@ -37,6 +37,7 @@ final class ProgramDateViewController: BaseViewController<ProgramDateReactor> {
         calendarView.locale = Locale(identifier: "ko_KR")
         calendarView.tintColor = .primary400
         calendarView.backgroundColor = .clear
+        calendarView.selectionBehavior = multiSelection
         
         //set Layout
         let buttonStack = UIStackView(arrangedSubviews: [resetButton, applyButton]).then {
