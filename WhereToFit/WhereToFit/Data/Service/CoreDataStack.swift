@@ -16,15 +16,8 @@ final class CoreDataStack {
         persistentContainer.viewContext
     }
 
-    init(
-        modelName: String = "WhereToFit",
-        inMemory: Bool = false
-    ) {
+    init(modelName: String = "WhereToFit") {
         persistentContainer = NSPersistentCloudKitContainer(name: modelName)
-
-        if inMemory {
-            persistentContainer.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
-        }
 
         persistentContainer.loadPersistentStores { _, error in
             if let error = error as NSError? {
