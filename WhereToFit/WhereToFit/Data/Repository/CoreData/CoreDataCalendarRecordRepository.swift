@@ -16,18 +16,18 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
         self.context = context
     }
 
-    func fetchWeightRecord(userProfileID: UUID, on date: Date) -> Single<WeightRecord?> {
+    func fetchWeightRecord(on date: Date) -> Single<WeightRecord?> {
         fetchFirst(
             entityName: "WeightRecordEntity",
-            predicate: Self.makeUserDayPredicate(userProfileID: userProfileID, date: date),
+            predicate: CoreDataDateRange.dayPredicate(key: "date", date: date),
             mapper: Self.makeWeightRecord
         )
     }
 
-    func fetchWeightRecords(userProfileID: UUID, from startDate: Date, to endDate: Date) -> Single<[WeightRecord]> {
+    func fetchWeightRecords(from startDate: Date, to endDate: Date) -> Single<[WeightRecord]> {
         fetchRecords(
             entityName: "WeightRecordEntity",
-            predicate: Self.makeUserDateRangePredicate(userProfileID: userProfileID, startDate: startDate, endDate: endDate),
+            predicate: NSPredicate(format: "%K >= %@ AND %K <= %@", "date", startDate as NSDate, "date", endDate as NSDate),
             mapper: Self.makeWeightRecord
         )
     }
@@ -35,25 +35,24 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
     func upsertWeightRecord(_ record: WeightRecord) -> Single<WeightRecord> {
         upsertSingleDailyRecord(
             entityName: "WeightRecordEntity",
-            userProfileID: record.userProfileID,
             date: record.date,
             apply: { Self.apply(record, to: $0) },
             result: record
         )
     }
 
-    func fetchConditionRecord(userProfileID: UUID, on date: Date) -> Single<ConditionRecord?> {
+    func fetchConditionRecord(on date: Date) -> Single<ConditionRecord?> {
         fetchFirst(
             entityName: "ConditionRecordEntity",
-            predicate: Self.makeUserDayPredicate(userProfileID: userProfileID, date: date),
+            predicate: CoreDataDateRange.dayPredicate(key: "date", date: date),
             mapper: Self.makeConditionRecord
         )
     }
 
-    func fetchConditionRecords(userProfileID: UUID, from startDate: Date, to endDate: Date) -> Single<[ConditionRecord]> {
+    func fetchConditionRecords(from startDate: Date, to endDate: Date) -> Single<[ConditionRecord]> {
         fetchRecords(
             entityName: "ConditionRecordEntity",
-            predicate: Self.makeUserDateRangePredicate(userProfileID: userProfileID, startDate: startDate, endDate: endDate),
+            predicate: NSPredicate(format: "%K >= %@ AND %K <= %@", "date", startDate as NSDate, "date", endDate as NSDate),
             mapper: Self.makeConditionRecord
         )
     }
@@ -61,25 +60,24 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
     func upsertConditionRecord(_ record: ConditionRecord) -> Single<ConditionRecord> {
         upsertSingleDailyRecord(
             entityName: "ConditionRecordEntity",
-            userProfileID: record.userProfileID,
             date: record.date,
             apply: { Self.apply(record, to: $0) },
             result: record
         )
     }
 
-    func fetchExerciseRecords(userProfileID: UUID, on date: Date) -> Single<[ExerciseRecord]> {
+    func fetchExerciseRecords(on date: Date) -> Single<[ExerciseRecord]> {
         fetchRecords(
             entityName: "ExerciseRecordEntity",
-            predicate: Self.makeUserDayPredicate(userProfileID: userProfileID, date: date),
+            predicate: CoreDataDateRange.dayPredicate(key: "date", date: date),
             mapper: Self.makeExerciseRecord
         )
     }
 
-    func fetchExerciseRecords(userProfileID: UUID, from startDate: Date, to endDate: Date) -> Single<[ExerciseRecord]> {
+    func fetchExerciseRecords(from startDate: Date, to endDate: Date) -> Single<[ExerciseRecord]> {
         fetchRecords(
             entityName: "ExerciseRecordEntity",
-            predicate: Self.makeUserDateRangePredicate(userProfileID: userProfileID, startDate: startDate, endDate: endDate),
+            predicate: NSPredicate(format: "%K >= %@ AND %K <= %@", "date", startDate as NSDate, "date", endDate as NSDate),
             mapper: Self.makeExerciseRecord
         )
     }
@@ -114,10 +112,7 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
                 do {
                     let existingObject = try context.fetchObjects(
                         entityName: "ExerciseRecordEntity",
-                        predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
-                            NSPredicate(format: "%K == %@", "userProfileID", record.userProfileID as CVarArg),
-                            NSPredicate(format: "%K == %@", "healthKitUUID", healthKitUUID as CVarArg)
-                        ]),
+                        predicate: NSPredicate(format: "%K == %@", "healthKitUUID", healthKitUUID as CVarArg),
                         fetchLimit: 1
                     ).first
 
@@ -188,7 +183,6 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
 
     private func upsertSingleDailyRecord<T>(
         entityName: String,
-        userProfileID: UUID,
         date: Date,
         apply: @escaping (NSManagedObject) -> Void,
         result: T
@@ -198,7 +192,7 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
                 do {
                     let object = try context.fetchObjects(
                         entityName: entityName,
-                        predicate: Self.makeUserDayPredicate(userProfileID: userProfileID, date: date),
+                        predicate: CoreDataDateRange.dayPredicate(key: "date", date: date),
                         fetchLimit: 1
                     ).first ?? context.insertObject(entityName: entityName)
 
@@ -226,29 +220,11 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
         ).first
     }
 
-    private nonisolated static func makeUserDayPredicate(userProfileID: UUID, date: Date) -> NSPredicate {
-        NSCompoundPredicate(andPredicateWithSubpredicates: [
-            NSPredicate(format: "%K == %@", "userProfileID", userProfileID as CVarArg),
-            CoreDataDateRange.dayPredicate(key: "date", date: date)
-        ])
-    }
-
-    private nonisolated static func makeUserDateRangePredicate(
-        userProfileID: UUID,
-        startDate: Date,
-        endDate: Date
-    ) -> NSPredicate {
-        NSCompoundPredicate(andPredicateWithSubpredicates: [
-            NSPredicate(format: "%K == %@", "userProfileID", userProfileID as CVarArg),
-            NSPredicate(format: "%K >= %@ AND %K <= %@", "date", startDate as NSDate, "date", endDate as NSDate)
-        ])
-    }
 }
 
 private extension CoreDataCalendarRecordRepository {
     nonisolated static func makeWeightRecord(from object: NSManagedObject) -> WeightRecord? {
         guard let id = object.uuidValue(for: "id"),
-              let userProfileID = object.uuidValue(for: "userProfileID"),
               let date = object.dateValue(for: "date"),
               let value = object.doubleValue(for: "value"),
               let createdAt = object.dateValue(for: "createdAt"),
@@ -261,7 +237,6 @@ private extension CoreDataCalendarRecordRepository {
 
         return WeightRecord(
             id: id,
-            userProfileID: userProfileID,
             date: date,
             value: value,
             source: source,
@@ -272,7 +247,6 @@ private extension CoreDataCalendarRecordRepository {
 
     nonisolated static func apply(_ record: WeightRecord, to object: NSManagedObject) {
         object.setValue(record.id, forKey: "id")
-        object.setValue(record.userProfileID, forKey: "userProfileID")
         object.setValue(record.date, forKey: "date")
         object.setValue(record.value, forKey: "value")
         object.setValue(record.source.rawValue, forKey: "sourceRawValue")
@@ -282,7 +256,6 @@ private extension CoreDataCalendarRecordRepository {
 
     nonisolated static func makeConditionRecord(from object: NSManagedObject) -> ConditionRecord? {
         guard let id = object.uuidValue(for: "id"),
-              let userProfileID = object.uuidValue(for: "userProfileID"),
               let date = object.dateValue(for: "date"),
               let conditionRawValue = object.stringValue(for: "conditionRawValue"),
               let condition = ConditionLevel(rawValue: conditionRawValue),
@@ -293,7 +266,6 @@ private extension CoreDataCalendarRecordRepository {
 
         return ConditionRecord(
             id: id,
-            userProfileID: userProfileID,
             date: date,
             condition: condition,
             createdAt: createdAt,
@@ -303,7 +275,6 @@ private extension CoreDataCalendarRecordRepository {
 
     nonisolated static func apply(_ record: ConditionRecord, to object: NSManagedObject) {
         object.setValue(record.id, forKey: "id")
-        object.setValue(record.userProfileID, forKey: "userProfileID")
         object.setValue(record.date, forKey: "date")
         object.setValue(record.condition.rawValue, forKey: "conditionRawValue")
         object.setValue(record.createdAt, forKey: "createdAt")
@@ -312,7 +283,6 @@ private extension CoreDataCalendarRecordRepository {
 
     nonisolated static func makeExerciseRecord(from object: NSManagedObject) -> ExerciseRecord? {
         guard let id = object.uuidValue(for: "id"),
-              let userProfileID = object.uuidValue(for: "userProfileID"),
               let date = object.dateValue(for: "date"),
               let exerciseName = object.stringValue(for: "exerciseName"),
               let duration = object.doubleValue(for: "duration"),
@@ -325,7 +295,6 @@ private extension CoreDataCalendarRecordRepository {
 
         return ExerciseRecord(
             id: id,
-            userProfileID: userProfileID,
             date: date,
             exerciseName: exerciseName,
             activityTypeRawValue: object.intValue(for: "activityTypeRawValue"),
@@ -343,7 +312,6 @@ private extension CoreDataCalendarRecordRepository {
 
     nonisolated static func apply(_ record: ExerciseRecord, to object: NSManagedObject) {
         object.setValue(record.id, forKey: "id")
-        object.setValue(record.userProfileID, forKey: "userProfileID")
         object.setValue(record.date, forKey: "date")
         object.setValue(record.exerciseName, forKey: "exerciseName")
         object.setValue(record.activityTypeRawValue, forKey: "activityTypeRawValue")

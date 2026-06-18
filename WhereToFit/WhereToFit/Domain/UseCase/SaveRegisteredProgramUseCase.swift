@@ -20,7 +20,6 @@ final class SaveRegisteredProgramUseCase {
     // 프로그램 등록 화면에서 받은 입력값을 UseCase로 넘기기 위한 형태
     // 화면 입력값을 그대로 받고 저장 전에 필요한 정리는 하단의 execute 메서드에서 처리합니다.
     struct Input {
-        let userProfileID: UUID
         let programID: Int?
         let facilityID: String?
         let programName: String
@@ -53,7 +52,6 @@ final class SaveRegisteredProgramUseCase {
         let now = Date()
         let program = RegisteredProgram(
             id: UUID(),
-            userProfileID: input.userProfileID,
             programID: input.programID,
             facilityID: input.facilityID,
             programName: input.programName,

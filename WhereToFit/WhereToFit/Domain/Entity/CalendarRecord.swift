@@ -14,7 +14,6 @@ nonisolated enum RecordSource: String, Equatable, Sendable {
 
 nonisolated struct WeightRecord: Equatable, Sendable {
     let id: UUID
-    let userProfileID: UUID
     let date: Date
     let value: Double
     let source: RecordSource
@@ -24,7 +23,6 @@ nonisolated struct WeightRecord: Equatable, Sendable {
 
 nonisolated struct ConditionRecord: Equatable, Sendable {
     let id: UUID
-    let userProfileID: UUID
     let date: Date
     let condition: ConditionLevel
     let createdAt: Date
@@ -41,7 +39,6 @@ nonisolated enum ConditionLevel: String, Equatable, Sendable {
 
 nonisolated struct ExerciseRecord: Equatable, Sendable {
     let id: UUID
-    let userProfileID: UUID
     let date: Date
     let exerciseName: String
     let activityTypeRawValue: Int?

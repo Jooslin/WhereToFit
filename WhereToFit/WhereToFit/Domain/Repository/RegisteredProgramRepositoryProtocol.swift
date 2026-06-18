@@ -9,7 +9,7 @@ import Foundation
 import RxSwift
 
 protocol RegisteredProgramRepositoryProtocol {
-    func fetchRegisteredPrograms(userProfileID: UUID) -> Single<[RegisteredProgram]>
+    func fetchRegisteredPrograms() -> Single<[RegisteredProgram]>
     func saveRegisteredProgram(_ program: RegisteredProgram) -> Single<RegisteredProgram>
     func deleteRegisteredProgram(id: UUID) -> Completable
 }

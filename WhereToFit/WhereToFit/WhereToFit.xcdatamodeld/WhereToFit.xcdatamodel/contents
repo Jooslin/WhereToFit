@@ -6,7 +6,6 @@
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="userProfileID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
     </entity>
     <entity name="ExerciseRecordEntity" representedClassName="ExerciseRecordEntity" syncable="YES" codeGenerationType="class">
         <attribute name="activityTypeRawValue" optional="YES" attributeType="Integer 64" usesScalarValueType="NO"/>
@@ -22,7 +21,6 @@
         <attribute name="sportsCategoryRawValue" optional="YES" attributeType="String"/>
         <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="userProfileID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
     </entity>
     <entity name="FavoriteEntity" representedClassName="FavoriteEntity" syncable="YES" codeGenerationType="class">
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -34,7 +32,6 @@
         <attribute name="targetTypeRawValue" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="userProfileID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
     </entity>
     <entity name="RegisteredProgramEntity" representedClassName="RegisteredProgramEntity" syncable="YES" codeGenerationType="class">
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -52,7 +49,6 @@
         <attribute name="sportsCategoryRawValue" optional="YES" attributeType="String"/>
         <attribute name="startMinuteOfDay" optional="YES" attributeType="Integer 64" usesScalarValueType="NO"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="userProfileID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
     </entity>
     <entity name="UserProfileEntity" representedClassName="UserProfileEntity" syncable="YES" codeGenerationType="class">
         <attribute name="birthDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -86,8 +82,6 @@
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="sourceRawValue" optional="YES" attributeType="String"/>
-        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="userProfileID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="value" optional="YES" attributeType="Double" usesScalarValueType="NO"/>
     </entity>
     <elements>
