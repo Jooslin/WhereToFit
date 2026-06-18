@@ -36,15 +36,18 @@
     <entity name="RegisteredProgramEntity" representedClassName="RegisteredProgramEntity" syncable="YES" codeGenerationType="class">
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="daysRawValue" optional="YES" attributeType="String"/>
-        <attribute name="endTime" optional="YES" attributeType="String"/>
+        <attribute name="endMinuteOfDay" optional="YES" attributeType="Integer 64" usesScalarValueType="NO"/>
         <attribute name="facilityID" optional="YES" attributeType="String"/>
         <attribute name="facilityName" optional="YES" attributeType="String"/>
+        <attribute name="hasReservationDates" optional="YES" attributeType="Boolean" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isRecurring" optional="YES" attributeType="Boolean" usesScalarValueType="NO"/>
         <attribute name="programID" optional="YES" attributeType="Integer 64" usesScalarValueType="NO"/>
         <attribute name="programName" optional="YES" attributeType="String"/>
+        <attribute name="reservationDatesRawValue" optional="YES" attributeType="String"/>
         <attribute name="reservationMethodsRawValue" optional="YES" attributeType="String"/>
         <attribute name="sportsCategoryRawValue" optional="YES" attributeType="String"/>
-        <attribute name="startTime" optional="YES" attributeType="String"/>
+        <attribute name="startMinuteOfDay" optional="YES" attributeType="Integer 64" usesScalarValueType="NO"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <entity name="UserProfileEntity" representedClassName="UserProfileEntity" syncable="YES" codeGenerationType="class">

@@ -9,17 +9,25 @@ import Foundation
 
 nonisolated struct RegisteredProgram: Equatable, Sendable {
     let id: UUID
-    let programID: Int?
-    let facilityID: String?
-    let programName: String
-    let facilityName: String?
-    let sportsCategoryRawValue: String?
-    let days: [String]
-    let startTime: String?
-    let endTime: String?
-    let reservationMethodRawValues: [String]
-    let createdAt: Date
-    let updatedAt: Date
+    let programID: Int? // 프로그램 아이디
+    let facilityID: String? // 시설 아이디
+    
+    let programName: String // 프로그램 이름
+    let facilityName: String? // 시설 이름
+    let sportsCategory: SportsCategory? // 카테고리
+    
+    let isRecurring: Bool // 반복 요일 여부
+    let days: [String] // 반복 요일
+    
+    let hasReservationDates: Bool // 예약 날짜 여부
+    let reservationDates: [Date] // 저장 날짜
+    
+    let startMinuteOfDay: Int? // 시작 시간(계산 쉽게 인트로 저장)
+    let endMinuteOfDay: Int? // 끝나는 시간
+    
+    let reservationMethodRawValues: [String] // 예약 딱지용..?
+    let createdAt: Date // 만들어진 날짜
+    let updatedAt: Date // 업데이트 날짜
 }
 
 nonisolated struct Favorite: Equatable, Sendable {

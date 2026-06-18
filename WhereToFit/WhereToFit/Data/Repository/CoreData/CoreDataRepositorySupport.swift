@@ -96,6 +96,25 @@ enum CoreDataStringArrayCoder {
     }
 }
 
+enum CoreDataDateArrayCoder {
+    nonisolated static func encode(_ values: [Date]) -> String? {
+        guard values.isEmpty == false else { return nil }
+        guard let data = try? JSONEncoder().encode(values) else { return nil }
+
+        return String(data: data, encoding: .utf8)
+    }
+
+    nonisolated static func decode(_ value: String?) -> [Date] {
+        guard let value,
+              let data = value.data(using: .utf8),
+              let decoded = try? JSONDecoder().decode([Date].self, from: data) else {
+            return []
+        }
+
+        return decoded
+    }
+}
+
 enum CoreDataDateRange {
     nonisolated static func dayPredicate(key: String, date: Date, calendar: Calendar = .current) -> NSPredicate {
         let startOfDay = calendar.startOfDay(for: date)

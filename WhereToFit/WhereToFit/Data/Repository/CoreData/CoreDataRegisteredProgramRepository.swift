@@ -92,10 +92,15 @@ private extension CoreDataRegisteredProgramRepository {
             facilityID: object.stringValue(for: "facilityID"),
             programName: programName,
             facilityName: object.stringValue(for: "facilityName"),
-            sportsCategoryRawValue: object.stringValue(for: "sportsCategoryRawValue"),
+            sportsCategory: object.stringValue(for: "sportsCategoryRawValue").flatMap(SportsCategory.init(rawValue:)),
+            isRecurring: object.boolValue(for: "isRecurring") ?? false,
             days: CoreDataStringArrayCoder.decode(object.stringValue(for: "daysRawValue")),
-            startTime: object.stringValue(for: "startTime"),
-            endTime: object.stringValue(for: "endTime"),
+            hasReservationDates: object.boolValue(for: "hasReservationDates") ?? false,
+            reservationDates: object.boolValue(for: "hasReservationDates") == true
+                ? CoreDataDateArrayCoder.decode(object.stringValue(for: "reservationDatesRawValue"))
+                : [],
+            startMinuteOfDay: object.intValue(for: "startMinuteOfDay"),
+            endMinuteOfDay: object.intValue(for: "endMinuteOfDay"),
             reservationMethodRawValues: CoreDataStringArrayCoder.decode(
                 object.stringValue(for: "reservationMethodsRawValue")
             ),
@@ -110,10 +115,16 @@ private extension CoreDataRegisteredProgramRepository {
         object.setValue(program.facilityID, forKey: "facilityID")
         object.setValue(program.programName, forKey: "programName")
         object.setValue(program.facilityName, forKey: "facilityName")
-        object.setValue(program.sportsCategoryRawValue, forKey: "sportsCategoryRawValue")
+        object.setValue(program.sportsCategory?.rawValue, forKey: "sportsCategoryRawValue")
+        object.setValue(program.isRecurring, forKey: "isRecurring")
         object.setValue(CoreDataStringArrayCoder.encode(program.days), forKey: "daysRawValue")
-        object.setValue(program.startTime, forKey: "startTime")
-        object.setValue(program.endTime, forKey: "endTime")
+        object.setValue(program.hasReservationDates, forKey: "hasReservationDates")
+        object.setValue(
+            CoreDataDateArrayCoder.encode(program.hasReservationDates ? program.reservationDates : []),
+            forKey: "reservationDatesRawValue"
+        )
+        object.setValue(program.startMinuteOfDay, forKey: "startMinuteOfDay")
+        object.setValue(program.endMinuteOfDay, forKey: "endMinuteOfDay")
         object.setValue(
             CoreDataStringArrayCoder.encode(program.reservationMethodRawValues),
             forKey: "reservationMethodsRawValue"
