@@ -18,6 +18,7 @@ final class HomeFlow: Flow {
     private let sportsRepository: SportsRepositoryProtocol
     
     private let locationReactor = LocationReactor()
+    private var programRegisterReactor: ProgramRegisterReactor?
     
     init(dateService: DateService, weatherRepository: WeatherRepositoryProtocol, sportsRepository: SportsRepositoryProtocol) {
         self.dateService = dateService
@@ -70,9 +71,19 @@ final class HomeFlow: Flow {
                     .contribute(withNextPresentable: vc, withNextStepper: vc))
             
         case .programRegistration:
-            let vc = ProgramRegisterViewController(reactor: ProgramRegisterReactor())
+            programRegisterReactor = ProgramRegisterReactor()
+            let vc = ProgramRegisterViewController(reactor: programRegisterReactor)
             navigationController.pushViewController(vc, animated: true)
             
+            return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
+            
+        case .facilitySearch:
+            let vc = FacilitySearchViewController(reactor: FacilitySearchReactor())
+            vc.onSelectFacility = { [weak self] id in
+                self?.programRegisterReactor?.action.onNext(.selectFacility(id: id))
+            }
+            
+            navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
             
         default:

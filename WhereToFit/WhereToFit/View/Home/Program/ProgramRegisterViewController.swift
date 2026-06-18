@@ -34,6 +34,13 @@ final class ProgramRegisterViewController: BaseViewController<ProgramRegisterRea
             .map { AppStep.pageBack }
             .bind(to: steps)
             .disposed(by: disposeBag)
+        
+        // button
+        registerView.facilityTextField.rx.tap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .map { AppStep.facilitySearch }
+            .bind(to: steps)
+            .disposed(by: disposeBag)
     }
     
     private func bindState(reactor: ProgramRegisterReactor) {

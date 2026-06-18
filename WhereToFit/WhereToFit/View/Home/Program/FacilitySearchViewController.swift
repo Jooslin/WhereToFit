@@ -10,7 +10,8 @@ import RxSwift
 import ReactorKit
 import RxCocoa
 
-final class FacilitySearchViewController: BaseViewController<LocationReactor> {
+final class FacilitySearchViewController: BaseViewController<FacilitySearchReactor> {
+    var onSelectFacility: ((UUID) -> Void)?
     let searchView = FacilitySearchView()
     
     override func loadView() {
@@ -27,26 +28,29 @@ final class FacilitySearchViewController: BaseViewController<LocationReactor> {
         searchView.setSnapshot(with: items)
     }
     
-    override func bind(reactor: LocationReactor) {
+    override func bind(reactor: FacilitySearchReactor) {
         bindAction(reactor: reactor)
         bindState(reactor: reactor)
     }
     
-    private func bindAction(reactor: LocationReactor) {
-        self.rx.viewWillAppear
-            .map { LocationReactor.Action.loadItems }
-            .bind(to: reactor.action)
-            .disposed(by: disposeBag)
-        
+    private func bindAction(reactor: FacilitySearchReactor) {
         searchView.rx.backButtonTap
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { AppStep.pageBack }
             .bind(to: steps)
             .disposed(by: disposeBag)
         
+        searchView.rx.listCellSelected
+            .map(\.id)
+            .subscribe(onNext: { [weak self] id in
+                self?.onSelectFacility?(id)
+                self?.steps.accept(AppStep.pageBack)
+            })
+            .disposed(by: disposeBag)
+        
     }
     
-    private func bindState(reactor: LocationReactor) {
+    private func bindState(reactor: FacilitySearchReactor) {
         
     }
 }

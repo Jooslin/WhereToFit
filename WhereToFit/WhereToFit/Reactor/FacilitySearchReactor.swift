@@ -1,18 +1,18 @@
 //
-//  ProgramRegisterReactor.swift
+//  FacilitySearchReactor.swift
 //  WhereToFit
 //
-//  Created by 변예린 on 6/17/26.
+//  Created by 변예린 on 6/18/26.
 //
 
 import ReactorKit
 import Foundation
 
-final class ProgramRegisterReactor: BaseReactor {
+final class FacilitySearchReactor: BaseReactor {
     let initialState: State = State()
     
     enum Action {
-        case selectFacility(id: UUID)
+        
     }
     
     enum Mutation {
@@ -25,8 +25,7 @@ final class ProgramRegisterReactor: BaseReactor {
     
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
-        case .selectFacility(id: let id):
-                .empty()
+        
         }
     }
     
@@ -36,7 +35,6 @@ final class ProgramRegisterReactor: BaseReactor {
         switch mutation {
         case .setLoading(let isLoading):
             newState.isLoading = isLoading
-        
         }
         
         return newState
