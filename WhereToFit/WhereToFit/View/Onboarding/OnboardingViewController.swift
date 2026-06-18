@@ -11,7 +11,7 @@ import RxSwift
 import ReactorKit
 
 final class OnboardingViewController: BaseViewController<OnboardingReactor> {
-    let onboardingView = OnboardingFacilityView()
+    let onboardingView = OnboardingEndView()
     override func loadView() {
         view = onboardingView
     }
@@ -48,10 +48,10 @@ final class OnboardingViewController: BaseViewController<OnboardingReactor> {
             homepageURL: "https://www.gumi.go.kr"
         )
         
-        onboardingView.setSnapshot(with: [
-            .list: [OnboardingFacilityView.Item.list(program)],
-                .button: [OnboardingFacilityView.Item.button]
-        ])
+//        onboardingView.setSnapshot(with: [
+//            .list: [OnboardingFacilityView.Item.list(program)],
+//                .button: [OnboardingFacilityView.Item.button]
+//        ])
     }
     
     override func bind(reactor: OnboardingReactor) {
