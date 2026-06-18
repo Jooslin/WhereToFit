@@ -8,22 +8,22 @@
 import Foundation
 
 nonisolated struct UserProfile: Equatable, Sendable {
-    let id: UUID
-    let nickname: String
-    let birthDate: Date
-    let gender: UserGender
-    let residenceAddress: String?
-    let residenceLatitude: Double?
-    let residenceLongitude: Double?
-    let height: Double?
-    let initialWeight: Double?
-    let exerciseExperience: ExerciseExperience?
-    let exerciseGoals: [ExerciseGoal]
-    let preferredSportsCategoryRawValues: [String]
-    let discomfortBodyParts: [DiscomfortBodyPart]
-    let usesPublicFacility: Bool
-    let createdAt: Date
-    let updatedAt: Date
+    let id: UUID // 식별용
+    let nickname: String // 닉네임
+    let birthDate: Date // 생년월일
+    let gender: UserGender // 성별
+    let residenceAddress: String? // 거주지역
+    let residenceLatitude: Double? // 지역 좌표
+    let residenceLongitude: Double? // 지역 좌표
+    let height: Double? // 신장
+    let initialWeight: Double? // 몸무게
+    let exerciseExperience: ExerciseExperience? // 운동 경험
+    let exerciseGoals: [ExerciseGoal] // 운동 목표
+    let preferredSportsCategoryRawValues: [String] // 운동 선호(복수 선택)
+    let discomfortBodyParts: [DiscomfortBodyPart] // 불편한 신체부위(복수 선택)
+    let usesPublicFacility: Bool // 시설 이용 여부
+    let createdAt: Date // 만든 날짜 ( 몸무게, 신장 표시 때 필요)
+    let updatedAt: Date // 업데이트 여부 
 }
 
 nonisolated enum UserGender: String, Equatable, Sendable {
