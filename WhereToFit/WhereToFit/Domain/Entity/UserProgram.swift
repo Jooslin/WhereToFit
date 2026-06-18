@@ -24,6 +24,8 @@ nonisolated struct RegisteredProgram: Equatable, Sendable {
     
     let startMinuteOfDay: Int? // 시작 시간(계산 쉽게 인트로 저장)
     let endMinuteOfDay: Int? // 끝나는 시간
+    // 예시 10:00 AM = 10 * 60 + 0 = 600
+    // 1:30 PM = 13 * 60 + 30 = 810
     
     let reservationMethodRawValues: [String] // 예약 딱지용..?
     let createdAt: Date // 만들어진 날짜
