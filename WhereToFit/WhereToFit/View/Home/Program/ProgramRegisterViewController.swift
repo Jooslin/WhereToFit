@@ -46,10 +46,8 @@ final class ProgramRegisterViewController: BaseViewController<ProgramRegisterRea
         
         registerView.dateTextField.rx.tap
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
-            .withUnretained(self)
-            .subscribe(onNext: { `self`, _ in
-                
-            })
+            .map { AppStep.selectDate}
+            .bind(to: steps)
             .disposed(by: disposeBag)
     }
     

@@ -86,6 +86,15 @@ final class HomeFlow: Flow {
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
             
+        case .selectDate:
+            let vc = ProgramDateViewController(reactor: ProgramDateReactor(dateService: dateService))
+            vc.onSelectDate = { [weak self] dates in
+                self?.programRegisterReactor?.action.onNext(.selectDates(dates))
+            }
+            vc.modalPresentationStyle = .pageSheet
+            
+            navigationController.present(vc, animated: true)
+            return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
         default:
             return .one(flowContributor: .forwardToParentFlow(withStep: step))
         }

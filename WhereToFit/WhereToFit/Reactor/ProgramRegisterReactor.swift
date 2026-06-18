@@ -13,20 +13,25 @@ final class ProgramRegisterReactor: BaseReactor {
     
     enum Action {
         case selectFacility(id: UUID)
+        case selectDates([Date])
     }
     
     enum Mutation {
         case setLoading(Bool)
+        case setDates([Date])
     }
     
     struct State {
         var isLoading: Bool = false
+        var dates: [Date] = []
     }
     
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
         case .selectFacility(id: let id):
                 .empty()
+        case .selectDates(let dates):
+                .just(.setDates(dates))
         }
     }
     
@@ -36,7 +41,8 @@ final class ProgramRegisterReactor: BaseReactor {
         switch mutation {
         case .setLoading(let isLoading):
             newState.isLoading = isLoading
-        
+        case .setDates(let dates):
+            newState.dates = dates
         }
         
         return newState
