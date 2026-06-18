@@ -32,7 +32,11 @@ final class ProgramDateViewController: BaseViewController<ProgramDateReactor> {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // set Attributes
         view.backgroundColor = .white
+        calendarView.locale = Locale(identifier: "ko_KR")
+        calendarView.tintColor = .primary400
+        calendarView.backgroundColor = .clear
         
         //set Layout
         let buttonStack = UIStackView(arrangedSubviews: [resetButton, applyButton]).then {
