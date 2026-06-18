@@ -23,6 +23,7 @@ nonisolated struct UserProfile: Equatable, Sendable {
     let updatedAt: Date // 업데이트 여부 
 }
 
+// 유저 장소 저장 
 nonisolated struct UserLocation: Equatable, Sendable {
     let id: UUID
     let userProfileID: UUID
