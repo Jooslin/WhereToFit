@@ -9,8 +9,8 @@ import Foundation
 import RxSwift
 
 protocol FavoriteRepositoryProtocol {
-    func fetchFavorites() -> Single<[Favorite]>
-    func fetchFavorites(targetType: FavoriteTargetType) -> Single<[Favorite]>
+    func fetchFavorites(userProfileID: UUID) -> Single<[Favorite]>
+    func fetchFavorites(userProfileID: UUID, targetType: FavoriteTargetType) -> Single<[Favorite]>
     func saveFavorite(_ favorite: Favorite) -> Single<Favorite>
-    func deleteFavorite(targetType: FavoriteTargetType, targetID: String) -> Completable
+    func deleteFavorite(userProfileID: UUID, targetType: FavoriteTargetType, targetID: String) -> Completable
 }

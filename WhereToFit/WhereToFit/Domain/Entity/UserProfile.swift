@@ -25,6 +25,7 @@ nonisolated struct UserProfile: Equatable, Sendable {
 
 nonisolated struct UserLocation: Equatable, Sendable {
     let id: UUID
+    let userProfileID: UUID
     let name: String
     let address: String
     let latitude: Double

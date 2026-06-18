@@ -16,12 +16,13 @@ final class CoreDataRegisteredProgramRepository: RegisteredProgramRepositoryProt
         self.context = context
     }
 
-    func fetchRegisteredPrograms() -> Single<[RegisteredProgram]> {
+    func fetchRegisteredPrograms(userProfileID: UUID) -> Single<[RegisteredProgram]> {
         Single.create { [context] single in
             context.perform {
                 do {
                     let objects = try context.fetchObjects(
                         entityName: "RegisteredProgramEntity",
+                        predicate: NSPredicate(format: "%K == %@", "userProfileID", userProfileID as CVarArg),
                         sortDescriptors: [NSSortDescriptor(key: "createdAt", ascending: false)]
                     )
                     single(.success(objects.compactMap(Self.makeRegisteredProgram)))
@@ -80,6 +81,7 @@ final class CoreDataRegisteredProgramRepository: RegisteredProgramRepositoryProt
 private extension CoreDataRegisteredProgramRepository {
     nonisolated static func makeRegisteredProgram(from object: NSManagedObject) -> RegisteredProgram? {
         guard let id = object.uuidValue(for: "id"),
+              let userProfileID = object.uuidValue(for: "userProfileID"),
               let programName = object.stringValue(for: "programName"),
               let createdAt = object.dateValue(for: "createdAt"),
               let updatedAt = object.dateValue(for: "updatedAt") else {
@@ -88,6 +90,7 @@ private extension CoreDataRegisteredProgramRepository {
 
         return RegisteredProgram(
             id: id,
+            userProfileID: userProfileID,
             programID: object.intValue(for: "programID"),
             facilityID: object.stringValue(for: "facilityID"),
             programName: programName,
@@ -111,6 +114,7 @@ private extension CoreDataRegisteredProgramRepository {
 
     nonisolated static func apply(_ program: RegisteredProgram, to object: NSManagedObject) {
         object.setValue(program.id, forKey: "id")
+        object.setValue(program.userProfileID, forKey: "userProfileID")
         object.setValue(program.programID, forKey: "programID")
         object.setValue(program.facilityID, forKey: "facilityID")
         object.setValue(program.programName, forKey: "programName")

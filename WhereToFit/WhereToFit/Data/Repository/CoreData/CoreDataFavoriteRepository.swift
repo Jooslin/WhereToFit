@@ -16,13 +16,16 @@ final class CoreDataFavoriteRepository: FavoriteRepositoryProtocol {
         self.context = context
     }
 
-    func fetchFavorites() -> Single<[Favorite]> {
-        fetchFavorites(predicate: nil)
+    func fetchFavorites(userProfileID: UUID) -> Single<[Favorite]> {
+        fetchFavorites(predicate: NSPredicate(format: "%K == %@", "userProfileID", userProfileID as CVarArg))
     }
 
-    func fetchFavorites(targetType: FavoriteTargetType) -> Single<[Favorite]> {
+    func fetchFavorites(userProfileID: UUID, targetType: FavoriteTargetType) -> Single<[Favorite]> {
         fetchFavorites(
-            predicate: NSPredicate(format: "%K == %@", "targetTypeRawValue", targetType.rawValue)
+            predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
+                NSPredicate(format: "%K == %@", "userProfileID", userProfileID as CVarArg),
+                NSPredicate(format: "%K == %@", "targetTypeRawValue", targetType.rawValue)
+            ])
         )
     }
 
@@ -31,6 +34,7 @@ final class CoreDataFavoriteRepository: FavoriteRepositoryProtocol {
             context.perform {
                 do {
                     let object = try Self.fetchFavoriteObject(
+                        userProfileID: favorite.userProfileID,
                         targetType: favorite.targetType,
                         targetID: favorite.targetID,
                         context: context
@@ -48,13 +52,13 @@ final class CoreDataFavoriteRepository: FavoriteRepositoryProtocol {
         }
     }
 
-    func deleteFavorite(targetType: FavoriteTargetType, targetID: String) -> Completable {
+    func deleteFavorite(userProfileID: UUID, targetType: FavoriteTargetType, targetID: String) -> Completable {
         Completable.create { [context] completable in
             context.perform {
                 do {
                     let objects = try context.fetchObjects(
                         entityName: "FavoriteEntity",
-                        predicate: Self.makeTargetPredicate(targetType: targetType, targetID: targetID)
+                        predicate: Self.makeTargetPredicate(userProfileID: userProfileID, targetType: targetType, targetID: targetID)
                     )
                     objects.forEach(context.delete)
                     try context.save()
@@ -88,23 +92,27 @@ final class CoreDataFavoriteRepository: FavoriteRepositoryProtocol {
     }
 
     private static func fetchFavoriteObject(
+        userProfileID: UUID,
         targetType: FavoriteTargetType,
         targetID: String,
         context: NSManagedObjectContext
     ) throws -> NSManagedObject? {
         try context.fetchObjects(
             entityName: "FavoriteEntity",
-            predicate: makeTargetPredicate(targetType: targetType, targetID: targetID),
+            predicate: makeTargetPredicate(userProfileID: userProfileID, targetType: targetType, targetID: targetID),
             fetchLimit: 1
         ).first
     }
 
     private nonisolated static func makeTargetPredicate(
+        userProfileID: UUID,
         targetType: FavoriteTargetType,
         targetID: String
     ) -> NSPredicate {
         NSPredicate(
-            format: "%K == %@ AND %K == %@",
+            format: "%K == %@ AND %K == %@ AND %K == %@",
+            "userProfileID",
+            userProfileID as CVarArg,
             "targetTypeRawValue",
             targetType.rawValue,
             "targetID",
@@ -116,6 +124,7 @@ final class CoreDataFavoriteRepository: FavoriteRepositoryProtocol {
 private extension CoreDataFavoriteRepository {
     nonisolated static func makeFavorite(from object: NSManagedObject) -> Favorite? {
         guard let id = object.uuidValue(for: "id"),
+              let userProfileID = object.uuidValue(for: "userProfileID"),
               let targetTypeRawValue = object.stringValue(for: "targetTypeRawValue"),
               let targetType = FavoriteTargetType(rawValue: targetTypeRawValue),
               let targetID = object.stringValue(for: "targetID"),
@@ -127,6 +136,7 @@ private extension CoreDataFavoriteRepository {
 
         return Favorite(
             id: id,
+            userProfileID: userProfileID,
             targetType: targetType,
             targetID: targetID,
             title: title,
@@ -140,6 +150,7 @@ private extension CoreDataFavoriteRepository {
 
     nonisolated static func apply(_ favorite: Favorite, to object: NSManagedObject) {
         object.setValue(favorite.id, forKey: "id")
+        object.setValue(favorite.userProfileID, forKey: "userProfileID")
         object.setValue(favorite.targetType.rawValue, forKey: "targetTypeRawValue")
         object.setValue(favorite.targetID, forKey: "targetID")
         object.setValue(favorite.title, forKey: "title")

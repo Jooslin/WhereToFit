@@ -102,9 +102,6 @@ private extension CoreDataUserProfileRepository {
             nickname: nickname,
             birthDate: birthDate,
             gender: gender,
-            residenceAddress: object.stringValue(for: "residenceAddress"),
-            residenceLatitude: object.doubleValue(for: "residenceLatitude"),
-            residenceLongitude: object.doubleValue(for: "residenceLongitude"),
             height: object.doubleValue(for: "height"),
             initialWeight: object.doubleValue(for: "initialWeight"),
             exerciseExperience: exerciseExperience,
@@ -124,9 +121,6 @@ private extension CoreDataUserProfileRepository {
         object.setValue(profile.nickname, forKey: "nickname")
         object.setValue(profile.birthDate, forKey: "birthDate")
         object.setValue(profile.gender.rawValue, forKey: "genderRawValue")
-        object.setValue(profile.residenceAddress, forKey: "residenceAddress")
-        object.setValue(profile.residenceLatitude, forKey: "residenceLatitude")
-        object.setValue(profile.residenceLongitude, forKey: "residenceLongitude")
         object.setValue(profile.height, forKey: "height")
         object.setValue(profile.initialWeight, forKey: "initialWeight")
         object.setValue(profile.exerciseExperience?.rawValue, forKey: "exerciseExperienceRawValue")

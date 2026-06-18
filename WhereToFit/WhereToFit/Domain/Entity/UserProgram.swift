@@ -9,6 +9,7 @@ import Foundation
 
 nonisolated struct RegisteredProgram: Equatable, Sendable {
     let id: UUID
+    let userProfileID: UUID
     let programID: Int? // 프로그램 아이디
     let facilityID: String? // 시설 아이디
     
@@ -34,6 +35,7 @@ nonisolated struct RegisteredProgram: Equatable, Sendable {
 
 nonisolated struct Favorite: Equatable, Sendable {
     let id: UUID
+    let userProfileID: UUID
     let targetType: FavoriteTargetType
     let targetID: String
     let title: String
