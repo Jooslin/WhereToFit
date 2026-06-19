@@ -12,7 +12,9 @@ final class FavoriteListCell: UICollectionViewCell {
     static let reuseIdentifier = "FavoriteProgramCell"
 
     private let programImageView = ProgramImageView(image: nil)
-    private let nameLabel = UILabel(config: .body16Medium)
+    private let nameLabel = UILabel(config: .body16Medium).then {
+        $0.numberOfLines = 1
+    }
     private let facilityLabel = UILabel(config: .body12Regular, color: .gray500)
     private let dayLabel = UILabel(config: .body12Regular, color: .gray500)
     private let timeLabel = UILabel(config: .body12Regular, color: .gray500)
