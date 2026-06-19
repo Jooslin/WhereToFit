@@ -16,12 +16,13 @@ final class FavoriteListViewController: BaseViewController<FavoriteListReactor> 
         view = favoriteProgramsView
     }
 
-    override func bind(reactor: FavoriteListReactor) {
-        Observable.just(())
-            .map { FavoriteListReactor.Action.viewDidLoad }
-            .bind(to: reactor.action)
-            .disposed(by: disposeBag)
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
 
+        reactor?.action.onNext(.refresh)
+    }
+
+    override func bind(reactor: FavoriteListReactor) {
         favoriteProgramsView.titleView.rx.leftButtonTap
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.pageBack)

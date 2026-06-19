@@ -55,7 +55,7 @@ final class FavoriteListReactor: BaseReactor {
     }
 
     enum Action {
-        case viewDidLoad
+        case refresh
         case selectTab(FavoriteTab)
         case removeFavorite(FavoriteItem)
     }
@@ -72,7 +72,7 @@ final class FavoriteListReactor: BaseReactor {
 
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
-        case .viewDidLoad:
+        case .refresh:
             return fetchItems(tab: currentState.selectedTab)
 
         case .selectTab(let tab):
