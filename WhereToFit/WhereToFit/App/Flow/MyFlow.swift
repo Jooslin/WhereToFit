@@ -63,7 +63,13 @@ final class MyFlow: Flow {
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
 
         case .registeredPrograms:
-            let vc = RegisteredProgramsViewController(reactor: RegisteredProgramsReactor())
+            let vc = RegisteredProgramsViewController(
+                reactor: RegisteredProgramsReactor(
+                    fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase(
+                        repository: CoreDataRegisteredProgramRepository()
+                    )
+                )
+            )
             vc.hidesBottomBarWhenPushed = true
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
