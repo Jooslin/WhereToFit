@@ -15,9 +15,14 @@ final class FavoriteListReactor: BaseReactor {
         items: []
     )
     private let fetchFavoritesUseCase: FetchFavoritesUseCase
+    private let removeFavoriteUseCase: RemoveFavoriteUseCase
 
-    init(fetchFavoritesUseCase: FetchFavoritesUseCase) {
+    init(
+        fetchFavoritesUseCase: FetchFavoritesUseCase,
+        removeFavoriteUseCase: RemoveFavoriteUseCase
+    ) {
         self.fetchFavoritesUseCase = fetchFavoritesUseCase
+        self.removeFavoriteUseCase = removeFavoriteUseCase
     }
 
     nonisolated enum FavoriteTab {
@@ -39,6 +44,8 @@ final class FavoriteListReactor: BaseReactor {
     }
 
     nonisolated struct FavoriteItem: Equatable {
+        let targetType: FavoriteTargetType
+        let targetID: String
         let name: String
         let facilityLabelText: String?
         let day: String
@@ -50,6 +57,7 @@ final class FavoriteListReactor: BaseReactor {
     enum Action {
         case viewDidLoad
         case selectTab(FavoriteTab)
+        case removeFavorite(FavoriteItem)
     }
 
     enum Mutation {
@@ -72,6 +80,11 @@ final class FavoriteListReactor: BaseReactor {
                 .just(.setTab(tab)),
                 fetchItems(tab: tab)
             ])
+
+        case .removeFavorite(let item):
+            return removeFavoriteUseCase.execute(targetType: item.targetType, targetID: item.targetID)
+                .andThen(fetchItems(tab: currentState.selectedTab))
+                .catch { _ in .empty() }
         }
     }
 
@@ -115,6 +128,8 @@ private extension FavoriteListReactor {
             .flatMap { try? JSONDecoder().decode(FavoriteSnapshot.self, from: $0) }
 
         return FavoriteItem(
+            targetType: favorite.targetType,
+            targetID: favorite.targetID,
             name: favorite.title,
             facilityLabelText: snapshot?.facilityLabelText,
             day: snapshot?.day ?? "요일",
