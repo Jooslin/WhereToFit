@@ -55,7 +55,7 @@
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="discomfortBodyPartRawValues" optional="YES" attributeType="String"/>
         <attribute name="exerciseExperienceRawValue" optional="YES" attributeType="String"/>
-        <attribute name="exerciseGoalRawValues" optional="YES" attributeType="String"/>
+        <attribute name="exerciseGoalRawValue" optional="YES" attributeType="String"/>
         <attribute name="genderRawValue" optional="YES" attributeType="String"/>
         <attribute name="height" optional="YES" attributeType="Double" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>

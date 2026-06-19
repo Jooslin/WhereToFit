@@ -22,7 +22,6 @@ final class CoreDataUserProfileRepository: UserProfileRepositoryProtocol {
                 do {
                     let objects = try context.fetchObjects(
                         entityName: "UserProfileEntity",
-                        sortDescriptors: [NSSortDescriptor(key: "updatedAt", ascending: false)],
                         fetchLimit: 1
                     )
                     single(.success(objects.compactMap(Self.makeUserProfile).first))
@@ -80,9 +79,8 @@ private extension CoreDataUserProfileRepository {
 
         let exerciseExperience = object.stringValue(for: "exerciseExperienceRawValue")
             .flatMap(ExerciseExperience.init(rawValue:))
-        let exerciseGoals = CoreDataStringArrayCoder
-            .decode(object.stringValue(for: "exerciseGoalRawValues"))
-            .compactMap(ExerciseGoal.init(rawValue:))
+        let exerciseGoal = object.stringValue(for: "exerciseGoalRawValue")
+            .flatMap(ExerciseGoal.init(rawValue:))
         let discomfortBodyParts = CoreDataStringArrayCoder
             .decode(object.stringValue(for: "discomfortBodyPartRawValues"))
             .compactMap(DiscomfortBodyPart.init(rawValue:))
@@ -95,7 +93,7 @@ private extension CoreDataUserProfileRepository {
             height: object.doubleValue(for: "height"),
             initialWeight: object.doubleValue(for: "initialWeight"),
             exerciseExperience: exerciseExperience,
-            exerciseGoals: exerciseGoals,
+            exerciseGoal: exerciseGoal,
             preferredSportsCategoryRawValues: CoreDataStringArrayCoder.decode(
                 object.stringValue(for: "preferredSportsCategoryRawValues")
             ),
@@ -114,10 +112,7 @@ private extension CoreDataUserProfileRepository {
         object.setValue(profile.height, forKey: "height")
         object.setValue(profile.initialWeight, forKey: "initialWeight")
         object.setValue(profile.exerciseExperience?.rawValue, forKey: "exerciseExperienceRawValue")
-        object.setValue(
-            CoreDataStringArrayCoder.encode(profile.exerciseGoals.map(\.rawValue)),
-            forKey: "exerciseGoalRawValues"
-        )
+        object.setValue(profile.exerciseGoal?.rawValue, forKey: "exerciseGoalRawValue")
         object.setValue(
             CoreDataStringArrayCoder.encode(profile.preferredSportsCategoryRawValues),
             forKey: "preferredSportsCategoryRawValues"
