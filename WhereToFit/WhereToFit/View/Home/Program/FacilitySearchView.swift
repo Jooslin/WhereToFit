@@ -1,8 +1,8 @@
 //
-//  HomeLocationEditView.swift
+//  ProgramFacilitySearchView.swift
 //  WhereToFit
 //
-//  Created by 변예린 on 6/14/26.
+//  Created by 변예린 on 6/17/26.
 //
 
 import UIKit
@@ -11,16 +11,24 @@ import SnapKit
 import RxCocoa
 import RxSwift
 
-final class LocationEditView: UIView {
-    let titleView = TitleView(text: "위치 편집", leftButtonImage: .arrowLeft)
+final class FacilitySearchView: UIView {
+    let titleView = TitleView(text: "시설 검색", leftButtonImage: .arrowLeft)
+    let searchBar = SearchBar(placeholder: "주소나 이름으로 검색하기")
     private(set) lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout()).then {
         $0.layoutMargins = .init(top: 0, left: 16, bottom: 0, right: 16)
     }
     private(set) lazy var dataSource = makeDiffableDataSource(collectionView)
     
-    // Reactive
-    fileprivate let editButtonTap = PublishRelay<Location>()
-    fileprivate let deleteButtonTap = PublishRelay<Location>()
+    let emptyLabel = UILabel(text: "검색 결과가 없어요", config: .body16Medium, color: .gray600)
+    let emptyButton = IconButton(config: .iconAdditional, iconSize: .tiny).then {
+        $0.normalImage = .plus
+    }
+    private(set) lazy var emptyStack = UIStackView(arrangedSubviews: [emptyLabel, emptyButton]).then {
+        $0.axis = .vertical
+        $0.spacing = 24
+        $0.alignment = .center
+        $0.isHidden = true
+    }
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -33,55 +41,59 @@ final class LocationEditView: UIView {
     }
 }
 
-extension LocationEditView {
+extension FacilitySearchView {
     private func setLayout() {
         addSubview(titleView)
+        addSubview(searchBar)
         addSubview(collectionView)
+        addSubview(emptyStack)
         
         titleView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
             $0.horizontalEdges.equalToSuperview()
         }
         
+        searchBar.snp.makeConstraints {
+            $0.top.equalTo(titleView.snp.bottom).offset(12)
+            $0.horizontalEdges.equalToSuperview().inset(16)
+        }
+        
         collectionView.snp.makeConstraints {
-            $0.top.equalTo(titleView.snp.bottom)
+            $0.top.equalTo(searchBar.snp.bottom).offset(12)
             $0.horizontalEdges.equalToSuperview()
             $0.bottom.equalTo(safeAreaLayoutGuide)
         }
+        
+        emptyStack.snp.makeConstraints {
+            $0.centerX.equalToSuperview()
+            $0.centerY.equalToSuperview().multipliedBy(0.85)
+        }
+
     }
 }
 
 //MARK: CollectionView DataSource
-extension LocationEditView {
-    private func makeDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, Location> {
-        let listCellRegistration = UICollectionView.CellRegistration<LocationEditListCell, Location> { [weak self] cell, indexPath, item in
+extension FacilitySearchView {
+    private func makeDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, Item> {
+        let listCellRegistration = UICollectionView.CellRegistration<FacilitySearchListCell, Item> { [weak self] cell, indexPath, item in
             guard let self else { return }
-            cell.configure(item)
+            cell.configure(with: item)
             
             let itemNumber = self.dataSource.snapshot().numberOfItems(inSection: 0)
             let isLast = indexPath.item == itemNumber - 1
             cell.hideSeparateBar(isLast)
-            
-            cell.editButton.rx.tap
-                .map { item }
-                .bind(to: self.editButtonTap)
-                .disposed(by: cell.disposeBag)
-            
-            cell.deleteButton.rx.tap
-                .map { item }
-                .bind(to: self.deleteButtonTap)
-                .disposed(by: cell.disposeBag)
+        
         }
 
-        let dataSource = UICollectionViewDiffableDataSource<Int, Location>(collectionView: collectionView) { collectionView, indexPath, item in
+        let dataSource = UICollectionViewDiffableDataSource<Int, Item>(collectionView: collectionView) { collectionView, indexPath, item in
             collectionView.dequeueConfiguredReusableCell(using: listCellRegistration, for: indexPath, item: item)
         }
         
         return dataSource
     }
     
-    func setSnapshot(with data: [Location]) {
-        var snapshot = NSDiffableDataSourceSnapshot<Int, Location>()
+    func setSnapshot(with data: [Item]) {
+        var snapshot = NSDiffableDataSourceSnapshot<Int, Item>()
         snapshot.appendSections([0])
         snapshot.appendItems(data, toSection: 0)
         
@@ -91,7 +103,7 @@ extension LocationEditView {
 
 
 //MARK: CollectionView Layout
-extension LocationEditView {
+extension FacilitySearchView {
     private func makeCompositionalLayout() -> UICollectionViewCompositionalLayout {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
         configuration.contentInsetsReference = .layoutMargins
@@ -105,14 +117,14 @@ extension LocationEditView {
         let item = NSCollectionLayoutItem(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
-                heightDimension: .estimated(122)
+                heightDimension: .estimated(77)
             )
         )
         
         let group = NSCollectionLayoutGroup.vertical(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
-                heightDimension: .estimated(122)
+                heightDimension: .estimated(77)
             ),
             subitems: [item]
         )
@@ -122,27 +134,30 @@ extension LocationEditView {
         
         return section
     }
-    
 }
 
-extension Reactive where Base: LocationEditView {
+//MARK: CollectionView Item
+extension FacilitySearchView {
+    nonisolated
+    struct Item: Hashable {
+        let id: UUID
+        let name: String
+        let address: String
+        let distance: Double
+    }
+}
+
+//MARK: Reactive
+extension Reactive where Base: FacilitySearchView {
     var backButtonTap: ControlEvent<Void> {
         base.titleView.rx.leftButtonTap
     }
     
-    var listCellSelected: Observable<Location> {
+    var listCellSelected: Observable<FacilitySearchView.Item> {
         base.collectionView.rx.itemSelected
             .compactMap { indexPath in
                 base.dataSource.itemIdentifier(for: indexPath)
             }
             .asObservable()
-    }
-    
-    var editButtonTap: PublishRelay<Location> {
-        base.editButtonTap
-    }
-    
-    var deleteButtonTap: PublishRelay<Location> {
-        base.deleteButtonTap
     }
 }

@@ -15,9 +15,7 @@ final class LocationDetailView: UIView {
     fileprivate let titleView = TitleView(text: "위치 상세", leftButtonImage: .arrowLeft)
     
     private let addressLabel = UILabel(text: "주소", config: .body14Medium, color: .gray600)
-    let addressTextField = DesignTextField().then {
-        $0.inputView = UIView()
-        $0.tintColor = .clear
+    let addressTextField = TouchableDesignTextField().then {
         $0.placeholder = "주소를 입력해주세요"
     }
     let currentLocationButton = IconButton(config: .icon, style: .leftImage, iconSize: .tiny).then {
@@ -147,10 +145,6 @@ extension LocationDetailView {
 extension Reactive where Base: LocationDetailView {
     var backButtonTap: ControlEvent<Void> {
         base.titleView.rx.leftButtonTap
-    }
-    
-    var addressTextFieldTap: ControlEvent<Void> {
-        base.addressTextField.rx.controlEvent(.editingDidBegin)
     }
     
     var nameTextFieldEditingDidEnd: ControlEvent<String> {

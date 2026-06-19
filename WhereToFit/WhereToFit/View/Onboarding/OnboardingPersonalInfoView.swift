@@ -55,7 +55,7 @@ extension OnboardingPersonalInfoView {
         let weightStackView = makeStackView(title: "몸무게 (선택)", view: weightTextField)
         let bodyStackView = UIStackView(arrangedSubviews: [heightStackView, weightStackView]).then {
             $0.axis = .horizontal
-            $0.spacing = 23
+            $0.spacing = 22
             $0.distribution = .fillEqually
         }
         

@@ -45,11 +45,10 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             .disposed(by: disposeBag)
         
         // 주소 선택
-        detailView.rx.addressTextFieldTap
+        detailView.addressTextField.rx.tap
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .withUnretained(self)
             .subscribe(onNext: { `self`, _ in
-                self.detailView.addressTextField.resignFirstResponder()
                 self.presentPostCodeSelection()
             })
             .disposed(by: disposeBag)
