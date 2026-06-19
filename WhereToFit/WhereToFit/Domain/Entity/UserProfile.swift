@@ -71,6 +71,17 @@ nonisolated enum ExerciseGoal: String, Equatable, Sendable, CaseIterable {
     case postureCorrection = "자세 교정"
     case healthCare = "건강 관리"
     case stressRelief = "스트레스 해소"
+    
+    var imageString: String {
+        switch self {
+        case .strengthImprovement: "strengthImprovement"
+        case .diet: "diet"
+        case .fitnessImprovement: "fitnessImprovement"
+        case .postureCorrection: "postureCorrection"
+        case .healthCare: "healthCare"
+        case .stressRelief: "stressRelief"
+        }
+    }
 }
 
 nonisolated enum DiscomfortBodyPart: String, Equatable, Sendable, CaseIterable {
@@ -82,4 +93,17 @@ nonisolated enum DiscomfortBodyPart: String, Equatable, Sendable, CaseIterable {
     case lowerBack = "허리"
     case knee = "무릎"
     case ankle = "발목"
+    
+    var imageString: String {
+        switch self {
+        case .dizziness: "dizziness"
+        case .neck: "neck"
+        case .shoulder: "shoulder"
+        case .elbow: "elbow"
+        case .wrist: "wrist"
+        case .lowerBack: "lowerBack"
+        case .knee: "knee"
+        case .ankle: "ankle"
+        }
+    }
 }

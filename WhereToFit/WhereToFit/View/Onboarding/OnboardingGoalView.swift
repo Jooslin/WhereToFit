@@ -16,9 +16,10 @@ final class OnboardingGoalView: OnboardingBaseView {
 
     override init(frame: CGRect = .zero, step: OnboardingStep = .goal) {
         let source = ExerciseGoal.allCases
-        buttons = source.reduce([OnboardingButton]()) { arr, experience in
-            let button = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .subTitle).then {
-                $0.title = experience.rawValue
+        buttons = source.reduce([OnboardingButton]()) { arr, goal in
+            let button = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .image).then {
+                $0.title = goal.rawValue
+                $0.image = UIImage(named: goal.imageString)
             }
             return arr + [button]
         }

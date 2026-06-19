@@ -15,20 +15,27 @@ final class OnboardingCardButtonsView: OnboardingBaseView {
     private(set) var buttons: [OnboardingButton] = []
     
     override init(frame: CGRect = .zero, step: OnboardingStep) {
-        let source: [String] = switch step {
-        case .preference:
-            SportsCategory.allCases.map { $0.rawValue }
-        case .disabled:
-            DiscomfortBodyPart.allCases.map { $0.rawValue }
-        default:
-            []
-        }
         
-        buttons = source.reduce([OnboardingButton]()) { arr, title in
-            let button = OnboardingButton(config: .onboardingCard, selectedConfig: .selectedOnboardingCard, type: .card).then {
-                $0.title = title
+        if case .preference = step {
+            let source = SportsCategory.allCases
+            
+            buttons = source.reduce([OnboardingButton]()) { arr, preference in
+                let button = OnboardingButton(config: .onboardingCard, selectedConfig: .selectedOnboardingCard, type: .card).then {
+                    $0.title = preference.rawValue
+                    $0.image = preference.icon
+                }
+                return arr + [button]
             }
-            return arr + [button]
+        } else if case .disabled = step {
+            let source = DiscomfortBodyPart.allCases
+            
+            buttons = source.reduce([OnboardingButton]()) { arr, discomfort in
+                let button = OnboardingButton(config: .onboardingCard, selectedConfig: .selectedOnboardingCard, type: .card).then {
+                    $0.title = discomfort.rawValue
+                    $0.image = UIImage(named: discomfort.imageString)
+                }
+                return arr + [button]
+            }
         }
         
         super.init(frame: .zero, step: step)
