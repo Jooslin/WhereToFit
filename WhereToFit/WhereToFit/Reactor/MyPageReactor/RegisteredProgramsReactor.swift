@@ -64,7 +64,7 @@ private extension RegisteredProgramsReactor {
         programs.enumerated().forEach { index, program in
             print(
                 """
-                [RegisteredPrograms][\(index)]
+                👁️🫦👁️[RegisteredPrograms][\(index)]
                 id: \(program.id)
                 programID: \(program.programID.map(String.init) ?? "nil")
                 facilityID: \(program.facilityID ?? "nil")
