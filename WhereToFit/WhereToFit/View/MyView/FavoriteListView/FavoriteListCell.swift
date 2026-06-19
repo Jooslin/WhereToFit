@@ -16,9 +16,15 @@ final class FavoriteListCell: UICollectionViewCell {
     private let nameLabel = UILabel(config: .body16Medium).then {
         $0.numberOfLines = 1
     }
-    private let facilityLabel = UILabel(config: .body12Regular, color: .gray500)
-    private let dayLabel = UILabel(config: .body12Regular, color: .gray500)
-    private let timeLabel = UILabel(config: .body12Regular, color: .gray500)
+    private let facilityLabel = UILabel(config: .body12Regular, color: .gray500).then {
+        $0.numberOfLines = 1
+    }
+    private let dayLabel = UILabel(config: .body12Regular, color: .gray500).then {
+        $0.numberOfLines = 1
+    }
+    private let timeLabel = UILabel(config: .body12Regular, color: .gray500).then {
+        $0.numberOfLines = 1
+    }
     private let scheduleStackView = UIStackView().then {
         $0.axis = .horizontal
         $0.spacing = 4
