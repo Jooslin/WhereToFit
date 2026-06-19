@@ -12,6 +12,7 @@ import UIKit
 final class FavoriteListView: UIView {
     let titleView = TitleView(text: "찜한 시설 및 프로그램", leftButtonImage: UIImage(resource: .arrowLeft))
     let segmentedControl = UISegmentedControl(items: ["찜한 시설", "찜한 프로그램"])
+    var favoriteButtonTapped: ((FavoriteListReactor.FavoriteItem) -> Void)?
 
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionViewLayout()).then {
         $0.backgroundColor = .white
@@ -125,7 +126,11 @@ extension FavoriteListView: UICollectionViewDataSource {
             return UICollectionViewCell()
         }
 
-        cell.configure(item: items[indexPath.item])
+        let item = items[indexPath.item]
+        cell.configure(item: item)
+        cell.favoriteButtonTapped = { [weak self] in
+            self?.favoriteButtonTapped?(item)
+        }
         return cell
     }
 }

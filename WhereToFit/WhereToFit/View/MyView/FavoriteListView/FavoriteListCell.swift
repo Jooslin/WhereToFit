@@ -10,6 +10,7 @@ import SnapKit
 
 final class FavoriteListCell: UICollectionViewCell {
     static let reuseIdentifier = "FavoriteProgramCell"
+    var favoriteButtonTapped: (() -> Void)?
 
     private let programImageView = ProgramImageView(image: nil)
     private let nameLabel = UILabel(config: .body16Medium).then {
@@ -43,11 +44,19 @@ final class FavoriteListCell: UICollectionViewCell {
 
         setLayout()
         setPriority()
+        programImageView.favoriteButton.addTarget(self, action: #selector(didTapFavoriteButton), for: .touchUpInside)
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+
+        favoriteButtonTapped = nil
+        programImageView.favoriteButton.isSelected = true
     }
 }
 
@@ -104,6 +113,10 @@ extension FavoriteListCell {
         distanceLabel.text = item.distance
         priceLabel.text = item.price
         programImageView.favoriteButton.isSelected = true
+    }
+
+    @objc func didTapFavoriteButton() {
+        favoriteButtonTapped?()
     }
 
     func setPriority() {

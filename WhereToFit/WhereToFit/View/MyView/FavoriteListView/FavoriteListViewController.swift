@@ -28,6 +28,10 @@ final class FavoriteListViewController: BaseViewController<FavoriteListReactor> 
             }
             .disposed(by: disposeBag)
 
+        favoriteProgramsView.favoriteButtonTapped = { [weak reactor] item in
+            reactor?.action.onNext(.removeFavorite(item))
+        }
+
         favoriteProgramsView.segmentedControl.rx
             .controlEvent(.valueChanged)
             .map { [weak self] in
