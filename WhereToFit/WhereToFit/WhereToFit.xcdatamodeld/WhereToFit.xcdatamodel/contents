@@ -1,4 +1,96 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="true" userDefinedModelVersionIdentifier="">
-    <elements/>
+    <entity name="ConditionRecordEntity" representedClassName="ConditionRecordEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="conditionRawValue" optional="YES" attributeType="String"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="ExerciseRecordEntity" representedClassName="ExerciseRecordEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="activityTypeRawValue" optional="YES" attributeType="Integer 64" usesScalarValueType="NO"/>
+        <attribute name="calories" optional="YES" attributeType="Double" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="duration" optional="YES" attributeType="Double" usesScalarValueType="NO"/>
+        <attribute name="endDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="exerciseName" optional="YES" attributeType="String"/>
+        <attribute name="healthKitUUID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="sourceRawValue" optional="YES" attributeType="String"/>
+        <attribute name="sportsCategoryRawValue" optional="YES" attributeType="String"/>
+        <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="FavoriteEntity" representedClassName="FavoriteEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="snapshotJSON" optional="YES" attributeType="String"/>
+        <attribute name="sportsCategoryRawValue" optional="YES" attributeType="String"/>
+        <attribute name="subtitle" optional="YES" attributeType="String"/>
+        <attribute name="targetID" optional="YES" attributeType="String"/>
+        <attribute name="targetTypeRawValue" optional="YES" attributeType="String"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="RegisteredProgramEntity" representedClassName="RegisteredProgramEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="daysRawValue" optional="YES" attributeType="String"/>
+        <attribute name="endMinuteOfDay" optional="YES" attributeType="Integer 64" usesScalarValueType="NO"/>
+        <attribute name="facilityID" optional="YES" attributeType="String"/>
+        <attribute name="facilityName" optional="YES" attributeType="String"/>
+        <attribute name="hasReservationDates" optional="YES" attributeType="Boolean" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isRecurring" optional="YES" attributeType="Boolean" usesScalarValueType="NO"/>
+        <attribute name="programID" optional="YES" attributeType="Integer 64" usesScalarValueType="NO"/>
+        <attribute name="programName" optional="YES" attributeType="String"/>
+        <attribute name="reservationDatesRawValue" optional="YES" attributeType="String"/>
+        <attribute name="reservationMethodsRawValue" optional="YES" attributeType="String"/>
+        <attribute name="sportsCategoryRawValue" optional="YES" attributeType="String"/>
+        <attribute name="startMinuteOfDay" optional="YES" attributeType="Integer 64" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="UserProfileEntity" representedClassName="UserProfileEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="birthDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="discomfortBodyPartRawValues" optional="YES" attributeType="String"/>
+        <attribute name="exerciseExperienceRawValue" optional="YES" attributeType="String"/>
+        <attribute name="exerciseGoalRawValue" optional="YES" attributeType="String"/>
+        <attribute name="genderRawValue" optional="YES" attributeType="String"/>
+        <attribute name="height" optional="YES" attributeType="Double" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="initialWeight" optional="YES" attributeType="Double" usesScalarValueType="NO"/>
+        <attribute name="nickname" optional="YES" attributeType="String"/>
+        <attribute name="preferredSportsCategoryRawValues" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="usesPublicFacility" optional="YES" attributeType="Boolean" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="UserLocationEntity" representedClassName="UserLocationEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="address" optional="YES" attributeType="String"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isSelected" optional="YES" attributeType="Boolean" usesScalarValueType="NO"/>
+        <attribute name="kindRawValue" optional="YES" attributeType="String"/>
+        <attribute name="latitude" optional="YES" attributeType="Double" usesScalarValueType="NO"/>
+        <attribute name="longitude" optional="YES" attributeType="Double" usesScalarValueType="NO"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userProfileID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="WeightRecordEntity" representedClassName="WeightRecordEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="sourceRawValue" optional="YES" attributeType="String"/>
+        <attribute name="value" optional="YES" attributeType="Double" usesScalarValueType="NO"/>
+    </entity>
+    <elements>
+        <element name="UserProfileEntity" positionX="-63" positionY="-18" width="128" height="254"/>
+        <element name="WeightRecordEntity" positionX="-54" positionY="45" width="128" height="119"/>
+        <element name="ConditionRecordEntity" positionX="-45" positionY="108" width="128" height="104"/>
+        <element name="ExerciseRecordEntity" positionX="-36" positionY="171" width="128" height="209"/>
+        <element name="RegisteredProgramEntity" positionX="-27" positionY="234" width="128" height="194"/>
+        <element name="FavoriteEntity" positionX="-18" positionY="297" width="128" height="149"/>
+        <element name="UserLocationEntity" positionX="-9" positionY="360" width="128" height="149"/>
+    </elements>
 </model>

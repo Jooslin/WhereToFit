@@ -17,10 +17,12 @@
 		F9B36D2C2FBC4C4B006BCED0 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = F9B36D2B2FBC4C4B006BCED0 /* Alamofire */; };
 		F9B36D2F2FBC4C6E006BCED0 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = F9B36D2E2FBC4C6E006BCED0 /* Kingfisher */; };
 		F9B36D322FBD0000006BCED0 /* NMapsMap in Frameworks */ = {isa = PBXBuildFile; productRef = F9B36D312FBD0000006BCED0 /* NMapsMap */; };
+		F9B36D342FDD0300006BCED0 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F9B36D332FDD0300006BCED0 /* HealthKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		F9B36CFB2FBC13FB006BCED0 /* WhereToFit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhereToFit.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F9B36D332FDD0300006BCED0 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -59,6 +61,7 @@
 				F9B36D1F2FBC4848006BCED0 /* ReactorKit in Frameworks */,
 				F9B36D1C2FBC47E8006BCED0 /* Then in Frameworks */,
 				F9B36D322FBD0000006BCED0 /* NMapsMap in Frameworks */,
+				F9B36D342FDD0300006BCED0 /* HealthKit.framework in Frameworks */,
 				F9B36D292FBC4C09006BCED0 /* RxSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -71,6 +74,7 @@
 			children = (
 				F9B36CFD2FBC13FB006BCED0 /* WhereToFit */,
 				F9B36CFC2FBC13FB006BCED0 /* Products */,
+				F9B36D332FDD0300006BCED0 /* HealthKit.framework */,
 			);
 			sourceTree = "<group>";
 		};

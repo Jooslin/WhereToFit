@@ -35,20 +35,11 @@ final class CalendarExerciseCell: UICollectionViewCell {
 
 extension CalendarExerciseCell {
     func configure(item: CalendarReactor.ExerciseItem, hidesDivider: Bool) {
-        iconView.image = item.icon.image
+        iconView.image = item.sportsCategory.icon
         titleLabel.text = item.title
         timeLabel.text = item.duration
         calorieLabel.text = item.calories
         divider.isHidden = hidesDivider
-    }
-}
-
-private extension CalendarReactor.ExerciseIcon {
-    var image: UIImage {
-        switch self {
-        case .gym:
-            return UIImage(resource: .gym)
-        }
     }
 }
 

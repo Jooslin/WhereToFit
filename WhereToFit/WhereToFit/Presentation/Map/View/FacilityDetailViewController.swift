@@ -1028,7 +1028,7 @@ private final class ReservationCompletionViewController: UIViewController {
         $0.tintColor = .gray600
     }
 
-    private let iconImageView = UIImageView(image: .roundCheck).then {
+    private let iconImageView = UIImageView(image: .roundcheck).then {
         $0.contentMode = .scaleAspectFit
     }
 
