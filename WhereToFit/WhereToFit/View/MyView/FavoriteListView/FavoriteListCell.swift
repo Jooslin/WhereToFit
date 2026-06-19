@@ -7,6 +7,7 @@
 import UIKit
 import Then
 import SnapKit
+import Kingfisher
 
 final class FavoriteListCell: UICollectionViewCell {
     static let reuseIdentifier = "FavoriteProgramCell"
@@ -62,6 +63,8 @@ final class FavoriteListCell: UICollectionViewCell {
         super.prepareForReuse()
 
         favoriteButtonTapped = nil
+        programImageView.kf.cancelDownloadTask()
+        programImageView.image = nil
         programImageView.favoriteButton.isSelected = true
     }
 }
@@ -119,6 +122,14 @@ extension FavoriteListCell {
         distanceLabel.text = item.distance
         priceLabel.text = item.price
         programImageView.favoriteButton.isSelected = true
+
+        let placeholderImage = UIImage(resource: .emptyNotification)
+        if let imageURLString = item.imageURLString,
+           let imageURL = URL(string: imageURLString) {
+            programImageView.kf.setImage(with: imageURL, placeholder: placeholderImage)
+        } else {
+            programImageView.image = placeholderImage
+        }
     }
 
     @objc func didTapFavoriteButton() {

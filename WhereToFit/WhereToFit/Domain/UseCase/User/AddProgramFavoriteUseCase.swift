@@ -20,7 +20,8 @@ import RxSwift
      day: facility.dayText,
      time: facility.availableTimeRange.title,
      distance: facility.distanceText,
-     price: facility.priceText
+     price: facility.priceText,
+     imageURLString: facility.imageURL?.absoluteString
  )
  addProgramFavoriteUseCase.execute(input)
 
@@ -39,6 +40,7 @@ final class AddProgramFavoriteUseCase {
         let time: String // 운영 시간
         let distance: String // 거리
         let price: String // 가격
+        let imageURLString: String?
     }
 
     private let repository: FavoriteRepositoryProtocol
@@ -71,6 +73,7 @@ private extension AddProgramFavoriteUseCase {
         let distance: String
         let price: String
         let facilityLabelText: String?
+        let imageURLString: String?
     }
 
     func makeSnapshotJSON(_ input: Input) -> String? {
@@ -80,7 +83,8 @@ private extension AddProgramFavoriteUseCase {
             time: input.time,
             distance: input.distance,
             price: input.price,
-            facilityLabelText: facilityLabelText
+            facilityLabelText: facilityLabelText,
+            imageURLString: input.imageURLString
         )
 
         guard let data = try? JSONEncoder().encode(snapshot) else {

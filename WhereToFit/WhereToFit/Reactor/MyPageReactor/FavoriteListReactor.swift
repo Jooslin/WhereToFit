@@ -66,6 +66,7 @@ final class FavoriteListReactor: BaseReactor {
         let time: String
         let distance: String
         let price: String
+        let imageURLString: String?
     }
 
     enum Action {
@@ -124,6 +125,7 @@ private extension FavoriteListReactor {
         let distance: String?
         let price: String?
         let facilityLabelText: String?
+        let imageURLString: String?
     }
 
     func fetchItems(tab: FavoriteTab) -> Observable<Mutation> {
@@ -149,7 +151,8 @@ private extension FavoriteListReactor {
             day: snapshot?.day ?? "요일",
             time: snapshot?.time ?? "00:00-00:00",
             distance: snapshot?.distance ?? "거리 0.0km",
-            price: snapshot?.price ?? "원~"
+            price: snapshot?.price ?? "원~",
+            imageURLString: snapshot?.imageURLString
         )
     }
 }
