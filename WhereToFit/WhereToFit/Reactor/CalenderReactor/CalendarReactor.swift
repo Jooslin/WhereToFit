@@ -15,15 +15,11 @@ final class CalendarReactor: BaseReactor {
         weight: WeightValue(integer: 54, decimal: 2),
         condition: .worst,
         exerciseItems: [
-            ExerciseItem(title: "수영", duration: "120분", calories: "00칼로리", icon: .gym),
-            ExerciseItem(title: "수영", duration: "120분", calories: "00칼로리", icon: .gym),
-            ExerciseItem(title: "수영", duration: "120분", calories: "00칼로리", icon: .gym)
+            ExerciseItem(title: "수영", duration: "120분", calories: "210칼로리", sportsCategory: .aquaticSports),
+            ExerciseItem(title: "요가", duration: "30분", calories: "120칼로리", sportsCategory: .yogaPilates),
+            ExerciseItem(title: "풋살", duration: "58분", calories: "187칼로리", sportsCategory: .ballSports)
         ]
     )
-
-    enum ExerciseIcon: Equatable {
-        case gym
-    }
 
     struct WeightValue: Equatable {
         let integer: Int
@@ -61,7 +57,7 @@ final class CalendarReactor: BaseReactor {
         let title: String
         let duration: String
         let calories: String
-        let icon: ExerciseIcon
+        let sportsCategory: SportsCategory
     }
 
     enum Action {

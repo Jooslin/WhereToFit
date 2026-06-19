@@ -33,7 +33,7 @@ final class FacilityDetailViewController: UIViewController {
     private var locationMarker: NMFMarker?
     private var programCards: [FacilityProgramCardView] = []
     private var programCardFacilities: [FitnessFacility] = []
-    private let interactivePopGestureDelegate = InteractivePopGestureDelegate()
+//    private let interactivePopGestureDelegate = InteractivePopGestureDelegate()
     private var priceSectionValue: String {
         let listPriceText = FacilityProgramListItem(facility: facility).priceText
         guard listPriceText == "상세 정보 확인" else {
@@ -103,7 +103,7 @@ final class FacilityDetailViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: false)
-        interactivePopGestureDelegate.attach(to: navigationController)
+//        interactivePopGestureDelegate.attach(to: navigationController)
     }
 
     deinit {
@@ -1037,7 +1037,7 @@ private final class ReservationCompletionViewController: UIViewController {
         $0.tintColor = .gray600
     }
 
-    private let iconImageView = UIImageView(image: .roundCheck).then {
+    private let iconImageView = UIImageView(image: .roundcheck).then {
         $0.contentMode = .scaleAspectFit
     }
 

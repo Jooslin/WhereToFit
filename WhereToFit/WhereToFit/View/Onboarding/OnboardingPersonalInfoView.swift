@@ -33,7 +33,7 @@ final class OnboardingPersonalInfoView: OnboardingBaseView {
         $0.setPlaceholder(text: "몸무게를 입력해주세요")
     }
     
-    override init(frame: CGRect = .zero, step: OnboardingStep = .info) {
+    override init(frame: CGRect = .zero, step: OnboardingStep = .personalInfo) {
         super.init(frame: .zero, step: step)
         setLayout()
     }
@@ -55,7 +55,7 @@ extension OnboardingPersonalInfoView {
         let weightStackView = makeStackView(title: "몸무게 (선택)", view: weightTextField)
         let bodyStackView = UIStackView(arrangedSubviews: [heightStackView, weightStackView]).then {
             $0.axis = .horizontal
-            $0.spacing = 23
+            $0.spacing = 22
             $0.distribution = .fillEqually
         }
         

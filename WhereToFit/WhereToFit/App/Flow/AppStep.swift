@@ -43,4 +43,7 @@ enum AppStep: Step {
     case locationSetting
     case locationEdit
     case locationDetail(LocationEditMode)
+    case programRegistration
+    case facilitySearch
+    case selectDate
 }

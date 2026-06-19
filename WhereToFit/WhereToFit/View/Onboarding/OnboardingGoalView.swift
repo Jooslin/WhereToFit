@@ -8,33 +8,20 @@
 import UIKit
 import SnapKit
 import Then
+import RxSwift
+import RxCocoa
 
 final class OnboardingGoalView: OnboardingBaseView {
-    let muscularButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .image).then {
-        $0.title = "근력 향상"
+    let categories: [String]
+    private(set) lazy var buttons = categories.reduce([OnboardingButton]()) { arr, title in
+        let button = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .image).then {
+            $0.title = title
+        }
+        return arr + [button]
     }
-    
-    let dietButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .image).then {
-        $0.title = "다이어트"
-    }
-    
-    let staminaButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .image).then {
-        $0.title = "체력 향상"
-    }
-    
-    let postureButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .image).then {
-        $0.title = "자세 교정"
-    }
-    
-    let healthCareButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .image).then {
-        $0.title = "건강 관리"
-    }
-    
-    let manageStressButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .image).then {
-        $0.title = "스트레스 해소"
-    }
-    
+
     override init(frame: CGRect = .zero, step: OnboardingStep = .goal) {
+        self.categories = step.categories
         super.init(frame: frame, step: step)
         setLayout()
     }
@@ -43,7 +30,7 @@ final class OnboardingGoalView: OnboardingBaseView {
 extension OnboardingGoalView {
     private func setLayout() {
         let stackView = UIStackView(
-            arrangedSubviews: [muscularButton, dietButton, staminaButton, postureButton, healthCareButton, manageStressButton]
+            arrangedSubviews: buttons
         ).then {
             $0.axis = .vertical
             $0.spacing = 16
@@ -56,5 +43,16 @@ extension OnboardingGoalView {
             $0.top.equalTo(subTitleLabel.snp.bottom).offset(32)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
+    }
+}
+
+//MARK: Reactive
+extension Reactive where Base: OnboardingGoalView {
+    var buttonSelected: ControlEvent<String> {
+        let events = base.buttons.map { button in
+            button.rx.tap.map { button.title ?? "" }
+        }
+        
+        return ControlEvent(events: Observable.merge(events))
     }
 }

@@ -105,14 +105,14 @@ extension LocationEditView {
         let item = NSCollectionLayoutItem(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
-                heightDimension: .absolute(118)
+                heightDimension: .estimated(122)
             )
         )
         
         let group = NSCollectionLayoutGroup.vertical(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
-                heightDimension: .absolute(118)
+                heightDimension: .estimated(122)
             ),
             subitems: [item]
         )

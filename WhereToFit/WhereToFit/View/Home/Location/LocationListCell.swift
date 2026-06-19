@@ -13,7 +13,7 @@ class LocationListCell: UICollectionViewListCell {
     let imageView = UIImageView().then {
         $0.tintColor = .gray900
     }
-    let nameLabel = UILabel(config: .body15)
+    let nameLabel = UILabel(config: .body15, lines: 1)
     let addressLabel = UILabel(config: .body13Regular)
     let checkImageView = UIImageView(image: .check).then {
         $0.tintColor = .primary400

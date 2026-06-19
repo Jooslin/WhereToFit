@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSHealthShareUsageDescription</key>
+	<string>운동 기록 리포트를 만들기 위해 HealthKit의 운동 기록, 운동 시간, 소모 칼로리를 읽습니다.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>내 주변 운동 시설을 지도에 표시하기 위해 현재 위치 접근 권한이 필요합니다.</string>
 	<key>NMFNcpKeyId</key>
