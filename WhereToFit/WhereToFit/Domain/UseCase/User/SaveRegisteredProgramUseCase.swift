@@ -74,8 +74,8 @@ final class SaveRegisteredProgramUseCase {
     }
 
     // Date는 시/분/초를 포함하므로 같은 날짜라도 서로 다른 값일 수 있습니다.
-    // 저장 전 자정 기준으로 맞추고, 중복 날짜를 제거한 뒤 오래된 날짜부터 정렬합니다.
+    // 저장 전 자정 기준으로 맞추고, 오래된 날짜부터 정렬합니다.
     private func normalizedDates(_ dates: [Date]) -> [Date] {
-        Array(Set(dates.map { calendar.startOfDay(for: $0) })).sorted()
+        dates.map { calendar.startOfDay(for: $0) }.sorted()
     }
 }

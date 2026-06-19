@@ -10,8 +10,7 @@ import SnapKit
 import Then
 
 final class OnboardingStartView: UIView {
-    private let imageView = UIImageView(image: .checkOn)
-    private let logoLabel = UILabel(text: "운동갈지도(로고)", config: .title24, color: .primary400) //TODO: 확인 후 수정 필요
+    private let imageView = UIImageView(image: .appLogo)
     private let descriptionLabel = UILabel(
         text: """
         간단한 운동 테스트로
@@ -31,7 +30,7 @@ final class OnboardingStartView: UIView {
     override init(frame: CGRect) {
         super.init(frame: .zero)
         
-        let logoStackView = UIStackView(arrangedSubviews: [imageView, logoLabel, descriptionLabel]).then {
+        let logoStackView = UIStackView(arrangedSubviews: [imageView, descriptionLabel]).then {
             $0.axis = .vertical
             $0.alignment = .center
             $0.spacing = 24
@@ -47,7 +46,8 @@ final class OnboardingStartView: UIView {
         addSubview(buttonStackView)
         
         imageView.snp.makeConstraints {
-            $0.width.height.equalTo(160)
+            $0.width.equalTo(137)
+            $0.height.equalTo(97)
         }
         
         logoStackView.snp.makeConstraints {
