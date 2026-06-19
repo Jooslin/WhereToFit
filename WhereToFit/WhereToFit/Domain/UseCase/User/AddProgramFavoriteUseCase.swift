@@ -1,5 +1,5 @@
 //
-//  AddFavoriteUseCase.swift
+//  AddProgramFavoriteUseCase.swift
 //  WhereToFit
 //
 //  Created by Yeseul Jang on 6/19/26.
@@ -8,9 +8,8 @@
 import Foundation
 import RxSwift
 
-final class AddFavoriteUseCase {
+final class AddProgramFavoriteUseCase {
     struct Input {
-        let targetType: FavoriteTargetType
         let targetID: String
         let title: String
         let subtitle: String?
@@ -28,7 +27,7 @@ final class AddFavoriteUseCase {
         let now = Date()
         let favorite = Favorite(
             id: UUID(),
-            targetType: input.targetType,
+            targetType: .program,
             targetID: input.targetID,
             title: input.title,
             subtitle: input.subtitle,
