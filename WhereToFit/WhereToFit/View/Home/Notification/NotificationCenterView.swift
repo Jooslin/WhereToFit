@@ -12,6 +12,34 @@ import UIKit
 final class NotificationCenterView: UIView {
     let titleView = TitleView(text: "알림", leftButtonImage: UIImage(resource: .arrowLeft))
 
+    let enableNotificationButton = UIButton(type: .system).then {
+        $0.setTitle("알림 켜기", for: .normal)
+        $0.setTitleColor(.white, for: .normal)
+        $0.titleLabel?.font = LabelConfiguration.body12Medium.font
+        $0.backgroundColor = .primary400
+        $0.layer.cornerRadius = 19
+        $0.clipsToBounds = true
+        $0.contentHorizontalAlignment = .center
+        $0.contentVerticalAlignment = .center
+    }
+
+    private let notificationWarningView = UIView().then {
+        $0.backgroundColor = .primary25
+        $0.layer.cornerRadius = 12
+    }
+
+    private let warningTitleLabel = UILabel(
+        text: "알람이 꺼져있어요",
+        config: .body14Regular,
+        color: .gray400
+    )
+
+    private let warningDescriptionLabel = UILabel(
+        text: "원하는 알림만 보내드려요",
+        config: .body16Medium,
+        color: .gray900
+    )
+
     private let emptyImageView = UIImageView(image: .emptyNotification).then {
         $0.contentMode = .scaleAspectFit
     }
@@ -31,6 +59,11 @@ final class NotificationCenterView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    func updateNotificationWarning(isHidden: Bool, title: String) {
+        notificationWarningView.isHidden = isHidden
+        warningTitleLabel.text = title
+    }
 }
 
 private extension NotificationCenterView {
@@ -41,13 +74,45 @@ private extension NotificationCenterView {
     func setLayout() {
         [
             titleView,
+            notificationWarningView,
             emptyImageView,
             emptyLabel
         ].forEach(addSubview)
 
+        [
+            warningTitleLabel,
+            warningDescriptionLabel,
+            enableNotificationButton
+        ].forEach(notificationWarningView.addSubview)
+
         titleView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
             $0.horizontalEdges.equalToSuperview()
+        }
+
+        notificationWarningView.snp.makeConstraints {
+            $0.top.equalTo(titleView.snp.bottom).offset(12)
+            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.height.equalTo(86)
+        }
+
+        warningTitleLabel.snp.makeConstraints {
+            $0.top.equalToSuperview().inset(20)
+            $0.leading.equalToSuperview().inset(16)
+            $0.trailing.lessThanOrEqualTo(enableNotificationButton.snp.leading).offset(-12)
+        }
+
+        warningDescriptionLabel.snp.makeConstraints {
+            $0.top.equalTo(warningTitleLabel.snp.bottom).offset(4)
+            $0.leading.equalTo(warningTitleLabel)
+            $0.trailing.lessThanOrEqualTo(enableNotificationButton.snp.leading).offset(-12)
+        }
+
+        enableNotificationButton.snp.makeConstraints {
+            $0.centerY.equalToSuperview()
+            $0.trailing.equalToSuperview().inset(16)
+            $0.width.equalTo(96)
+            $0.height.equalTo(38)
         }
 
         emptyImageView.snp.makeConstraints {
