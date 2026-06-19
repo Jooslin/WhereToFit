@@ -18,6 +18,8 @@ final class OnboardingViewController: BaseViewController<OnboardingReactor> {
     private var currentStepView: UIView?
     private var stepViewDisposeBag = DisposeBag()
     
+    private let selectedAddressRelay = PublishRelay<String>()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -99,6 +101,60 @@ private extension OnboardingViewController {
                 .disposed(by: stepViewDisposeBag)
         }
         
+        if let personalInfoView = stepView as? OnboardingPersonalInfoView {
+            personalInfoView.rx.nicknameTextFieldEditingDidEnd
+                .map {
+                    OnboardingReactor.Action.updateNickname($0)
+                }
+                .bind(to: reactor.action)
+                .disposed(by: stepViewDisposeBag)
+            
+            personalInfoView.rx.birthdayTextFieldEditingDidEnd
+                .map { OnboardingReactor.Action.updateBirthday($0) }
+                .bind(to: reactor.action)
+                .disposed(by: stepViewDisposeBag)
+            
+            personalInfoView.rx.genderButtonTap
+                .map {
+                    OnboardingReactor.Action.updateGender($0)
+                }
+                .bind(to: reactor.action)
+                .disposed(by: stepViewDisposeBag)
+            
+            personalInfoView.residenceTextField.rx.tap
+                .withUnretained(self)
+                .subscribe(onNext: { `self`, _ in
+                    self.presentPostCodeSelection()
+                })
+                .disposed(by: stepViewDisposeBag)
+            
+            selectedAddressRelay
+                .map {
+                    OnboardingReactor.Action.updateAddress($0)
+                }
+                .bind(to: reactor.action)
+                .disposed(by: stepViewDisposeBag)
+            
+            personalInfoView.rx.weightTextFieldEditingDidEnd
+                .map {
+                    OnboardingReactor.Action.updateWeight($0)
+                }
+                .bind(to: reactor.action)
+                .disposed(by: stepViewDisposeBag)
+            
+            personalInfoView.rx.heightTextFieldEditingDidEnd
+                .map {
+                    OnboardingReactor.Action.updateHeight($0)
+                }
+                .bind(to: reactor.action)
+                .disposed(by: stepViewDisposeBag)
+            
+            personalInfoView.nextButton.rx.tap
+                .map { OnboardingReactor.Action.nextButtonTapped }
+                .bind(to: reactor.action)
+                .disposed(by: stepViewDisposeBag)
+        }
+        
         if let baseView = stepView as? OnboardingBaseView {
             baseView.nextButton.rx.tap
                 .map { OnboardingReactor.Action.nextButtonTapped }
@@ -126,7 +182,21 @@ private extension OnboardingViewController {
     }
 }
 
+extension OnboardingViewController {
+    private func presentPostCodeSelection() {
+        let vc = KakaoPostCodeViewController()
+        vc.onSelectAddress = { [weak self] address in
+            self?.selectedAddressRelay.accept(address)
+        }
+        vc.modalPresentationStyle = .overFullScreen
+        present(vc, animated: false)
+    }
+    
+    @objc private func didTapBackground() {
+        currentStepView?.endEditing(true)
+    }
+}
 
 #Preview {
-    OnboardingViewController(reactor: OnboardingReactor())
+    OnboardingViewController(reactor: OnboardingReactor(dateService: DateService()))
 }

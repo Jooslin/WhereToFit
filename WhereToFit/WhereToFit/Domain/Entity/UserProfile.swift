@@ -44,8 +44,8 @@ nonisolated enum UserLocationKind: String, Equatable, Sendable {
 }
 
 nonisolated enum UserGender: String, Equatable, Sendable {
-    case male
-    case female
+    case male = "남성"
+    case female = "여성"
 }
 
 nonisolated enum ExerciseExperience: String, Equatable, Sendable, CaseIterable {

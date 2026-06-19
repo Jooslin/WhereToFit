@@ -8,6 +8,8 @@
 import UIKit
 import SnapKit
 import Then
+import RxSwift
+import RxCocoa
 
 final class OnboardingPersonalInfoView: OnboardingBaseView {
     let nicknameTextField = DesignTextField().then {
@@ -18,12 +20,11 @@ final class OnboardingPersonalInfoView: OnboardingBaseView {
     }
     let maleButton = DesignButton(config: .smallFilledLightGray, selectedConfig: .selectedSmallBorderBlue).then {
         $0.title = "남성"
-        $0.isSelected = true
     }
     let femaleButton = DesignButton(config: .smallFilledLightGray, selectedConfig: .selectedSmallBorderBlue).then {
         $0.title = "여성"
     }
-    let residenceTextField = DesignTextField().then {
+    let residenceTextField = TouchableDesignTextField().then {
         $0.setPlaceholder(text: "주소 찾기")
     }
     let heightTextField = DesignTextField().then {
@@ -108,5 +109,47 @@ extension OnboardingPersonalInfoView {
         }
         
         return stackView
+    }
+}
+
+//MARK: Reactive
+extension Reactive where Base: OnboardingPersonalInfoView {
+    var nicknameTextFieldEditingDidEnd: ControlEvent<String> {
+        let source = base.nicknameTextField.rx.controlEvent(.editingDidEnd)
+            .withLatestFrom(base.nicknameTextField.rx.text.orEmpty)
+        
+        return ControlEvent(events: source)
+    }
+    
+    var birthdayTextFieldEditingDidEnd: ControlEvent<String> {
+        let source = base.birthdayTextField.rx.controlEvent(.editingDidEnd)
+            .withLatestFrom(base.birthdayTextField.rx.text.orEmpty)
+        
+        return ControlEvent(events: source)
+    }
+    
+    var genderButtonTap: ControlEvent<String> {
+        let event = Observable.merge([
+            base.maleButton.rx.tap.compactMap { base.maleButton.title },
+            base.femaleButton.rx.tap.compactMap {
+                base.femaleButton.title
+            }
+        ])
+        
+        return ControlEvent(events: event)
+    }
+    
+    var weightTextFieldEditingDidEnd: ControlEvent<String> {
+        let source = base.weightTextField.rx.controlEvent(.editingDidEnd)
+            .withLatestFrom(base.birthdayTextField.rx.text.orEmpty)
+        
+        return ControlEvent(events: source)
+    }
+    
+    var heightTextFieldEditingDidEnd: ControlEvent<String> {
+        let source = base.heightTextField.rx.controlEvent(.editingDidEnd)
+            .withLatestFrom(base.birthdayTextField.rx.text.orEmpty)
+        
+        return ControlEvent(events: source)
     }
 }
