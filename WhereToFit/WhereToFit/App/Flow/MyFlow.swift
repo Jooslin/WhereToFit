@@ -52,6 +52,9 @@ final class MyFlow: Flow {
                 reactor: FavoriteListReactor(
                     fetchFavoritesUseCase: FetchFavoritesUseCase(
                         repository: CoreDataFavoriteRepository()
+                    ),
+                    removeFavoriteUseCase: RemoveFavoriteUseCase(
+                        repository: CoreDataFavoriteRepository()
                     )
                 )
             )
