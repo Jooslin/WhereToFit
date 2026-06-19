@@ -48,29 +48,38 @@ nonisolated enum UserGender: String, Equatable, Sendable {
     case female
 }
 
-nonisolated enum ExerciseExperience: String, Equatable, Sendable {
-    case starter
-    case beginner
-    case intermediate
-    case advanced
+nonisolated enum ExerciseExperience: String, Equatable, Sendable, CaseIterable {
+    case starter = "초보"
+    case beginner = "입문"
+    case intermediate = "중급"
+    case advanced = "숙련"
+    
+    var subTitle: String {
+        switch self {
+        case .starter: "이제 시작하는 단계예요"
+        case .beginner: "가볍게 경험해봤어요"
+        case .intermediate: "꾸준히 운동하고 있어요"
+        case .advanced: "어느 운동이든 잘 해내요"
+        }
+    }
 }
 
-nonisolated enum ExerciseGoal: String, Equatable, Sendable {
-    case strengthImprovement
-    case diet
-    case fitnessImprovement
-    case postureCorrection
-    case healthCare
-    case stressRelief
+nonisolated enum ExerciseGoal: String, Equatable, Sendable, CaseIterable {
+    case strengthImprovement = "근력 향상"
+    case diet = "다이어트"
+    case fitnessImprovement = "체력 향상"
+    case postureCorrection = "자세 교정"
+    case healthCare = "건강 관리"
+    case stressRelief = "스트레스 해소"
 }
 
-nonisolated enum DiscomfortBodyPart: String, Equatable, Sendable {
-    case dizziness
-    case neck
-    case shoulder
-    case elbow
-    case wrist
-    case lowerBack
-    case knee
-    case ankle
+nonisolated enum DiscomfortBodyPart: String, Equatable, Sendable, CaseIterable {
+    case dizziness = "어지럼증"
+    case neck = "목"
+    case shoulder = "어깨"
+    case elbow = "팔꿈치"
+    case wrist = "손목"
+    case lowerBack = "허리"
+    case knee = "무릎"
+    case ankle = "발목"
 }

@@ -12,16 +12,25 @@ import RxSwift
 import RxCocoa
 
 final class OnboardingCardButtonsView: OnboardingBaseView {
-    let categories: [String]
-    private(set) lazy var buttons = categories.reduce([OnboardingButton]()) { arr, title in
-        let button = OnboardingButton(config: .onboardingCard, selectedConfig: .selectedOnboardingCard, type: .card).then {
-            $0.title = title
-        }
-        return arr + [button]
-    }
+    private(set) var buttons: [OnboardingButton] = []
     
     override init(frame: CGRect = .zero, step: OnboardingStep) {
-        self.categories = step.categories
+        let source: [String] = switch step {
+        case .preference:
+            SportsCategory.allCases.map { $0.rawValue }
+        case .disabled:
+            DiscomfortBodyPart.allCases.map { $0.rawValue }
+        default:
+            []
+        }
+        
+        buttons = source.reduce([OnboardingButton]()) { arr, title in
+            let button = OnboardingButton(config: .onboardingCard, selectedConfig: .selectedOnboardingCard, type: .card).then {
+                $0.title = title
+            }
+            return arr + [button]
+        }
+        
         super.init(frame: .zero, step: step)
         setLayout()
     }
@@ -40,8 +49,6 @@ extension OnboardingCardButtonsView {
     }
     
     private func makeButtonStack() -> UIStackView {
-        
-        
         let horizontalStacks = stride(from: 0, to: buttons.count, by: 3).map { startIndex in
             let endIndex = min(startIndex + 3, buttons.count)
             var rowViews: [UIView] = Array(buttons[startIndex..<endIndex])

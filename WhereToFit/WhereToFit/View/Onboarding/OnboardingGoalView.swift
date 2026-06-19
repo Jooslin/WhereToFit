@@ -12,16 +12,17 @@ import RxSwift
 import RxCocoa
 
 final class OnboardingGoalView: OnboardingBaseView {
-    let categories: [String]
-    private(set) lazy var buttons = categories.reduce([OnboardingButton]()) { arr, title in
-        let button = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .image).then {
-            $0.title = title
-        }
-        return arr + [button]
-    }
+    private(set) var buttons: [OnboardingButton] = []
 
     override init(frame: CGRect = .zero, step: OnboardingStep = .goal) {
-        self.categories = step.categories
+        let source = ExerciseGoal.allCases
+        buttons = source.reduce([OnboardingButton]()) { arr, experience in
+            let button = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .subTitle).then {
+                $0.title = experience.rawValue
+            }
+            return arr + [button]
+        }
+        
         super.init(frame: frame, step: step)
         setLayout()
     }

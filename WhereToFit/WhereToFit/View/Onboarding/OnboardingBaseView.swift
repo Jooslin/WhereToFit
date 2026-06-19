@@ -136,20 +136,6 @@ enum OnboardingStep: Int, CaseIterable {
         
         return Float(rawValue) / Float(Self.allCases.count - 2)
     }
-    
-    //TODO: 데이터 모델 반영하기
-    var categories: [String] {
-        switch self {
-        case .goal:
-            return ["근력 향상", "다이어트", "체력 향상", "자세 교정", "건강 관리", "스트레스 해소"]
-        case .preference:
-            return ["헬스", "피트니스", "요가/필라", "체조", "댄스/무용", "수중", "구기", "빙상", "무도/격투", "러닝/사이클", "생활체육", "특수체육"]
-        case .disabled:
-            return ["어지럼증", "목", "어깨", "팔꿈치", "손목", "허리", "무릎", "발목"]
-        default:
-            return []
-        }
-    }
 }
 
 
