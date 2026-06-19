@@ -11,7 +11,7 @@ import RxSwift
 /*
  사용 설명:
  시설 찜 버튼을 눌렀을 때 사용합니다.
-아래처럼 해당 시설의 정보를 Input으로 바꿔 호출합니다.
+아래처럼 해당 시설의 정보를 Input으로 바꿔 호출합니다.(단순 예시입니다.)
 
  let input = AddFacilityFavoriteUseCase.Input(
      targetID: facility.id,
