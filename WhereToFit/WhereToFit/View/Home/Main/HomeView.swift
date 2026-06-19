@@ -289,6 +289,10 @@ extension Reactive where Base: HomeView {
     var locationButtonTap: ControlEvent<Void> {
         base.titleView.rx.leftButtonTap
     }
+
+    var alarmButtonTap: ControlEvent<Void> {
+        base.titleView.rx.rightButtonTap
+    }
     
     var registerButtonTap: PublishRelay<Void> {
         base.registerButtonTap

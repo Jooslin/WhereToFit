@@ -46,4 +46,5 @@ enum AppStep: Step {
     case programRegistration
     case facilitySearch
     case selectDate
+    case notificationCenter
 }
