@@ -144,7 +144,7 @@ private extension FavoriteListReactor {
         return FavoriteItem(
             targetType: favorite.targetType,
             targetID: favorite.targetID,
-            name: favorite.title,
+            name: favorite.name,
             facilityLabelText: snapshot?.facilityLabelText,
             day: snapshot?.day ?? "요일",
             time: snapshot?.time ?? "00:00-00:00",
