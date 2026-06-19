@@ -36,11 +36,7 @@ final class FavoriteListViewController: BaseViewController<FavoriteListReactor> 
         favoriteProgramsView.segmentedControl.rx
             .controlEvent(.valueChanged)
             .map { [weak self] in
-                FavoriteListReactor.Action.selectTab(
-                    FavoriteListReactor.FavoriteTab(
-                        segmentIndex: self?.favoriteProgramsView.segmentedControl.selectedSegmentIndex ?? 0
-                    )
-                )
+                FavoriteListReactor.Action.selectTab(self?.favoriteProgramsView.selectedTab ?? .facility)
             }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)

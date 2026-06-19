@@ -11,7 +11,9 @@ import UIKit
 
 final class FavoriteListView: UIView {
     let titleView = TitleView(text: "찜한 시설 및 프로그램", leftButtonImage: UIImage(resource: .arrowLeft))
-    let segmentedControl = UISegmentedControl(items: ["찜한 시설", "찜한 프로그램"])
+    let segmentedControl = UISegmentedControl(
+        items: FavoriteListReactor.FavoriteTab.allCases.map(\.title)
+    )
     var favoriteButtonTapped: ((FavoriteListReactor.FavoriteItem) -> Void)?
 
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionViewLayout()).then {
@@ -36,6 +38,10 @@ final class FavoriteListView: UIView {
 }
 
 extension FavoriteListView {
+    var selectedTab: FavoriteListReactor.FavoriteTab {
+        FavoriteListReactor.FavoriteTab(segmentIndex: segmentedControl.selectedSegmentIndex) ?? .facility
+    }
+
     func updateSelectedTab(_ tab: FavoriteListReactor.FavoriteTab) {
         segmentedControl.selectedSegmentIndex = tab.segmentIndex
     }

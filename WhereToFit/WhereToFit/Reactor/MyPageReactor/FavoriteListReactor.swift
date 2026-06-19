@@ -25,20 +25,34 @@ final class FavoriteListReactor: BaseReactor {
         self.removeFavoriteUseCase = removeFavoriteUseCase
     }
 
-    nonisolated enum FavoriteTab {
+    nonisolated enum FavoriteTab: CaseIterable {
         case facility
         case program
 
-        init(segmentIndex: Int) {
-            self = segmentIndex == 1 ? .program : .facility
+        init?(segmentIndex: Int) {
+            guard Self.allCases.indices.contains(segmentIndex) else { return nil }
+            self = Self.allCases[segmentIndex]
+        }
+
+        var title: String {
+            switch self {
+            case .facility:
+                return "찜한 시설"
+            case .program:
+                return "찜한 프로그램"
+            }
         }
 
         var segmentIndex: Int {
+            Self.allCases.firstIndex(of: self) ?? 0
+        }
+
+        var targetType: FavoriteTargetType {
             switch self {
             case .facility:
-                return 0
+                return .facility
             case .program:
-                return 1
+                return .program
             }
         }
     }
@@ -137,16 +151,5 @@ private extension FavoriteListReactor {
             distance: snapshot?.distance ?? "거리 0.0km",
             price: snapshot?.price ?? "원~"
         )
-    }
-}
-
-private extension FavoriteListReactor.FavoriteTab {
-    var targetType: FavoriteTargetType {
-        switch self {
-        case .facility:
-            return .facility
-        case .program:
-            return .program
-        }
     }
 }
