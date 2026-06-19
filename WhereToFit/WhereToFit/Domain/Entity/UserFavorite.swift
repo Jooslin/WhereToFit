@@ -13,9 +13,9 @@ import Foundation
 nonisolated struct Favorite: Equatable, Sendable {
     let id: UUID
     let targetType: FavoriteTargetType
-    let targetID: String
-    let title: String
-    let subtitle: String?
+    let targetID: String // 시설/프로그램 아이디
+    let name: String // 시설/프로그램 이름
+    let programCenterName: String? // 프로그램일 경우 - 시설 이름 넣기
     let sportsCategoryRawValue: String?
     let snapshotJSON: String?
     let createdAt: Date

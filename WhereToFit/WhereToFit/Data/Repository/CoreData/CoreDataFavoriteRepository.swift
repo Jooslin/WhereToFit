@@ -119,7 +119,7 @@ private extension CoreDataFavoriteRepository {
               let targetTypeRawValue = object.stringValue(for: "targetTypeRawValue"),
               let targetType = FavoriteTargetType(rawValue: targetTypeRawValue),
               let targetID = object.stringValue(for: "targetID"),
-              let title = object.stringValue(for: "title"),
+              let name = object.stringValue(for: "name"),
               let createdAt = object.dateValue(for: "createdAt"),
               let updatedAt = object.dateValue(for: "updatedAt") else {
             return nil
@@ -129,8 +129,8 @@ private extension CoreDataFavoriteRepository {
             id: id,
             targetType: targetType,
             targetID: targetID,
-            title: title,
-            subtitle: object.stringValue(for: "subtitle"),
+            name: name,
+            programCenterName: object.stringValue(for: "programCenterName"),
             sportsCategoryRawValue: object.stringValue(for: "sportsCategoryRawValue"),
             snapshotJSON: object.stringValue(for: "snapshotJSON"),
             createdAt: createdAt,
@@ -142,8 +142,8 @@ private extension CoreDataFavoriteRepository {
         object.setValue(favorite.id, forKey: "id")
         object.setValue(favorite.targetType.rawValue, forKey: "targetTypeRawValue")
         object.setValue(favorite.targetID, forKey: "targetID")
-        object.setValue(favorite.title, forKey: "title")
-        object.setValue(favorite.subtitle, forKey: "subtitle")
+        object.setValue(favorite.name, forKey: "name")
+        object.setValue(favorite.programCenterName, forKey: "programCenterName")
         object.setValue(favorite.sportsCategoryRawValue, forKey: "sportsCategoryRawValue")
         object.setValue(favorite.snapshotJSON, forKey: "snapshotJSON")
         object.setValue(favorite.createdAt, forKey: "createdAt")
