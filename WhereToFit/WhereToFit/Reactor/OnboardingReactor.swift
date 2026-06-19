@@ -8,9 +8,51 @@
 import ReactorKit
 
 final class OnboardingReactor: BaseReactor {
-    let initialState: State = State()
+    let initialState: State = State(currentStep: .start)
     
-    enum Action {}
+    enum Action {
+        case nextButtonTapped
+        case backButtonTapped
+        case retryButtonTapped
+    }
     
-    struct State {}
+    enum Mutation {
+        case setStep(OnboardingStep)
+    }
+    
+    struct State {
+        var currentStep: OnboardingStep
+    }
+    
+    func mutate(action: Action) -> Observable<Mutation> {
+        switch action {
+        case .nextButtonTapped:
+            guard let nextStep = currentState.currentStep.next else {
+                return .empty()
+            }
+            
+            return .just(.setStep(nextStep))
+            
+        case .backButtonTapped:
+            guard let previousStep = currentState.currentStep.previous else {
+                return .empty()
+            }
+            
+            return .just(.setStep(previousStep))
+            
+        case .retryButtonTapped:
+            return .just(.setStep(.start))
+        }
+    }
+    
+    func reduce(state: State, mutation: Mutation) -> State {
+        var newState = state
+        
+        switch mutation {
+        case .setStep(let step):
+            newState.currentStep = step
+        }
+        
+        return newState
+    }
 }

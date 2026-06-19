@@ -8,9 +8,17 @@
 import UIKit
 import SnapKit
 import Then
+import RxSwift
+import RxCocoa
 
 final class OnboardingCardButtonsView: OnboardingBaseView {
     let categories: [String]
+    private(set) lazy var buttons = categories.reduce([OnboardingButton]()) { arr, title in
+        let button = OnboardingButton(config: .onboardingCard, selectedConfig: .selectedOnboardingCard, type: .card).then {
+            $0.title = title
+        }
+        return arr + [button]
+    }
     
     override init(frame: CGRect = .zero, step: OnboardingStep) {
         self.categories = step.categories
@@ -32,12 +40,7 @@ extension OnboardingCardButtonsView {
     }
     
     private func makeButtonStack() -> UIStackView {
-        let buttons = categories.reduce([OnboardingButton]()) { arr, title in
-            let button = OnboardingButton(config: .onboardingCard, selectedConfig: .selectedOnboardingCard, type: .card).then {
-                $0.title = title
-            }
-            return arr + [button]
-        }
+        
         
         let horizontalStacks = stride(from: 0, to: buttons.count, by: 3).map { startIndex in
             let endIndex = min(startIndex + 3, buttons.count)
@@ -58,5 +61,16 @@ extension OnboardingCardButtonsView {
             $0.axis = .vertical
             $0.spacing = 8
         }
+    }
+}
+
+//MARK: Reactive
+extension Reactive where Base: OnboardingCardButtonsView {
+    var buttonSelected: ControlEvent<String> {
+        let events = base.buttons.map { button in
+            button.rx.tap.map { button.title ?? "" }
+        }
+        
+        return ControlEvent(events: Observable.merge(events))
     }
 }

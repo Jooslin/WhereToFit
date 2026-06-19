@@ -8,6 +8,8 @@
 import UIKit
 import SnapKit
 import Then
+import RxSwift
+import RxCocoa
 
 final class OnboardingFacilityView: OnboardingBaseView {
     let negativeButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .label).then {
@@ -28,7 +30,7 @@ final class OnboardingFacilityView: OnboardingBaseView {
         $0.setImage(.plus, for: .normal)
     }
     
-    override init(frame: CGRect = .zero, step: OnboardingStep = .facilityExperience) {
+    override init(frame: CGRect = .zero, step: OnboardingStep = .facility) {
         super.init(frame: frame, step: step)
         setLayout()
     }
@@ -181,5 +183,16 @@ extension OnboardingFacilityView {
                 hasher.combine("button")
             }
         }
+    }
+}
+
+//MARK: Reactive
+extension Reactive where Base: OnboardingFacilityView {
+    var positiveButtonTap: ControlEvent<Void> {
+        base.positiveButton.rx.tap
+    }
+    
+    var negativeButtonTap: ControlEvent<Void> {
+        base.negativeButton.rx.tap
     }
 }

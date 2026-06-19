@@ -33,7 +33,7 @@ final class OnboardingPersonalInfoView: OnboardingBaseView {
         $0.setPlaceholder(text: "몸무게를 입력해주세요")
     }
     
-    override init(frame: CGRect = .zero, step: OnboardingStep = .info) {
+    override init(frame: CGRect = .zero, step: OnboardingStep = .personalInfo) {
         super.init(frame: .zero, step: step)
         setLayout()
     }

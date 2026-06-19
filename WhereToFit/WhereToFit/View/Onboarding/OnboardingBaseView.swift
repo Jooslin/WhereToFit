@@ -73,42 +73,75 @@ class OnboardingBaseView: UIView {
     }
 }
 
-enum OnboardingStep: Float {
-    case info = 1
+enum OnboardingStep: Int, CaseIterable {
+    case start
+    case personalInfo
     case experience
     case goal
     case preference
     case disabled
-    case facilityExperience
+    case facility
+    case end
+    
+    var previous: OnboardingStep? {
+        guard let index = Self.allCases.firstIndex(of: self),
+              index > Self.allCases.startIndex else {
+            return nil
+        }
+        
+        return Self.allCases[Self.allCases.index(before: index)]
+    }
+    
+    var next: OnboardingStep? {
+        guard let index = Self.allCases.firstIndex(of: self) else {
+            return nil
+        }
+        
+        let nextIndex = Self.allCases.index(after: index)
+        guard nextIndex < Self.allCases.endIndex else {
+            return nil
+        }
+        
+        return Self.allCases[nextIndex]
+    }
     
     var title: String {
         switch self {
-        case .info: "안녕하세요!"
+        case .start, .end: ""
+        case .personalInfo: "안녕하세요!"
         case .experience: "운동 경험을 알려주세요!"
         case .goal: "운동 목표는 무엇인가요?"
         case .preference: "어떤 운동을 좋아하세요?"
         case .disabled: "불편한 신체부위가 있나요?"
-        case .facilityExperience: "공공체육시설을 이용중이신가요?"
+        case .facility: "공공체육시설을 이용중이신가요?"
         }
     }
     
     var subTitle: String {
         switch self {
-        case .info: "운동 추천을 위해 몇 가지 정보를 알려주세요."
+        case .start, .end: ""
+        case .personalInfo: "운동 추천을 위해 몇 가지 정보를 알려주세요."
         case .experience: "스스로 생각하는 정도를 선택해주세요."
         case .goal: "달성하고 싶은 목표를 선택해주세요."
         case .preference: "관심있는 운동을 모두 선택해주세요."
         case .disabled: "운동을 하면 무리가 가는 부위를 알려주세요."
-        case .facilityExperience: "이용중인 프로그램이 있다면 등록해주세요."
+        case .facility: "이용중인 프로그램이 있다면 등록해주세요."
         }
     }
     
     var progress: Float {
-        self.rawValue / 7
+        guard self != .start, self != .end else {
+            return 0
+        }
+        
+        return Float(rawValue) / Float(Self.allCases.count - 2)
     }
     
+    //TODO: 데이터 모델 반영하기
     var categories: [String] {
         switch self {
+        case .goal:
+            return ["근력 향상", "다이어트", "체력 향상", "자세 교정", "건강 관리", "스트레스 해소"]
         case .preference:
             return ["헬스", "피트니스", "요가/필라", "체조", "댄스/무용", "수중", "구기", "빙상", "무도/격투", "러닝/사이클", "생활체육", "특수체육"]
         case .disabled:

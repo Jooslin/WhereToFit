@@ -6,57 +6,124 @@
 //
 
 import UIKit
+import SnapKit
 import Then
+import RxCocoa
+import RxRelay
 import RxSwift
 import ReactorKit
 
 final class OnboardingViewController: BaseViewController<OnboardingReactor> {
-    let onboardingView = OnboardingFacilityView()
-    override func loadView() {
-        view = onboardingView
-    }
+    private let containerView = UIView()
+    private var currentStepView: UIView?
+    private var stepViewDisposeBag = DisposeBag()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        let program = Program(
-            id: 1,
-            publicFacilityID: nil,
-            facilityName: "구미시민운동장",
-            facilityLocation: "경상북도 구미시 박정희로 375",
 
-            className: "성인 초급 배드민턴 교실",
-            sport: "배드민턴",
-            sportsCategory: .ballSports,
-            classDescription: "배드민턴의 기본 자세와 규칙을 배우는 입문 과정입니다.",
-
-            targetAges: [.adult],
-            levels: [.beginner],
-            isDisabledAccessible: true,
-
-            priceAmount: 50000,
-            rawPriceText: "50,000원",
-            priceUnit: .month,
-            priceNote: "라켓 대여 가능",
-
-            days: ["월", "수", "금"],
-            startTime: "19:00",
-            endTime: "20:30",
-
-            phoneNumber: "054-480-1234",
-            reservationMethods: [.online, .phone],
-            homepageURL: "https://www.gumi.go.kr"
-        )
-        
-        onboardingView.setSnapshot(with: [
-            .list: [OnboardingFacilityView.Item.list(program)],
-                .button: [OnboardingFacilityView.Item.button]
-        ])
+        setLayout()
     }
     
     override func bind(reactor: OnboardingReactor) {
+        reactor.state
+            .map(\.currentStep)
+            .distinctUntilChanged()
+            .bind(with: self) { owner, step in
+                owner.render(step: step)
+            }
+            .disposed(by: disposeBag)
+    }
+}
+
+private extension OnboardingViewController {
+    func setLayout() {
+        view.backgroundColor = .white
+        view.addSubview(containerView)
+        
+        containerView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
     }
     
+    func render(step: OnboardingStep) {
+        stepViewDisposeBag = DisposeBag()
+        currentStepView?.removeFromSuperview()
+        
+        let nextView = makeStepView(for: step)
+        containerView.addSubview(nextView)
+        
+        nextView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        
+        bindStepView(nextView)
+        currentStepView = nextView
+    }
+    
+    func makeStepView(for step: OnboardingStep) -> UIView {
+        switch step {
+        case .start:
+            return OnboardingStartView()
+        case .personalInfo:
+            return OnboardingPersonalInfoView()
+        case .experience:
+            return OnboardingExperienceView()
+        case .goal:
+            return OnboardingGoalView()
+        case .preference:
+            return OnboardingCardButtonsView(step: .preference)
+        case .disabled:
+            return OnboardingCardButtonsView(step: .disabled)
+        case .facility:
+            return OnboardingFacilityView()
+        case .end:
+            return OnboardingEndView()
+        }
+    }
+    
+    func bindStepView(_ stepView: UIView) {
+        guard let reactor else {
+            return
+        }
+        
+        if let startView = stepView as? OnboardingStartView {
+            startView.startButton.rx.tap
+                .map { OnboardingReactor.Action.nextButtonTapped }
+                .bind(to: reactor.action)
+                .disposed(by: stepViewDisposeBag)
+            
+            startView.skipButton.rx.tap
+                .bind(with: self) { owner, _ in
+                    owner.steps.accept(AppStep.main)
+                }
+                .disposed(by: stepViewDisposeBag)
+        }
+        
+        if let baseView = stepView as? OnboardingBaseView {
+            baseView.nextButton.rx.tap
+                .map { OnboardingReactor.Action.nextButtonTapped }
+                .bind(to: reactor.action)
+                .disposed(by: stepViewDisposeBag)
+            
+            baseView.titleView.rx.leftButtonTap
+                .map { OnboardingReactor.Action.backButtonTapped }
+                .bind(to: reactor.action)
+                .disposed(by: stepViewDisposeBag)
+        }
+        
+        if let endView = stepView as? OnboardingEndView {
+            endView.homeButton.rx.tap
+                .bind(with: self) { owner, _ in
+                    owner.steps.accept(AppStep.main)
+                }
+                .disposed(by: stepViewDisposeBag)
+            
+            endView.retryButton.rx.tap
+                .map { OnboardingReactor.Action.retryButtonTapped }
+                .bind(to: reactor.action)
+                .disposed(by: stepViewDisposeBag)
+        }
+    }
 }
 
 
