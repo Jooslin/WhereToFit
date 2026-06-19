@@ -52,6 +52,11 @@ class OnboardingButton: DesignButton {
         set { subTitleLabel.text = newValue }
     }
     
+    var image: UIImage? {
+        get { imageView.image }
+        set { imageView.image = newValue }
+    }
+    
     override var backgroundCornerRadius: CGFloat {
         buttonType == .card ? 16 : super.backgroundCornerRadius
     }

@@ -196,4 +196,3 @@ extension Reactive where Base: OnboardingFacilityView {
         base.negativeButton.rx.tap
     }
 }
-
