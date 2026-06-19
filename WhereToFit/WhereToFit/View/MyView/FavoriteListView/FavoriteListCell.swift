@@ -88,6 +88,12 @@ private final class FavoriteReservationBadge: UIView {
     }
 }
 
+extension FavoriteReservationBadge {
+    func configure(title: String?) {
+        titleLabel.text = title ?? "예약필요"
+    }
+}
+
 private extension FavoriteReservationBadge {
     func setLayout() {
         backgroundColor = .gray50
@@ -121,6 +127,7 @@ extension FavoriteListCell {
         timeLabel.text = item.time
         distanceLabel.text = item.distance
         priceLabel.text = item.price
+        reservationBadge.configure(title: item.reservationMethodText)
         programImageView.favoriteButton.isSelected = true
 
         let placeholderImage = UIImage(resource: .emptyNotification)

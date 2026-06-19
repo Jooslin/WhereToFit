@@ -21,6 +21,7 @@ import RxSwift
      time: facility.availableTimeRange.title,
      distance: facility.distanceText,
      price: facility.priceText,
+     reservationMethods: "온라인, 직접방문",
      imageURLString: facility.imageURL?.absoluteString
  )
  addProgramFavoriteUseCase.execute(input)
@@ -40,6 +41,7 @@ final class AddProgramFavoriteUseCase {
         let time: String // 운영 시간
         let distance: String // 거리
         let price: String // 가격
+        let reservationMethods: String?
         let imageURLString: String?
     }
 
@@ -73,6 +75,7 @@ private extension AddProgramFavoriteUseCase {
         let distance: String
         let price: String
         let facilityLabelText: String?
+        let reservationMethods: String?
         let imageURLString: String?
     }
 
@@ -84,6 +87,7 @@ private extension AddProgramFavoriteUseCase {
             distance: input.distance,
             price: input.price,
             facilityLabelText: facilityLabelText,
+            reservationMethods: input.reservationMethods,
             imageURLString: input.imageURLString
         )
 

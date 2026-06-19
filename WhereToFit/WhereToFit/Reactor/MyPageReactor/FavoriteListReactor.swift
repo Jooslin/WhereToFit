@@ -66,6 +66,7 @@ final class FavoriteListReactor: BaseReactor {
         let time: String
         let distance: String
         let price: String
+        let reservationMethodText: String?
         let imageURLString: String?
     }
 
@@ -77,7 +78,7 @@ final class FavoriteListReactor: BaseReactor {
 
     enum Mutation {
         case setTab(FavoriteTab)
-        case setItems([FavoriteItem])
+        case setItems(FavoriteTab, [FavoriteItem])
     }
 
     struct State {
@@ -97,8 +98,9 @@ final class FavoriteListReactor: BaseReactor {
             ])
 
         case .removeFavorite(let item):
+            let tab = currentState.selectedTab
             return removeFavoriteUseCase.execute(targetType: item.targetType, targetID: item.targetID)
-                .andThen(fetchItems(tab: currentState.selectedTab))
+                .andThen(fetchItems(tab: tab))
                 .catch { _ in .empty() }
         }
     }
@@ -110,7 +112,8 @@ final class FavoriteListReactor: BaseReactor {
         case .setTab(let tab):
             newState.selectedTab = tab
 
-        case .setItems(let items):
+        case let .setItems(tab, items):
+            guard state.selectedTab == tab else { return state }
             newState.items = items
         }
 
@@ -125,6 +128,7 @@ private extension FavoriteListReactor {
         let distance: String?
         let price: String?
         let facilityLabelText: String?
+        let reservationMethods: String?
         let imageURLString: String?
     }
 
@@ -133,9 +137,9 @@ private extension FavoriteListReactor {
             .map { favorites in
                 favorites.map(Self.makeFavoriteItem)
             }
-            .map(Mutation.setItems)
+            .map { Mutation.setItems(tab, $0) }
             .asObservable()
-            .catch { _ in .just(.setItems([])) }
+            .catch { _ in .just(.setItems(tab, [])) }
     }
 
     nonisolated static func makeFavoriteItem(_ favorite: Favorite) -> FavoriteItem {
@@ -152,6 +156,7 @@ private extension FavoriteListReactor {
             time: snapshot?.time ?? "00:00-00:00",
             distance: snapshot?.distance ?? "거리 0.0km",
             price: snapshot?.price ?? "원~",
+            reservationMethodText: snapshot?.reservationMethods,
             imageURLString: snapshot?.imageURLString
         )
     }
