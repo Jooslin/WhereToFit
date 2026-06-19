@@ -122,6 +122,8 @@ final class FavoriteListReactor: BaseReactor {
 }
 
 private extension FavoriteListReactor {
+    nonisolated static let favoriteSnapshotDecoder = JSONDecoder()
+
     nonisolated struct FavoriteSnapshot: Decodable {
         let day: String?
         let time: String?
@@ -145,7 +147,7 @@ private extension FavoriteListReactor {
     nonisolated static func makeFavoriteItem(_ favorite: Favorite) -> FavoriteItem {
         let snapshot = favorite.snapshotJSON
             .flatMap { $0.data(using: .utf8) }
-            .flatMap { try? JSONDecoder().decode(FavoriteSnapshot.self, from: $0) }
+            .flatMap { try? favoriteSnapshotDecoder.decode(FavoriteSnapshot.self, from: $0) }
 
         return FavoriteItem(
             targetType: favorite.targetType,
