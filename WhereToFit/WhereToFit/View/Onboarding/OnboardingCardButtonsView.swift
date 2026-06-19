@@ -64,6 +64,7 @@ extension OnboardingCardButtonsView {
     }
 }
 
+//MARK: Reactive
 extension Reactive where Base: OnboardingCardButtonsView {
     var buttonSelected: ControlEvent<String> {
         let events = base.buttons.map { button in
