@@ -18,7 +18,6 @@ final class HomeFlow: Flow {
     private let sportsRepository: SportsRepositoryProtocol
     
     private let locationReactor = LocationReactor()
-    private var programRegisterReactor: ProgramRegisterReactor?
     
     init(dateService: DateService, weatherRepository: WeatherRepositoryProtocol, sportsRepository: SportsRepositoryProtocol) {
         self.dateService = dateService
@@ -71,8 +70,7 @@ final class HomeFlow: Flow {
                     .contribute(withNextPresentable: vc, withNextStepper: vc))
             
         case .programRegistration:
-            programRegisterReactor = ProgramRegisterReactor()
-            let vc = ProgramRegisterViewController(reactor: programRegisterReactor)
+            let vc = ProgramRegisterViewController(reactor: ProgramRegisterReactor())
             navigationController.pushViewController(vc, animated: true)
             
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
@@ -80,7 +78,7 @@ final class HomeFlow: Flow {
         case .facilitySearch:
             let vc = FacilitySearchViewController(reactor: FacilitySearchReactor())
             vc.onSelectFacility = { [weak self] id in
-                self?.programRegisterReactor?.action.onNext(.selectFacility(id: id))
+                self?.sendToProgramRegister(.selectFacility(id: id))
             }
             
             navigationController.pushViewController(vc, animated: true)
@@ -89,7 +87,7 @@ final class HomeFlow: Flow {
         case .selectDate:
             let vc = ProgramDateViewController(reactor: ProgramDateReactor(dateService: dateService))
             vc.onSelectDate = { [weak self] dates in
-                self?.programRegisterReactor?.action.onNext(.selectDates(dates))
+                self?.sendToProgramRegister(.selectDates(dates))
             }
             
             vc.modalPresentationStyle = .pageSheet
@@ -103,5 +101,15 @@ final class HomeFlow: Flow {
         default:
             return .one(flowContributor: .forwardToParentFlow(withStep: step))
         }
+    }
+}
+
+extension HomeFlow {
+    private func sendToProgramRegister(_ action: ProgramRegisterReactor.Action) {
+        let programRegisterVC = navigationController.viewControllers
+            .compactMap { $0 as? ProgramRegisterViewController }
+            .last
+        
+        programRegisterVC?.reactor?.action.onNext(action)
     }
 }
