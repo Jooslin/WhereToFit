@@ -15,6 +15,7 @@ final class HomeView: UIView {
     fileprivate let titleView = HomeTitleView()
     private lazy var collectionView = HomeCollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout())
     private lazy var dataSource = makeCollectionViewDiffableDataSource(collectionView)
+    private var programHeaderTitle = "주변 프로그램"
     
     // Reactive
     fileprivate let registerButtonTap = PublishRelay<Void>()
@@ -88,8 +89,7 @@ extension HomeView {
             case .recommend:
                 supplementaryView.titleLabel.text = "오늘의 맞춤 운동 AI 추천"
             case .program:
-                //TODO: (유저정보) 부분 변경 필요
-                supplementaryView.titleLabel.text = "(유저정보) 추천 프로그램"
+                supplementaryView.titleLabel.text = self?.programHeaderTitle
             default:
                 break
             }
@@ -200,6 +200,14 @@ extension HomeView {
         }
         
         dataSource.apply(snapshot, animatingDifferences: true)
+    }
+    
+    func setLocationTitle(_ title: String) {
+        titleView.setLocationTitle(title)
+    }
+    
+    func setProgramHeaderTitle(_ title: String) {
+        programHeaderTitle = title
     }
 }
 

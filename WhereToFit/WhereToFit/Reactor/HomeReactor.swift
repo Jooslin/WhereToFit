@@ -17,17 +17,24 @@ final class HomeReactor: BaseReactor {
     
     enum Mutation {
         case setLoading(Bool)
-        case setUserProfile(UserProfile)
-        case setCurrentLocation(UserLocation)
+        case setUserProfile(UserProfile?)
+        case setCurrentLocation(UserLocation?)
+        case setLocationTitle(String)
+        case setProgramSectionTitle(String)
         
         case setWeatherSectionItem([HomeCollectionView.Item])
         case setRecommendSectionItem([HomeCollectionView.Item])
+        case setRecommendReasonSectionItem([HomeCollectionView.Item])
         case setOnboardingSectionItem([HomeCollectionView.Item])
         case setProgramSectionItem([HomeCollectionView.Item])
     }
     
     struct State {
         var isLoading: Bool = false
+        var userProfile: UserProfile?
+        var currentLocation: UserLocation?
+        var locationTitle: String = HomeReactor.defaultLocationTitle
+        var programSectionTitle: String = HomeReactor.defaultProgramSectionTitle
         var data: [HomeCollectionView.Section: [HomeCollectionView.Item]] = [:]
     }
     
@@ -36,17 +43,27 @@ final class HomeReactor: BaseReactor {
     private let dateService: DateService
     private let weatherRepository: WeatherRepositoryProtocol
     private let sportsRepository: SportsRepositoryProtocol
+    private let fetchUserProfileUseCase: FetchUserProfileUseCase
+    private let fetchSelectedUserLocationUseCase: FetchSelectedUserLocationUseCase
     
     init(
         userStore: UserStore = UserStore(),
         dateService: DateService,
         weatherRepository: WeatherRepositoryProtocol,
-        sportsRepository: SportsRepositoryProtocol
+        sportsRepository: SportsRepositoryProtocol,
+        fetchUserProfileUseCase: FetchUserProfileUseCase = FetchUserProfileUseCase(
+            repository: CoreDataUserProfileRepository()
+        ),
+        fetchSelectedUserLocationUseCase: FetchSelectedUserLocationUseCase = FetchSelectedUserLocationUseCase(
+            repository: CoreDataUserLocationRepository()
+        )
     ) {
         self.userStore = userStore
         self.dateService = dateService
         self.weatherRepository = weatherRepository
         self.sportsRepository = sportsRepository
+        self.fetchUserProfileUseCase = fetchUserProfileUseCase
+        self.fetchSelectedUserLocationUseCase = fetchSelectedUserLocationUseCase
     }
     
     //MARK: Reactor func
@@ -55,10 +72,7 @@ final class HomeReactor: BaseReactor {
         case .viewWillAppear:
             return Observable.concat([
                 .just(.setLoading(true)),
-                makeWeatherSection(),
-                makeRecommendSection(),
-                makeOnboardingSection(),
-                makeProgramSection(),
+                makeHomeContent(),
                 .just(.setLoading(false))
             ])
         }
@@ -66,12 +80,10 @@ final class HomeReactor: BaseReactor {
     
     func transform(mutation: Observable<Mutation>) -> Observable<Mutation> {
         let profileMutation = userStore.userProfile
-            .compactMap { $0 }
             .map { profile -> Mutation in
                 Mutation.setUserProfile(profile)
             }
         let locationMutation = userStore.currentLocation
-            .compactMap { $0 }
             .map { location -> Mutation in
                 .setCurrentLocation(location)
             }
@@ -85,12 +97,20 @@ final class HomeReactor: BaseReactor {
         switch mutation {
         case .setLoading(let isLoading):
             newState.isLoading = isLoading
-        case .setUserProfile, .setCurrentLocation:
-            break
+        case .setUserProfile(let profile):
+            newState.userProfile = profile
+        case .setCurrentLocation(let location):
+            newState.currentLocation = location
+        case .setLocationTitle(let title):
+            newState.locationTitle = title
+        case .setProgramSectionTitle(let title):
+            newState.programSectionTitle = title
         case .setWeatherSectionItem(let item):
             newState.data[.weather] = item
         case .setRecommendSectionItem(let item):
             newState.data[.recommend] = item
+        case .setRecommendReasonSectionItem(let item):
+            newState.data[.recommendReason] = item
         case .setOnboardingSectionItem(let item):
             newState.data[.onboarding] = item
         case .setProgramSectionItem(let item):
@@ -102,13 +122,84 @@ final class HomeReactor: BaseReactor {
 }
 
 extension HomeReactor {
+    private struct HomeContext {
+        let profile: UserProfile?
+        let location: UserLocation?
+        
+        var didCompleteOnboarding: Bool {
+            profile != nil
+        }
+    }
+    
+    static let defaultLocationTitle = "종로구"
+    static let defaultProgramSectionTitle = "주변 프로그램"
+    private static let pendingCategoryRecommendationTitle = "추천 프로그램"
+    private static let defaultLocationAddress = "서울 종로구 효자로 12 국립고궁박물관"
+    private static let defaultLocationLatitude = 37.57665
+    private static let defaultLocationLongitude = 126.97498
+    
+    private func makeHomeContent() -> Observable<Mutation> {
+        fetchHomeContext()
+            .asObservable()
+            .flatMap { [weak self] context -> Observable<Mutation> in
+                guard let self else { return .empty() }
+                
+                let address = context.location?.address ?? Self.defaultLocationAddress
+                let locationTitle = Self.locationTitle(from: address)
+                let programSectionTitle = context.didCompleteOnboarding ? Self.pendingCategoryRecommendationTitle : Self.defaultProgramSectionTitle
+                
+                return Observable.concat([
+                    .just(.setUserProfile(context.profile)),
+                    .just(.setCurrentLocation(context.location)),
+                    .just(.setLocationTitle(locationTitle)),
+                    .just(.setProgramSectionTitle(programSectionTitle)),
+                    self.makeWeatherSection(location: context.location),
+                    self.makeRecommendSection(context: context),
+                    self.makeRecommendReasonSection(context: context),
+                    self.makeOnboardingSection(context: context),
+                    self.makeProgramSection()
+                ])
+            }
+            .catch { [weak self] _ in
+                guard let self else { return .just(.setLoading(false)) }
+                
+                return Observable.concat([
+                    .just(.setUserProfile(nil)),
+                    .just(.setCurrentLocation(nil)),
+                    .just(.setLocationTitle(Self.defaultLocationTitle)),
+                    .just(.setProgramSectionTitle(Self.defaultProgramSectionTitle)),
+                    self.makeWeatherSection(location: nil),
+                    self.makeRecommendSection(context: HomeContext(profile: nil, location: nil)),
+                    self.makeRecommendReasonSection(context: HomeContext(profile: nil, location: nil)),
+                    self.makeOnboardingSection(context: HomeContext(profile: nil, location: nil)),
+                    self.makeProgramSection()
+                ])
+            }
+    }
+    
+    private func fetchHomeContext() -> Single<HomeContext> {
+        fetchUserProfileUseCase.execute()
+            .flatMap { [fetchSelectedUserLocationUseCase] profile -> Single<HomeContext> in
+                guard let profile else {
+                    return .just(HomeContext(profile: nil, location: nil))
+                }
+                
+                return fetchSelectedUserLocationUseCase.execute(userProfileID: profile.id)
+                    .map { location in
+                        HomeContext(profile: profile, location: location)
+                    }
+            }
+    }
+    
     //TODO: schedule 정보
-    private func makeWeatherSection() -> Observable<Mutation> {
+    private func makeWeatherSection(location: UserLocation?) -> Observable<Mutation> {
         let weeklyDate = dateService.weeklyDate()
         let isNight = dateService.isNight()
+        let latitude = location?.latitude ?? Self.defaultLocationLatitude
+        let longitude = location?.longitude ?? Self.defaultLocationLongitude
         
         return weatherRepository
-            .fetchWeather(latitude: 37.57, longitude: 127)
+            .fetchWeather(latitude: latitude, longitude: longitude)
             .map { weather in
                 let item = HomeCollectionView.WeatherSectionItem(
                     weeklyDate: weeklyDate,
@@ -123,33 +214,28 @@ extension HomeReactor {
     }
     
     //TODO: 온보딩 추천 결과로 수정 필요
-    private func makeRecommendSection() -> Observable<Mutation> {
-        return sportsRepository.fetchPrograms(limit: 5, offset: 0, order: .ascending)
-            .map { page in
-                let programs = page.items
-//                let categories = programs.map { $0.sportsCategory }
-                let categories = [SportsCategory.ballSports, SportsCategory.dance, SportsCategory.aquaticSports]
-                let items = categories.reduce([HomeCollectionView.Item]()) {
-                    $0 + [HomeCollectionView.Item.recommend($1)]
-                }
-                return Mutation.setRecommendSectionItem(items)
-            }
-            .asObservable()
-            .catch { _ in .just(.setRecommendSectionItem([])) }
+    private func makeRecommendSection(context: HomeContext) -> Observable<Mutation> {
+        guard context.didCompleteOnboarding else {
+            return .just(.setRecommendSectionItem([]))
+        }
+        
+        let categories = context.profile?.preferredSportsCategories ?? []
+        let items = categories.map(HomeCollectionView.Item.recommend)
+        
+        return .just(.setRecommendSectionItem(items))
     }
     
-    private func makeOnboardingSection() -> Observable<Mutation> {
-        Observable.create { observer in
-            let didOnboarding: Bool = false //TODO: 수정 필요
-            
-            let item = didOnboarding ? [] :
-            [HomeCollectionView.Item.onboarding]
-            
-            observer.onNext(.setOnboardingSectionItem(item))
-            observer.onCompleted()
-            
-            return Disposables.create()
+    private func makeRecommendReasonSection(context: HomeContext) -> Observable<Mutation> {
+        guard context.didCompleteOnboarding else {
+            return .just(.setRecommendReasonSectionItem([]))
         }
+        
+        return .just(.setRecommendReasonSectionItem([]))
+    }
+    
+    private func makeOnboardingSection(context: HomeContext) -> Observable<Mutation> {
+        let item: [HomeCollectionView.Item] = context.didCompleteOnboarding ? [] : [.onboarding]
+        return .just(.setOnboardingSectionItem(item))
     }
     
     private func makeProgramSection() -> Observable<Mutation> {
@@ -214,6 +300,15 @@ extension HomeReactor {
         let outdoorKeywords = ["축구장", "풋살장", "야구장", "테니스장", "게이트볼장", "파크골프", "국궁장"]
         
         return outdoorKeywords.contains { text.contains($0) } ? "야외" : "실내"
+    }
+    
+    static func locationTitle(from address: String) -> String {
+        let parts = address
+            .split(separator: " ")
+            .map(String.init)
+            .filter { !$0.isEmpty }
+        
+        return parts.dropFirst().first ?? defaultLocationTitle
     }
 }
 

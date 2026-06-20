@@ -30,11 +30,11 @@ final class UserStore: UserStoreProtocol {
     }
     
     func setProfile(_ profile: UserProfile?) {
-        
+        profileRelay.accept(profile)
     }
     
     func setCurrnetLocation(_ location: UserLocation) {
-        
+        currentLocationRelay.accept(location)
     }
     
     func clear() {

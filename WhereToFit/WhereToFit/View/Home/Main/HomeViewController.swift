@@ -56,6 +56,22 @@ final class HomeViewController: BaseViewController<HomeReactor> {
                 homeView.setSnapshot(data)
             })
             .disposed(by: disposeBag)
+        
+        state.map(\.locationTitle)
+            .distinctUntilChanged()
+            .drive(with: homeView,
+                   onNext: { homeView, title in
+                homeView.setLocationTitle(title)
+            })
+            .disposed(by: disposeBag)
+        
+        state.map(\.programSectionTitle)
+            .distinctUntilChanged()
+            .drive(with: homeView,
+                   onNext: { homeView, title in
+                homeView.setProgramHeaderTitle(title)
+            })
+            .disposed(by: disposeBag)
     }
 }
 
