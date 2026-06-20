@@ -16,6 +16,11 @@ final class RegisteredProgramsViewController: BaseViewController<RegisteredProgr
         view = registeredProgramsView
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        reactor?.action.onNext(.viewWillAppear)
+    }
+
     override func bind(reactor: RegisteredProgramsReactor) {
         registeredProgramsView.titleView.rx.leftButtonTap
             .bind(with: self) { owner, _ in

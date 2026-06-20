@@ -31,20 +31,3 @@ nonisolated struct RegisteredProgram: Equatable, Sendable {
     let createdAt: Date // 만들어진 날짜
     let updatedAt: Date // 업데이트 날짜
 }
-
-nonisolated struct Favorite: Equatable, Sendable {
-    let id: UUID
-    let targetType: FavoriteTargetType
-    let targetID: String
-    let title: String
-    let subtitle: String?
-    let sportsCategoryRawValue: String?
-    let snapshotJSON: String?
-    let createdAt: Date
-    let updatedAt: Date
-}
-
-nonisolated enum FavoriteTargetType: String, Equatable, Sendable {
-    case facility
-    case program
-}
