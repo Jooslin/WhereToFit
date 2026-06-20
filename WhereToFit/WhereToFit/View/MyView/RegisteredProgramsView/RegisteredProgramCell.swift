@@ -47,7 +47,9 @@ final class RegisteredProgramCell: UICollectionViewCell {
         $0.backgroundColor = .gray100
     }
     private let deleteButton = UIButton(type: .custom).then {
-        let image = UIImage(systemName: "minus.circle.fill")?.withRenderingMode(.alwaysTemplate)
+        let configuration = UIImage.SymbolConfiguration(pointSize: 32, weight: .regular)
+        let image = UIImage(systemName: "minus.circle.fill", withConfiguration: configuration)?
+            .withRenderingMode(.alwaysTemplate)
         $0.setImage(image, for: .normal)
         $0.tintColor = .systemRed
         $0.isHidden = true
@@ -147,7 +149,7 @@ extension RegisteredProgramCell {
         deleteButton.snp.makeConstraints {
             $0.top.equalToSuperview()
             $0.trailing.equalToSuperview()
-            $0.size.equalTo(24)
+            $0.size.equalTo(32)
         }
 
         rightDownLabel.snp.makeConstraints {

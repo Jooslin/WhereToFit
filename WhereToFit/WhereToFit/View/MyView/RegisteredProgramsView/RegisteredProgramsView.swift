@@ -10,7 +10,12 @@ import Then
 import UIKit
 
 final class RegisteredProgramsView: UIView {
-    let titleView = TitleView(text: "내가 등록한 프로그램", leftButtonImage: .arrowLeft, rightButtonImage: .edit)
+    let titleView = TitleView(text: "내가 등록한 프로그램", leftButtonImage: .arrowLeft)
+    let editButton = UIButton(type: .custom).then {
+        $0.setTitle("편집", for: .normal)
+        $0.setTitleColor(.gray700, for: .normal)
+        $0.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
+    }
     lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionViewLayout()).then {
         $0.backgroundColor = .white
         $0.showsVerticalScrollIndicator = false
@@ -38,12 +43,19 @@ private extension RegisteredProgramsView {
     func setLayout() {
         [
             titleView,
+            editButton,
             collectionView
         ].forEach(addSubview)
 
         titleView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
             $0.horizontalEdges.equalToSuperview()
+        }
+
+        editButton.snp.makeConstraints {
+            $0.centerY.equalTo(titleView)
+            $0.trailing.equalToSuperview().inset(16)
+            $0.height.equalTo(44)
         }
 
         collectionView.snp.makeConstraints {

@@ -35,7 +35,7 @@ final class RegisteredProgramsViewController: BaseViewController<RegisteredProgr
             }
             .disposed(by: disposeBag)
 
-        registeredProgramsView.titleView.rx.rightButtonTap
+        registeredProgramsView.editButton.rx.tap
             .map { RegisteredProgramsReactor.Action.toggleEditing }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
@@ -54,6 +54,7 @@ final class RegisteredProgramsViewController: BaseViewController<RegisteredProgr
             .distinctUntilChanged()
             .bind(with: self) { owner, isEditing in
                 owner.isEditingPrograms = isEditing
+                owner.registeredProgramsView.editButton.setTitle(isEditing ? "완료" : "편집", for: .normal)
                 owner.registeredProgramsView.collectionView.reloadData()
             }
             .disposed(by: disposeBag)
