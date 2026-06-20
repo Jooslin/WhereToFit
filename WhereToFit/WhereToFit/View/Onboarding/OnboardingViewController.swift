@@ -46,7 +46,7 @@ final class OnboardingViewController: BaseViewController<OnboardingReactor> {
             .bind(with: self) { owner, result in
                 owner.steps.accept(AppStep.main)
 
-                guard result == .successWithLocationWarning else { return }
+                guard case .successWithLocationWarning = result else { return }
                 DispatchQueue.main.async {
                     owner.steps.accept(
                         AppStep.alert(

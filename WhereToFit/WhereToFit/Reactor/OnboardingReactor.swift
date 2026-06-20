@@ -58,7 +58,24 @@ final class OnboardingReactor: BaseReactor {
 
     enum SaveResult: Equatable {
         case success
-        case successWithLocationWarning
+        case successWithLocationWarning(LocationWarningReason)
+    }
+
+    enum LocationWarningReason: Equatable {
+        case coordinateNotFound
+        case coordinateRequestFailed(String)
+        case locationSaveFailed(String)
+
+        var logMessage: String {
+            switch self {
+            case .coordinateNotFound:
+                return "coordinate not found"
+            case .coordinateRequestFailed(let message):
+                return "coordinate request failed: \(message)"
+            case .locationSaveFailed(let message):
+                return "location save failed: \(message)"
+            }
+        }
     }
 
     struct State {
@@ -150,7 +167,7 @@ final class OnboardingReactor: BaseReactor {
             return .just(.setGender(gender))
 
         case .updateAddress(let stringAddress):
-            return updateAddressData(from: stringAddress)
+            return .just(.setAddress(stringAddress))
 
         case .updateWeight(let stringWeight):
             return makeWeightData(from: stringWeight)
@@ -261,17 +278,6 @@ extension OnboardingReactor {
         }
     }
 
-    private func updateAddressData(from string: String) -> Observable<Mutation> {
-#if DEBUG
-        return .concat([
-            .just(.setAddress(string)),
-            checkAddressCoordinateForDebug(address: string)
-        ])
-#else
-        return .just(.setAddress(string))
-#endif
-    }
-
     private func makeWeightData(from string: String) -> Observable<Mutation> {
         switch validatePersonalInfoUseCase.validateWeight(string) {
         case .success(let weight):
@@ -296,31 +302,6 @@ extension OnboardingReactor {
         }
     }
 
-#if DEBUG
-    private func checkAddressCoordinateForDebug(address: String) -> Observable<Mutation> {
-        let trimmedAddress = address.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmedAddress.isEmpty == false else {
-            return .empty()
-        }
-
-        return addressCoordinateUseCase.execute(address: trimmedAddress)
-            .asObservable()
-            .map { coordinate -> Mutation in
-                guard let coordinate else {
-                    return .setError(title: "좌표 확인", message: "현재 위치의 좌표를 찾지 못했어요.")
-                }
-
-                return .setError(
-                    title: "좌표 확인",
-                    message: "위도: \(coordinate.latitude)\n경도: \(coordinate.longitude)"
-                )
-            }
-            .catch { _ in
-                .just(.setError(title: "좌표 확인", message: "좌표 검색 요청에 실패했어요."))
-            }
-    }
-#endif
-
     private func saveOnboardingData() -> Observable<Mutation> {
         guard currentState.isSaving == false else {
             return .empty()
@@ -333,11 +314,12 @@ extension OnboardingReactor {
         let address = currentState.address?.trimmingCharacters(in: .whitespacesAndNewlines)
         let saveResult = saveProfileAndLocation(profileInput: profileInput, address: address)
             .asObservable()
-            .map { result in
+            .map { [logger] result in
                 switch result {
                 case .success:
                     return Mutation.setStep(.end)
-                case .successWithLocationWarning:
+                case .successWithLocationWarning(let reason):
+                    logger.notice("onboarding location warning: \(reason.logMessage, privacy: .public)")
                     return Mutation.setSaveResult(result)
                 }
             }
@@ -378,17 +360,24 @@ extension OnboardingReactor {
         address: String?
     ) -> Single<SaveResult> {
         upsertUserProfileUseCase.execute(profileInput)
-            .flatMap { [addressCoordinateUseCase, addUserLocationUseCase] profile -> Single<SaveResult> in
+            .flatMap { [addressCoordinateUseCase, addUserLocationUseCase, logger] profile -> Single<SaveResult> in
                 guard let address,
                       address.isEmpty == false else {
+                    logger.notice("skip coordinate lookup because onboarding address is empty")
                     return .just(.success)
                 }
 
+                logger.notice("start coordinate lookup for address: \(address, privacy: .public)")
+
                 return addressCoordinateUseCase.execute(address: address)
+                    .timeout(.seconds(10), scheduler: MainScheduler.asyncInstance)
                     .flatMap { coordinate -> Single<SaveResult> in
                         guard let coordinate else {
-                            return .just(.successWithLocationWarning)
+                            logger.notice("failed to find coordinate for address: \(address, privacy: .public)")
+                            return .just(.successWithLocationWarning(.coordinateNotFound))
                         }
+
+                        logger.notice("found coordinate for address: \(address, privacy: .public), latitude: \(coordinate.latitude), longitude: \(coordinate.longitude)")
 
                         let locationInput = AddUserLocationUseCase.Input(
                             userProfileID: profile.id,
@@ -402,9 +391,23 @@ extension OnboardingReactor {
 
                         return addUserLocationUseCase.execute(locationInput)
                             .map { _ -> SaveResult in .success }
-                            .catchAndReturn(.successWithLocationWarning)
+                            .catch {
+                                logger.notice("failed to save user location for address: \(address, privacy: .public), error: \($0.localizedDescription, privacy: .public)")
+                                return .just(.successWithLocationWarning(.locationSaveFailed($0.locationWarningMessage)))
+                            }
                     }
-                    .catchAndReturn(.successWithLocationWarning)
+                    .catch {
+                        logger.notice("failed to request coordinate for address: \(address, privacy: .public), error: \($0.localizedDescription, privacy: .public)")
+                        return .just(.successWithLocationWarning(.coordinateRequestFailed($0.locationWarningMessage)))
+                    }
             }
+    }
+}
+
+private extension Error {
+    var locationWarningMessage: String {
+        let localizedDescription = localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard localizedDescription.isEmpty else { return localizedDescription }
+        return String(describing: self)
     }
 }
