@@ -11,6 +11,7 @@ import UIKit
 
 final class RegisteredProgramCell: UICollectionViewCell {
     static let reuseIdentifier = "RegisteredProgramCell"
+    var deleteButtonTapped: (() -> Void)?
 
     private let programImageView = RoundImageView(image: UIImage(resource: .emptyNotification), type: .roundSquare)
     private let nameLabel = UILabel(config: .body16Medium).then {
@@ -45,12 +46,19 @@ final class RegisteredProgramCell: UICollectionViewCell {
     private let divider = UIView().then {
         $0.backgroundColor = .gray100
     }
+    private let deleteButton = UIButton(type: .custom).then {
+        let image = UIImage(systemName: "minus.circle.fill")?.withRenderingMode(.alwaysTemplate)
+        $0.setImage(image, for: .normal)
+        $0.tintColor = .systemRed
+        $0.isHidden = true
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
 
         setLayout()
         setPriority()
+        deleteButton.addTarget(self, action: #selector(didTapDeleteButton), for: UIControl.Event.touchUpInside)
     }
 
     @available(*, unavailable)
@@ -61,12 +69,14 @@ final class RegisteredProgramCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
 
+        deleteButtonTapped = nil
+        deleteButton.isHidden = true
         programImageView.image = UIImage(resource: .emptyNotification)
     }
 }
 
 extension RegisteredProgramCell {
-    func configure(item: RegisteredProgramsReactor.RegisteredProgramItem) {
+    func configure(item: RegisteredProgramsReactor.RegisteredProgramItem, isEditing: Bool) {
         nameLabel.text = item.programName
         facilityLabel.text = item.facilityNameText.map { "\($0) |" }
         facilityLabel.isHidden = item.facilityNameText == nil
@@ -75,7 +85,12 @@ extension RegisteredProgramCell {
         rightUpperLabel.text = ""
         rightDownLabel.text = ""
         rightDownLabel.isHidden = item.reservationMethodText == nil
+        deleteButton.isHidden = isEditing == false
         programImageView.image = item.sportsCategory?.image ?? UIImage(resource: .emptyNotification)
+    }
+
+    @objc func didTapDeleteButton() {
+        deleteButtonTapped?()
     }
 
     func setPriority() {
@@ -96,6 +111,7 @@ extension RegisteredProgramCell {
             scheduleStackView,
             rightUpperLabel,
             rightDownLabel,
+            deleteButton,
             divider
         ].forEach(contentView.addSubview)
 
@@ -126,6 +142,12 @@ extension RegisteredProgramCell {
             $0.top.equalToSuperview().offset(7)
             $0.trailing.equalToSuperview()
             $0.width.equalTo(72)
+        }
+
+        deleteButton.snp.makeConstraints {
+            $0.top.equalToSuperview()
+            $0.trailing.equalToSuperview()
+            $0.size.equalTo(24)
         }
 
         rightDownLabel.snp.makeConstraints {

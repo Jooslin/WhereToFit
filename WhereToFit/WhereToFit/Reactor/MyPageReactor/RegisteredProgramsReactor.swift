@@ -10,26 +10,36 @@ import ReactorKit
 import RxSwift
 
 final class RegisteredProgramsReactor: BaseReactor {
-    let initialState = State(items: [])
+    let initialState = State(items: [], isEditing: false)
     private let fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase
+    private let removeRegisteredProgramUseCase: RemoveRegisteredProgramUseCase
 
-    init(fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase) {
+    init(
+        fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase,
+        removeRegisteredProgramUseCase: RemoveRegisteredProgramUseCase
+    ) {
         self.fetchRegisteredProgramsUseCase = fetchRegisteredProgramsUseCase
+        self.removeRegisteredProgramUseCase = removeRegisteredProgramUseCase
     }
 
     enum Action {
         case viewWillAppear
+        case toggleEditing
+        case removeProgram(RegisteredProgramItem)
     }
 
     enum Mutation {
         case setItems([RegisteredProgramItem])
+        case setEditing(Bool)
     }
 
     struct State {
         var items: [RegisteredProgramItem]
+        var isEditing: Bool
     }
 
     nonisolated struct RegisteredProgramItem: Equatable {
+        let id: UUID
         let programName: String
         let facilityNameText: String?
         let dayText: String
@@ -55,6 +65,17 @@ final class RegisteredProgramsReactor: BaseReactor {
                     print("[RegisteredPrograms][Fetch][Error] \(error.localizedDescription)")
                     return .just(.setItems([]))
                 }
+
+        case .toggleEditing:
+            return .just(.setEditing(currentState.isEditing == false))
+
+        case .removeProgram(let item):
+            return removeRegisteredProgramUseCase.execute(id: item.id)
+                .andThen(fetchItems())
+                .catch { error in
+                    print("[RegisteredPrograms][Remove][Error] \(error.localizedDescription)")
+                    return .empty()
+                }
         }
     }
 
@@ -64,6 +85,9 @@ final class RegisteredProgramsReactor: BaseReactor {
         switch mutation {
         case .setItems(let items):
             newState.items = items
+
+        case .setEditing(let isEditing):
+            newState.isEditing = isEditing
         }
 
         return newState
@@ -73,6 +97,7 @@ final class RegisteredProgramsReactor: BaseReactor {
 private extension RegisteredProgramsReactor {
     nonisolated static func makeRegisteredProgramItem(_ program: RegisteredProgram) -> RegisteredProgramItem {
         RegisteredProgramItem(
+            id: program.id,
             programName: program.programName,
             facilityNameText: program.facilityName,
             dayText: program.days.isEmpty ? "요일" : program.days.joined(separator: ", "),
@@ -83,6 +108,18 @@ private extension RegisteredProgramsReactor {
                 ? nil
                 : program.reservationMethodRawValues.joined(separator: ", ")
         )
+    }
+
+    func fetchItems() -> Observable<Mutation> {
+        fetchRegisteredProgramsUseCase.execute()
+            .do(onSuccess: { programs in
+                Self.printRegisteredPrograms(programs)
+            })
+            .map { programs in
+                programs.map(Self.makeRegisteredProgramItem)
+            }
+            .map(Mutation.setItems)
+            .asObservable()
     }
 
     nonisolated static func makeTimeText(startMinute: Int?, endMinute: Int?) -> String {

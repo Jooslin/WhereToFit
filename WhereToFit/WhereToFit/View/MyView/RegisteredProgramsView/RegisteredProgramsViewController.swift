@@ -12,6 +12,7 @@ import UIKit
 final class RegisteredProgramsViewController: BaseViewController<RegisteredProgramsReactor> {
     let registeredProgramsView = RegisteredProgramsView()
     private var items: [RegisteredProgramsReactor.RegisteredProgramItem] = []
+    private var isEditingPrograms = false
 
     override func loadView() {
         view = registeredProgramsView
@@ -34,11 +35,25 @@ final class RegisteredProgramsViewController: BaseViewController<RegisteredProgr
             }
             .disposed(by: disposeBag)
 
+        registeredProgramsView.titleView.rx.rightButtonTap
+            .map { RegisteredProgramsReactor.Action.toggleEditing }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
         reactor.state
             .map(\.items)
             .distinctUntilChanged()
             .bind(with: self) { owner, items in
                 owner.items = items
+                owner.registeredProgramsView.collectionView.reloadData()
+            }
+            .disposed(by: disposeBag)
+
+        reactor.state
+            .map(\.isEditing)
+            .distinctUntilChanged()
+            .bind(with: self) { owner, isEditing in
+                owner.isEditingPrograms = isEditing
                 owner.registeredProgramsView.collectionView.reloadData()
             }
             .disposed(by: disposeBag)
@@ -58,7 +73,29 @@ extension RegisteredProgramsViewController: UICollectionViewDataSource {
             return UICollectionViewCell()
         }
 
-        cell.configure(item: items[indexPath.item])
+        let item = items[indexPath.item]
+        cell.configure(item: item, isEditing: isEditingPrograms)
+        cell.deleteButtonTapped = { [weak self] in
+            self?.presentRemoveRegisteredProgramAlert(item)
+        }
         return cell
+    }
+}
+
+private extension RegisteredProgramsViewController {
+    func presentRemoveRegisteredProgramAlert(_ item: RegisteredProgramsReactor.RegisteredProgramItem) {
+        let alert = UIAlertController(
+            title: "등록한 프로그램을 삭제할까요?",
+            message: "\(item.programName)을(를) 등록 목록에서 삭제합니다.",
+            preferredStyle: .alert
+        )
+        let cancelAction = UIAlertAction(title: "취소", style: .cancel)
+        let removeAction = UIAlertAction(title: "삭제", style: .destructive) { [weak self] _ in
+            self?.reactor?.action.onNext(.removeProgram(item))
+        }
+
+        alert.addAction(cancelAction)
+        alert.addAction(removeAction)
+        present(alert, animated: true)
     }
 }
