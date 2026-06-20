@@ -204,6 +204,7 @@ private extension OnboardingViewController {
             .disposed(by: stepViewDisposeBag)
 
         selectedAddressRelay
+            .observe(on: MainScheduler.asyncInstance)
             .do(onNext: { [weak personalInfoView] address in
                 personalInfoView?.residenceTextField.text = address
             })

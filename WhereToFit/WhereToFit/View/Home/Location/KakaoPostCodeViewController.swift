@@ -23,6 +23,10 @@ final class KakaoPostCodeViewController: BaseViewController<TempReactor> {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        view.gestureRecognizers?.forEach {
+            view.removeGestureRecognizer($0)
+        }
+        
         view.backgroundColor = UIColor.black.withAlphaComponent(0.4)
         
         contentController.add(WeakScriptMessageHandler(self), name: "callBackHandler")
@@ -58,6 +62,7 @@ final class KakaoPostCodeViewController: BaseViewController<TempReactor> {
         
         // 제스처 설정 - 여백 탭시 dismiss
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapBackground))
+        tapGesture.cancelsTouchesInView = false
         tapGesture.delegate = self
         view.addGestureRecognizer(tapGesture)
     }
@@ -75,8 +80,9 @@ extension KakaoPostCodeViewController: WKScriptMessageHandler {
             address = data["roadAddress"] as? String ?? ""
         } // 도로명주소 가져옴
         
-        onSelectAddress?(address)
-        self.dismiss(animated: false)
+        dismiss(animated: false) { [onSelectAddress] in
+            onSelectAddress?(address)
+        }
     }
 }
 
@@ -94,8 +100,8 @@ extension KakaoPostCodeViewController: WKNavigationDelegate {
 extension KakaoPostCodeViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         guard let webView else { return true }
-        let touchLocation = touch.location(in: view)
-        return !webView.frame.contains(touchLocation)
+        guard let touchView = touch.view else { return true }
+        return !touchView.isDescendant(of: webView)
     }
 }
 

@@ -134,7 +134,7 @@ final class OnboardingReactor: BaseReactor {
             return .just(.setGender(gender))
 
         case .updateAddress(let stringAddress):
-            return makeLocationData(from: stringAddress)
+            return updateAddressData(from: stringAddress)
 
         case .updateWeight(let stringWeight):
             return makeWeightData(from: stringWeight)
@@ -251,8 +251,15 @@ extension OnboardingReactor {
         }
     }
 
-    private func makeLocationData(from string: String) -> Observable<Mutation> {
-        .just(.setAddress(string))
+    private func updateAddressData(from string: String) -> Observable<Mutation> {
+#if DEBUG
+        return .concat([
+            .just(.setAddress(string)),
+            checkAddressCoordinateForDebug(address: string)
+        ])
+#else
+        return .just(.setAddress(string))
+#endif
     }
 
     private func makeWeightData(from string: String) -> Observable<Mutation> {
@@ -284,6 +291,31 @@ extension OnboardingReactor {
         && state.birthday != nil
         && state.gender != nil
     }
+
+#if DEBUG
+    private func checkAddressCoordinateForDebug(address: String) -> Observable<Mutation> {
+        let trimmedAddress = address.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedAddress.isEmpty == false else {
+            return .empty()
+        }
+
+        return addressCoordinateUseCase.execute(address: trimmedAddress)
+            .asObservable()
+            .map { coordinate -> Mutation in
+                guard let coordinate else {
+                    return .setError(title: "좌표 확인", message: "현재 위치의 좌표를 찾지 못했어요.")
+                }
+
+                return .setError(
+                    title: "좌표 확인",
+                    message: "위도: \(coordinate.latitude)\n경도: \(coordinate.longitude)"
+                )
+            }
+            .catch { _ in
+                .just(.setError(title: "좌표 확인", message: "좌표 검색 요청에 실패했어요."))
+            }
+    }
+#endif
 
     private func saveOnboardingData() -> Observable<Mutation> {
         guard currentState.isSaving == false else {
