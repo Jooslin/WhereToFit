@@ -28,15 +28,8 @@ final class AppFlow: Flow {
         }
 
         switch step {
-            //TODO: 추후 수정 필요
         case .splash:
-            let vc = TempViewController(reactor: TempReactor())
-            window.rootViewController = vc
-            return .one(
-                flowContributor: .contribute(
-                    withNextPresentable: vc,
-                    withNextStepper: vc
-                ))
+            return navigateToSplash()
 
         case .onboarding:
             return navigateToOnboarding()
@@ -47,7 +40,7 @@ final class AppFlow: Flow {
         case let .alert(title, message):
             return presentAlert(title: title, message: message)
 
-        case let .updateRequired(message, storeURL):
+        case .updateRequired:
             return .none
 
         default:
@@ -57,17 +50,27 @@ final class AppFlow: Flow {
 }
 
 extension AppFlow {
-//    private func navigateToSplash() -> FlowContributors {
-//        let splashViewController = SplashViewController()
-//        window.rootViewController = splashViewController
-//
-//        return .one(
-//            flowContributor: .contribute(
-//                withNextPresentable: splashViewController,
-//                withNextStepper: splashViewController
-//            )
-//        )
-//    }
+    private func navigateToSplash() -> FlowContributors {
+        let ruleRepository = SportRecommendationRuleRepository()
+        let splashViewController = SplashViewController(
+            reactor: SplashReactor(
+                fetchUserProfileUseCase: FetchUserProfileUseCase(
+                    repository: CoreDataUserProfileRepository()
+                ),
+                preloadSportRecommendationRulesUseCase: PreloadSportRecommendationRulesUseCase(
+                    repository: ruleRepository
+                )
+            )
+        )
+        window.rootViewController = splashViewController
+
+        return .one(
+            flowContributor: .contribute(
+                withNextPresentable: splashViewController,
+                withNextStepper: splashViewController
+            )
+        )
+    }
 
     private func navigateToMain() -> FlowContributors {
         let mainFlow = MainFlow(window: window, dateService: dateService)

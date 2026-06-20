@@ -9,6 +9,9 @@ import Foundation
 import RxSwift
 
 final class SportRecommendationRuleRepository: SportRecommendationRuleRepositoryProtocol {
+    private static let cacheLock = NSLock()
+    private static var cachedActiveRules: [SportRecommendationRule]?
+    
     private let networkService: NetworkService
     
     init(networkService: NetworkService = NetworkService()) {
@@ -16,7 +19,11 @@ final class SportRecommendationRuleRepository: SportRecommendationRuleRepository
     }
     
     func fetchActiveRules() -> Single<[SportRecommendationRule]> {
-        Single.async { [networkService] in
+        if let cachedRules = Self.cachedRules() {
+            return .just(cachedRules)
+        }
+        
+        return Single.async { [networkService] in
             let page: SupabasePage<SportRecommendationRuleDTO> = try await networkService.fetchSupabaseData(
                 api: .sportRecommendationRules,
                 filters: ["status": "eq.active"],
@@ -25,7 +32,25 @@ final class SportRecommendationRuleRepository: SportRecommendationRuleRepository
                 order: .ascending
             )
             
-            return page.items.map(SportRecommendationRule.init)
+            let rules = page.items.map(SportRecommendationRule.init)
+            Self.storeCachedRules(rules)
+            return rules
         }
+    }
+}
+
+private extension SportRecommendationRuleRepository {
+    static func cachedRules() -> [SportRecommendationRule]? {
+        cacheLock.lock()
+        defer { cacheLock.unlock() }
+        
+        return cachedActiveRules
+    }
+    
+    static func storeCachedRules(_ rules: [SportRecommendationRule]) {
+        cacheLock.lock()
+        defer { cacheLock.unlock() }
+        
+        cachedActiveRules = rules
     }
 }
