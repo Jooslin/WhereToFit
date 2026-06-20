@@ -67,6 +67,9 @@ final class MyFlow: Flow {
                 reactor: RegisteredProgramsReactor(
                     fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase(
                         repository: CoreDataRegisteredProgramRepository()
+                    ),
+                    removeRegisteredProgramUseCase: RemoveRegisteredProgramUseCase(
+                        repository: CoreDataRegisteredProgramRepository()
                     )
                 )
             )

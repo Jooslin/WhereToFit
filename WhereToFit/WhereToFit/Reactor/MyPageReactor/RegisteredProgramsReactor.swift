@@ -10,38 +10,63 @@ import ReactorKit
 import RxSwift
 
 final class RegisteredProgramsReactor: BaseReactor {
-    let initialState = State(programs: [])
+    let initialState = State(items: [], isEditing: false)
     private let fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase
+    private let removeRegisteredProgramUseCase: RemoveRegisteredProgramUseCase
 
-    init(fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase) {
+    init(
+        fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase,
+        removeRegisteredProgramUseCase: RemoveRegisteredProgramUseCase
+    ) {
         self.fetchRegisteredProgramsUseCase = fetchRegisteredProgramsUseCase
+        self.removeRegisteredProgramUseCase = removeRegisteredProgramUseCase
     }
 
     enum Action {
         case viewWillAppear
+        case toggleEditing
+        case removeProgram(RegisteredProgramItem)
     }
 
     enum Mutation {
-        case setPrograms([RegisteredProgram])
+        case setItems([RegisteredProgramItem])
+        case setEditing(Bool)
     }
 
     struct State {
-        var programs: [RegisteredProgram]
+        var items: [RegisteredProgramItem]
+        var isEditing: Bool
+    }
+
+    nonisolated struct RegisteredProgramItem: Equatable {
+        let id: UUID
+        let programName: String
+        let facilityNameText: String?
+        let dayText: String
+        let timeText: String
+        let sportsCategory: SportsCategory?
+        let sportsCategoryText: String?
+        let reservationMethodText: String?
     }
 
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
         case .viewWillAppear:
             return fetchRegisteredProgramsUseCase.execute()
-                .do(onSuccess: { programs in
-                    Self.printRegisteredPrograms(programs)
-                })
-                .map(Mutation.setPrograms)
-                .asObservable()
-                .catch { error in
-                    print("[RegisteredPrograms][Fetch][Error] \(error.localizedDescription)")
-                    return .just(.setPrograms([]))
+                .map { programs in
+                    programs.map(Self.makeRegisteredProgramItem)
                 }
+                .map(Mutation.setItems)
+                .asObservable()
+                .catch { _ in .just(.setItems([])) }
+
+        case .toggleEditing:
+            return .just(.setEditing(currentState.isEditing == false))
+
+        case .removeProgram(let item):
+            return removeRegisteredProgramUseCase.execute(id: item.id)
+                .andThen(fetchItems())
+                .catch { _ in .empty() }
         }
     }
 
@@ -49,8 +74,11 @@ final class RegisteredProgramsReactor: BaseReactor {
         var newState = state
 
         switch mutation {
-        case .setPrograms(let programs):
-            newState.programs = programs
+        case .setItems(let items):
+            newState.items = items
+
+        case .setEditing(let isEditing):
+            newState.isEditing = isEditing
         }
 
         return newState
@@ -58,30 +86,42 @@ final class RegisteredProgramsReactor: BaseReactor {
 }
 
 private extension RegisteredProgramsReactor {
-    nonisolated static func printRegisteredPrograms(_ programs: [RegisteredProgram]) {
-        print("[RegisteredPrograms][Fetch] count: \(programs.count)")
-
-        programs.enumerated().forEach { index, program in
-            print(
-                """
-                👁️🫦👁️[RegisteredPrograms][\(index)]
-                id: \(program.id)
-                programID: \(program.programID.map(String.init) ?? "nil")
-                facilityID: \(program.facilityID ?? "nil")
-                programName: \(program.programName)
-                facilityName: \(program.facilityName ?? "nil")
-                sportsCategory: \(program.sportsCategory?.rawValue ?? "nil")
-                isRecurring: \(program.isRecurring)
-                days: \(program.days)
-                hasReservationDates: \(program.hasReservationDates)
-                reservationDates: \(program.reservationDates)
-                startMinuteOfDay: \(program.startMinuteOfDay.map(String.init) ?? "nil")
-                endMinuteOfDay: \(program.endMinuteOfDay.map(String.init) ?? "nil")
-                reservationMethodRawValues: \(program.reservationMethodRawValues)
-                createdAt: \(program.createdAt)
-                updatedAt: \(program.updatedAt)
-                """
-            )
-        }
+    nonisolated static func makeRegisteredProgramItem(_ program: RegisteredProgram) -> RegisteredProgramItem {
+        RegisteredProgramItem(
+            id: program.id,
+            programName: program.programName,
+            facilityNameText: program.facilityName,
+            dayText: program.days.isEmpty ? "요일" : program.days.joined(separator: ", "),
+            timeText: makeTimeText(startMinute: program.startMinuteOfDay, endMinute: program.endMinuteOfDay),
+            sportsCategory: program.sportsCategory,
+            sportsCategoryText: program.sportsCategory?.rawValue,
+            reservationMethodText: program.reservationMethodRawValues.isEmpty
+                ? nil
+                : program.reservationMethodRawValues.joined(separator: ", ")
+        )
     }
+
+    func fetchItems() -> Observable<Mutation> {
+        fetchRegisteredProgramsUseCase.execute()
+            .map { programs in
+                programs.map(Self.makeRegisteredProgramItem)
+            }
+            .map(Mutation.setItems)
+            .asObservable()
+    }
+
+    nonisolated static func makeTimeText(startMinute: Int?, endMinute: Int?) -> String {
+        guard let startMinute, let endMinute else {
+            return "시간 미정"
+        }
+
+        return "\(makeClockText(minuteOfDay: startMinute))-\(makeClockText(minuteOfDay: endMinute))"
+    }
+
+    nonisolated static func makeClockText(minuteOfDay: Int) -> String {
+        let hour = minuteOfDay / 60
+        let minute = minuteOfDay % 60
+        return String(format: "%02d:%02d", hour, minute)
+    }
+
 }
