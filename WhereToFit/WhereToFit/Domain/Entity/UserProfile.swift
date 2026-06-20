@@ -16,7 +16,7 @@ nonisolated struct UserProfile: Equatable, Sendable {
     let initialWeight: Double? // 몸무게
     let exerciseExperience: ExerciseExperience? // 운동 경험
     let exerciseGoal: ExerciseGoal? // 운동 목표
-    let preferredSportsCategoryRawValues: [String] // 운동 선호(복수 선택)
+    let preferredSportsCategories: [SportsCategory] // 운동 선호(복수 선택)
     let discomfortBodyParts: [DiscomfortBodyPart] // 불편한 신체부위(복수 선택)
     let usesPublicFacility: Bool // 시설 이용 여부
     let createdAt: Date // 만든 날짜 ( 몸무게, 신장 표시 때 필요)

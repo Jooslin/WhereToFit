@@ -282,11 +282,11 @@ private extension OnboardingViewController {
                 .disposed(by: stepViewDisposeBag)
 
             reactor.state
-                .map(\.preferredSportsCategoryRawValues)
+                .map(\.preferredSportsCategories)
                 .distinctUntilChanged()
-                .bind(with: cardButtonsView) { view, selectedValues in
+                .bind(with: cardButtonsView) { view, selectedCategories in
                     view.buttons.forEach {
-                        $0.isSelected = selectedValues.contains($0.title ?? "")
+                        $0.isSelected = selectedCategories.map(\.rawValue).contains($0.title ?? "")
                     }
                 }
                 .disposed(by: stepViewDisposeBag)

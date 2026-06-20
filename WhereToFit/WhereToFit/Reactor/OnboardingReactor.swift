@@ -61,7 +61,7 @@ final class OnboardingReactor: BaseReactor {
         var height: Double?
         var exerciseExperience: ExerciseExperience?
         var exerciseGoal: ExerciseGoal?
-        var preferredSportsCategoryRawValues: [String] = []
+        var preferredSportsCategories: [SportsCategory] = []
         var discomfortBodyParts: [DiscomfortBodyPart] = []
         var usesPublicFacility: Bool = false
 
@@ -179,10 +179,10 @@ final class OnboardingReactor: BaseReactor {
         case .setExerciseGoal(let goal):
             newState.exerciseGoal = goal
         case .togglePreferredSportsCategory(let category):
-            if newState.preferredSportsCategoryRawValues.contains(category.rawValue) {
-                newState.preferredSportsCategoryRawValues.removeAll { $0 == category.rawValue }
+            if newState.preferredSportsCategories.contains(category) {
+                newState.preferredSportsCategories.removeAll { $0 == category }
             } else {
-                newState.preferredSportsCategoryRawValues.append(category.rawValue)
+                newState.preferredSportsCategories.append(category)
             }
         case .toggleDiscomfortBodyPart(let bodyPart):
             if newState.discomfortBodyParts.contains(bodyPart) {
