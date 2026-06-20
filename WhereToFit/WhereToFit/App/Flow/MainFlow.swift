@@ -15,11 +15,11 @@ final class MainFlow: Flow {
     
     var root: any Presentable { tabBarController }
     
-    private let dateService = DateService()
+    private let dateService: DateService
     private let weatherRepository = WeatherRepository()
     private let sportsRepository = SportsRepository()
     
-    init(window: UIWindow) {
+    init(window: UIWindow, dateService: DateService) {
         window.rootViewController = tabBarController
         self.window = window
     }

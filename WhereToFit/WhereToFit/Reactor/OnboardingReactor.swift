@@ -26,6 +26,11 @@ final class OnboardingReactor: BaseReactor {
         case updateAddress(String)
         case updateWeight(String)
         case updateHeight(String)
+        case updateExerciseExperience(String)
+        case updateExerciseGoal(String)
+        case togglePreferredSportsCategory(String)
+        case toggleDiscomfortBodyPart(String)
+        case updateUsesPublicFacility(Bool)
     }
     
     enum Mutation {
@@ -36,6 +41,11 @@ final class OnboardingReactor: BaseReactor {
         case setLocation
         case setWeight
         case setHeight
+        case setExerciseExperience(ExerciseExperience)
+        case setExerciseGoal(ExerciseGoal)
+        case togglePreferredSportsCategory(SportsCategory)
+        case toggleDiscomfortBodyPart(DiscomfortBodyPart)
+        case setUsesPublicFacility(Bool)
         
         case setError(title: String, message: String)
         case setIsNextButtonEnabled(Bool)
@@ -49,6 +59,11 @@ final class OnboardingReactor: BaseReactor {
         var location: UserLocation?
         var weight: Double?
         var height: Double?
+        var exerciseExperience: ExerciseExperience?
+        var exerciseGoal: ExerciseGoal?
+        var preferredSportsCategoryRawValues: [String] = []
+        var discomfortBodyParts: [DiscomfortBodyPart] = []
+        var usesPublicFacility: Bool = false
         
         @Pulse var error: (String, String)?
         var isNextButtonEnabled: Bool = false
@@ -102,6 +117,41 @@ final class OnboardingReactor: BaseReactor {
             
         case .updateHeight(let stringHeight):
             return makeHeightData(from: stringHeight)
+            
+        case .updateExerciseExperience(let stringExperience):
+            guard let experience = ExerciseExperience(rawValue: stringExperience) else {
+                logger.error("invalid exercise experience")
+                return .empty()
+            }
+            
+            return .just(.setExerciseExperience(experience))
+            
+        case .updateExerciseGoal(let stringGoal):
+            guard let goal = ExerciseGoal(rawValue: stringGoal) else {
+                logger.error("invalid exercise goal")
+                return .empty()
+            }
+            
+            return .just(.setExerciseGoal(goal))
+            
+        case .togglePreferredSportsCategory(let stringCategory):
+            guard let category = SportsCategory(rawValue: stringCategory) else {
+                logger.error("invalid preferred sports category")
+                return .empty()
+            }
+            
+            return .just(.togglePreferredSportsCategory(category))
+            
+        case .toggleDiscomfortBodyPart(let stringBodyPart):
+            guard let bodyPart = DiscomfortBodyPart(rawValue: stringBodyPart) else {
+                logger.error("invalid discomfort body part")
+                return .empty()
+            }
+            
+            return .just(.toggleDiscomfortBodyPart(bodyPart))
+            
+        case .updateUsesPublicFacility(let usesPublicFacility):
+            return .just(.setUsesPublicFacility(usesPublicFacility))
         }
         
     }
@@ -124,6 +174,24 @@ final class OnboardingReactor: BaseReactor {
             newState.weight = nil
         case .setHeight:
             newState.height = nil
+        case .setExerciseExperience(let experience):
+            newState.exerciseExperience = experience
+        case .setExerciseGoal(let goal):
+            newState.exerciseGoal = goal
+        case .togglePreferredSportsCategory(let category):
+            if newState.preferredSportsCategoryRawValues.contains(category.rawValue) {
+                newState.preferredSportsCategoryRawValues.removeAll { $0 == category.rawValue }
+            } else {
+                newState.preferredSportsCategoryRawValues.append(category.rawValue)
+            }
+        case .toggleDiscomfortBodyPart(let bodyPart):
+            if newState.discomfortBodyParts.contains(bodyPart) {
+                newState.discomfortBodyParts.removeAll { $0 == bodyPart }
+            } else {
+                newState.discomfortBodyParts.append(bodyPart)
+            }
+        case .setUsesPublicFacility(let usesPublicFacility):
+            newState.usesPublicFacility = usesPublicFacility
             
         case .setError(title: let title, message: let message):
             newState.error = (title, message)

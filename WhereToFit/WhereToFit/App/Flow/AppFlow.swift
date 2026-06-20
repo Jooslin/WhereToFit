@@ -14,6 +14,8 @@ final class AppFlow: Flow {
     let window: UIWindow
     var root: any RxFlow.Presentable { window }
     
+    private let dateService: DateService()
+    
     init(windowScene: UIWindowScene) {
         self.window = UIWindow(windowScene: windowScene)
         self.window.makeKeyAndVisible()
@@ -65,7 +67,7 @@ extension AppFlow {
 //    }
     
     private func navigateToMain() -> FlowContributors {
-        let mainFlow = MainFlow(window: window)
+        let mainFlow = MainFlow(window: window, dateService: dateService)
         return .one(
             flowContributor: .contribute(
                 withNextPresentable: mainFlow,
@@ -88,7 +90,7 @@ extension AppFlow {
 //    }
     
     private func navigateToOnboarding() -> FlowContributors {
-        let vc = OnboardingViewController(reactor: OnboardingReactor())
+        let vc = OnboardingViewController(reactor: OnboardingReactor(dateService: dateService))
         window.rootViewController = vc
         return .one(
             flowContributor: .contribute(
