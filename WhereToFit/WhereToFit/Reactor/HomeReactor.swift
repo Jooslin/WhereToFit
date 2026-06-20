@@ -17,6 +17,9 @@ final class HomeReactor: BaseReactor {
     
     enum Mutation {
         case setLoading(Bool)
+        case setUserProfile(UserProfile)
+        case setCurrentLocation(UserLocation)
+        
         case setWeatherSectionItem([HomeCollectionView.Item])
         case setRecommendSectionItem([HomeCollectionView.Item])
         case setOnboardingSectionItem([HomeCollectionView.Item])
@@ -29,6 +32,7 @@ final class HomeReactor: BaseReactor {
     }
     
     //MARK: Properties & Initialize
+    private let userStore: UserStore
     private let dateService: DateService
     private let weatherRepository: WeatherRepositoryProtocol
     private let sportsRepository: SportsRepositoryProtocol
@@ -43,6 +47,7 @@ final class HomeReactor: BaseReactor {
         self.sportsRepository = sportsRepository
     }
     
+    //MARK: Reactor func
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
         case .viewWillAppear:
@@ -55,6 +60,19 @@ final class HomeReactor: BaseReactor {
                 .just(.setLoading(false))
             ])
         }
+    }
+    
+    func transform(mutation: Observable<Mutation>) -> Observable<Mutation> {
+        let profileMutation = userStore.userProfile
+            .compactMap { $0 }
+            .map { profile -> Mutation in
+                Mutation.setUserProfile(profile)
+            }
+        let locationMutation = userStore.currentLocation
+            .compactMap { $0 }
+            .map { location -> Mutation in
+                .setCurrentLocation(location)
+            }
     }
     
     func reduce(state: State, mutation: Mutation) -> State {
