@@ -12,6 +12,15 @@ import UIKit
 final class NotificationCenterView: UIView {
     let titleView = TitleView(text: "알림", leftButtonImage: UIImage(resource: .arrowLeft))
 
+    let collectionView = UICollectionView(
+        frame: .zero,
+        collectionViewLayout: NotificationCenterView.makeCollectionViewLayout()
+    ).then {
+        $0.backgroundColor = .systemBackground
+        $0.showsVerticalScrollIndicator = false
+        $0.isHidden = true
+    }
+
     let enableNotificationButton = UIButton(type: .system).then {
         $0.setTitle("알림 켜기", for: .normal)
         $0.setTitleColor(.white, for: .normal)
@@ -63,10 +72,37 @@ final class NotificationCenterView: UIView {
     func updateNotificationWarning(isHidden: Bool, title: String) {
         notificationWarningView.isHidden = isHidden
         warningTitleLabel.text = title
+        updateCollectionViewTop(isWarningHidden: isHidden)
+    }
+
+    func updateNotificationHistory(isEmpty: Bool) {
+        collectionView.isHidden = isEmpty
+        emptyImageView.isHidden = isEmpty == false
+        emptyLabel.isHidden = isEmpty == false
     }
 }
 
 private extension NotificationCenterView {
+    static func makeCollectionViewLayout() -> UICollectionViewLayout {
+        let item = NSCollectionLayoutItem(
+            layoutSize: NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1),
+                heightDimension: .absolute(122)
+            )
+        )
+        let group = NSCollectionLayoutGroup.vertical(
+            layoutSize: NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1),
+                heightDimension: .absolute(122)
+            ),
+            subitems: [item]
+        )
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 0
+
+        return UICollectionViewCompositionalLayout(section: section)
+    }
+
     func setStyle() {
         backgroundColor = .systemBackground
     }
@@ -75,6 +111,7 @@ private extension NotificationCenterView {
         [
             titleView,
             notificationWarningView,
+            collectionView,
             emptyImageView,
             emptyLabel
         ].forEach(addSubview)
@@ -95,6 +132,8 @@ private extension NotificationCenterView {
             $0.horizontalEdges.equalToSuperview().inset(16)
             $0.height.equalTo(86)
         }
+
+        updateCollectionViewTop(isWarningHidden: notificationWarningView.isHidden)
 
         warningTitleLabel.snp.makeConstraints {
             $0.top.equalToSuperview().inset(20)
@@ -124,6 +163,18 @@ private extension NotificationCenterView {
         emptyLabel.snp.makeConstraints {
             $0.top.equalTo(emptyImageView.snp.bottom).offset(28)
             $0.centerX.equalToSuperview()
+        }
+    }
+
+    func updateCollectionViewTop(isWarningHidden: Bool) {
+        collectionView.snp.remakeConstraints {
+            if isWarningHidden {
+                $0.top.equalTo(titleView.snp.bottom).offset(16)
+            } else {
+                $0.top.equalTo(notificationWarningView.snp.bottom).offset(16)
+            }
+            $0.horizontalEdges.equalToSuperview()
+            $0.bottom.equalTo(safeAreaLayoutGuide)
         }
     }
 }

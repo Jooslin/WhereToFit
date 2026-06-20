@@ -12,6 +12,7 @@ import ReactorKit
 final class MainFlow: Flow {
     private let window: UIWindow
     private let tabBarController = UITabBarController()
+    private let myTabIndex = 3
     
     var root: any Presentable { tabBarController }
     
@@ -39,6 +40,9 @@ final class MainFlow: Flow {
             
         case .alert(title: let title, message: let message):
             return presentAlert(title: title, message: message)
+
+        case .registeredPrograms:
+            return navigateToRegisteredPrograms(animated: true)
             
         default:
             return .one(flowContributor: .forwardToParentFlow(withStep: step))
@@ -86,13 +90,17 @@ extension MainFlow {
             self.tabBarController.setViewControllers([home, map, calendar, my], animated: true)
             self.tabBarController.tabBar.tintColor = .gray800
             self.tabBarController.tabBar.unselectedItemTintColor = .gray400 // iOS26에서는 적용 안되는 것으로 확인
+            DispatchQueue.main.async {
+                NotificationNavigationStepper.shared.emitPendingNavigationIfNeeded()
+            }
         }
         
         return .multiple(flowContributors: [
             .contribute(withNextPresentable: homeFlow, withNextStepper: OneStepper(withSingleStep: AppStep.homeTab)),
             .contribute(withNextPresentable: mapFlow, withNextStepper: OneStepper(withSingleStep: AppStep.mapTab)),
             .contribute(withNextPresentable: calendarFlow, withNextStepper: OneStepper(withSingleStep: AppStep.calendarTab)),
-            .contribute(withNextPresentable: myFlow, withNextStepper: OneStepper(withSingleStep: AppStep.myTab))
+            .contribute(withNextPresentable: myFlow, withNextStepper: OneStepper(withSingleStep: AppStep.myTab)),
+            .contribute(withNextPresentable: tabBarController, withNextStepper: NotificationNavigationStepper.shared)
         ])
     }
     
@@ -102,5 +110,37 @@ extension MainFlow {
         
         present(alert, animated: true)
         return .none
+    }
+
+    private func navigateToRegisteredPrograms(animated: Bool) -> FlowContributors {
+        guard let viewControllers = tabBarController.viewControllers,
+              viewControllers.indices.contains(myTabIndex),
+              let navigationController = viewControllers[myTabIndex] as? UINavigationController else {
+            return .none
+        }
+
+        tabBarController.selectedIndex = myTabIndex
+
+        if let existingViewController = navigationController.viewControllers.first(where: {
+            $0 is RegisteredProgramsViewController
+        }) {
+            navigationController.popToViewController(existingViewController, animated: animated)
+            return .none
+        }
+
+        let viewController = RegisteredProgramsViewController(
+            reactor: RegisteredProgramsReactor(
+                fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase(
+                    repository: CoreDataRegisteredProgramRepository()
+                ),
+                removeRegisteredProgramUseCase: RemoveRegisteredProgramUseCase(
+                    repository: CoreDataRegisteredProgramRepository()
+                )
+            )
+        )
+        viewController.hidesBottomBarWhenPushed = true
+        navigationController.pushViewController(viewController, animated: animated)
+
+        return .one(flowContributor: .contribute(withNextPresentable: viewController, withNextStepper: viewController))
     }
 }
