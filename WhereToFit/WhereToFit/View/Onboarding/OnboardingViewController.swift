@@ -156,6 +156,8 @@ private extension OnboardingViewController {
     }
 
     func bindBaseView(_ baseView: OnboardingBaseView, reactor: OnboardingReactor) {
+        baseView.nextButton.isEnabled = reactor.currentState.isNextButtonEnabled
+
         baseView.nextButton.rx.tap
             .map {
                 baseView.step == .facility
@@ -169,11 +171,15 @@ private extension OnboardingViewController {
             .map { OnboardingReactor.Action.backButtonTapped }
             .bind(to: reactor.action)
             .disposed(by: stepViewDisposeBag)
+
+        reactor.state
+            .map(\.isNextButtonEnabled)
+            .distinctUntilChanged()
+            .bind(to: baseView.nextButton.rx.isEnabled)
+            .disposed(by: stepViewDisposeBag)
     }
 
     func bindPersonalInfoView(_ personalInfoView: OnboardingPersonalInfoView, reactor: OnboardingReactor) {
-        personalInfoView.nextButton.isEnabled = reactor.currentState.isNextButtonEnabled
-
         bindPersonalInfoInputSanitizers(personalInfoView)
 
         personalInfoView.nicknameTextField.rx.text.orEmpty
@@ -234,11 +240,6 @@ private extension OnboardingViewController {
             .bind(to: reactor.action)
             .disposed(by: stepViewDisposeBag)
 
-        reactor.state
-            .map(\.isNextButtonEnabled)
-            .distinctUntilChanged()
-            .bind(to: personalInfoView.nextButton.rx.isEnabled)
-            .disposed(by: stepViewDisposeBag)
     }
 
     func bindPersonalInfoInputSanitizers(_ personalInfoView: OnboardingPersonalInfoView) {

@@ -54,7 +54,6 @@ final class OnboardingReactor: BaseReactor {
         case setError(title: String, message: String)
         case setSaveResult(SaveResult)
         case setIsSaving(Bool)
-        case setIsNextButtonEnabled(Bool)
     }
 
     enum SaveResult: Equatable {
@@ -79,7 +78,24 @@ final class OnboardingReactor: BaseReactor {
         @Pulse var error: (String, String)?
         @Pulse var saveResult: SaveResult?
         var isSaving: Bool = false
-        var isNextButtonEnabled: Bool = false
+        var isNextButtonEnabled: Bool {
+            switch currentStep {
+            case .personalInfo:
+                return nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+                    && birthday != nil
+                    && gender != nil
+            case .experience:
+                return exerciseExperience != nil
+            case .goal:
+                return exerciseGoal != nil
+            case .preference:
+                return preferredSportsCategories.isEmpty == false
+            case .disabled:
+                return discomfortBodyParts.isEmpty == false
+            case .start, .facility, .end:
+                return true
+            }
+        }
     }
 
     //MARK: Properties & Initializer
@@ -226,12 +242,6 @@ final class OnboardingReactor: BaseReactor {
             newState.saveResult = result
         case .setIsSaving(let isSaving):
             newState.isSaving = isSaving
-        case .setIsNextButtonEnabled(let isEnabled):
-            newState.isNextButtonEnabled = isEnabled
-        }
-
-        if newState.currentStep == .personalInfo {
-            newState.isNextButtonEnabled = Self.isPersonalInfoNextButtonEnabled(newState)
         }
 
         return newState
@@ -284,12 +294,6 @@ extension OnboardingReactor {
                 .setError(title: error.title, message: error.message)
             ])
         }
-    }
-
-    private static func isPersonalInfoNextButtonEnabled(_ state: State) -> Bool {
-        state.nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
-        && state.birthday != nil
-        && state.gender != nil
     }
 
 #if DEBUG
