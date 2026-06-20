@@ -10,7 +10,7 @@ import Then
 import UIKit
 
 final class RegisteredProgramsView: UIView {
-    let titleView = TitleView(text: "내가 등록한 프로그램", leftButtonImage: UIImage(resource: .arrowLeft))
+    let titleView = TitleView(text: "내가 등록한 프로그램", leftButtonImage: .arrowLeft, rightButtonImage: .edit)
     lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionViewLayout()).then {
         $0.backgroundColor = .white
         $0.showsVerticalScrollIndicator = false
