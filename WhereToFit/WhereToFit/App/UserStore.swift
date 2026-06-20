@@ -30,10 +30,10 @@ final class UserStore: UserStoreProtocol {
     }
     
     func setProfile(_ profile: UserProfile?) {
-        <#code#>
+        
     }
     
-    func setCurrentLocation(_ location: UserLocation) {
+    func setCurrnetLocation(_ location: UserLocation) {
         
     }
     
