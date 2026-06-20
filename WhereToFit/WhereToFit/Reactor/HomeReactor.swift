@@ -6,7 +6,7 @@
 //
 
 import ReactorKit
-import Foundation
+import UIKit
 
 final class HomeReactor: BaseReactor {
     let initialState: State = State()
@@ -152,7 +152,7 @@ extension HomeReactor {
                             }
                             
                             let item = HomeCollectionView.ProgramSectionItem(
-                                image: program.sportsCategory.image,
+                                imageName: program.sportsCategory.imageName,
                                 matchRate: 0,
                                 place: Self.place(for: facility),
                                 name: program.className ?? program.sport ?? "",

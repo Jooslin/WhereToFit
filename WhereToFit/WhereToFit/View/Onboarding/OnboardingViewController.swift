@@ -145,14 +145,18 @@ private extension OnboardingViewController {
     }
     
     func bindPersonalInfoView(_ personalInfoView: OnboardingPersonalInfoView, reactor: OnboardingReactor) {
-        personalInfoView.rx.nicknameTextFieldEditingDidEnd
+        personalInfoView.nextButton.isEnabled = reactor.currentState.isNextButtonEnabled
+        
+        personalInfoView.nicknameTextField.rx.text.orEmpty
+            .distinctUntilChanged()
             .map {
                 OnboardingReactor.Action.updateNickname($0)
             }
             .bind(to: reactor.action)
             .disposed(by: stepViewDisposeBag)
         
-        personalInfoView.rx.birthdayTextFieldEditingDidEnd
+        personalInfoView.birthdayTextField.rx.text.orEmpty
+            .distinctUntilChanged()
             .map { OnboardingReactor.Action.updateBirthday($0) }
             .bind(to: reactor.action)
             .disposed(by: stepViewDisposeBag)
@@ -190,6 +194,12 @@ private extension OnboardingViewController {
                 OnboardingReactor.Action.updateHeight($0)
             }
             .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
+        
+        reactor.state
+            .map(\.isNextButtonEnabled)
+            .distinctUntilChanged()
+            .bind(to: personalInfoView.nextButton.rx.isEnabled)
             .disposed(by: stepViewDisposeBag)
     }
     

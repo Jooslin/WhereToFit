@@ -46,13 +46,13 @@ extension HomeProgramCell {
     func configure(_ item: HomeCollectionView.ProgramSectionItem) {
         if let imageURL = item.facility.facilityImage?.trimmingCharacters(in: .whitespacesAndNewlines),
            let url = URL(string: imageURL) {
-            imageView.kf.setImage(with: url, placeholder: item.image) { [weak imageView] result in
+            imageView.kf.setImage(with: url, placeholder: UIImage(named: item.imageName)) { [weak imageView] result in
                 if case .failure = result {
-                    imageView?.image = item.image
+                    imageView?.image = UIImage(named: item.imageName)
                 }
             }
         } else {
-            imageView.image = item.image
+            imageView.image = UIImage(named: item.imageName)
         }
         
         matchLabel.text = "\(Int(item.matchRate))% 일치"

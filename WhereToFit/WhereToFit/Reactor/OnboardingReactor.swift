@@ -36,7 +36,7 @@ final class OnboardingReactor: BaseReactor {
     enum Mutation {
         case setStep(OnboardingStep)
         case setNickname(String)
-        case setBirthday(Date)
+        case setBirthday(Date?)
         case setGender(UserGender)
         case setLocation
         case setWeight
@@ -72,7 +72,7 @@ final class OnboardingReactor: BaseReactor {
     //MARK: Properties & Initializer
     private let dateService: DateService
     
-    init(dateService: DateService) {
+    init(dateService: DateService = DateService()) {
         self.dateService = dateService
     }
     
@@ -199,14 +199,22 @@ final class OnboardingReactor: BaseReactor {
             newState.isNextButtonEnabled = isEnabled
         }
         
+        if newState.currentStep == .personalInfo {
+            newState.isNextButtonEnabled = Self.isPersonalInfoNextButtonEnabled(newState)
+        }
+        
         return newState
     }
 }
 
 extension OnboardingReactor {
     private func makeBirthdayData(from string: String) -> Observable<Mutation> {
+        let trimmedString = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedString.isEmpty == false else {
+            return .just(.setBirthday(nil))
+        }
         
-        .just(.setBirthday(Date()))
+        return .just(.setBirthday(Date()))
     }
     
     private func makeLocationData(from string: String) -> Observable<Mutation> {
@@ -222,7 +230,9 @@ extension OnboardingReactor {
         .just(.setHeight)
     }
     
-    private func isNextButtonEnabled() -> Observable<Mutation> {
-        .just(.setIsNextButtonEnabled(true))
+    private static func isPersonalInfoNextButtonEnabled(_ state: State) -> Bool {
+        state.nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+        && state.birthday != nil
+        && state.gender != nil
     }
 }

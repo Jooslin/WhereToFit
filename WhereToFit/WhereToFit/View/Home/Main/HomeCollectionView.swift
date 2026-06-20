@@ -57,7 +57,7 @@ extension HomeCollectionView {
     }
     
     struct ProgramSectionItem: Hashable {
-        let image: UIImage
+        let imageName: String
         let matchRate: Double
         let place: String
         let name: String

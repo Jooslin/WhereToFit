@@ -22,6 +22,7 @@ final class MainFlow: Flow {
     init(window: UIWindow, dateService: DateService) {
         window.rootViewController = tabBarController
         self.window = window
+        self.dateService = dateService
     }
     
     func navigate(to step: any RxFlow.Step) -> FlowContributors {
