@@ -10,7 +10,7 @@ import ReactorKit
 import RxSwift
 
 final class RegisteredProgramsReactor: BaseReactor {
-    let initialState = State(programs: [])
+    let initialState = State(items: [])
     private let fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase
 
     init(fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase) {
@@ -22,11 +22,20 @@ final class RegisteredProgramsReactor: BaseReactor {
     }
 
     enum Mutation {
-        case setPrograms([RegisteredProgram])
+        case setItems([RegisteredProgramItem])
     }
 
     struct State {
-        var programs: [RegisteredProgram]
+        var items: [RegisteredProgramItem]
+    }
+
+    nonisolated struct RegisteredProgramItem: Equatable {
+        let programName: String
+        let facilityNameText: String?
+        let dayText: String
+        let timeText: String
+        let sportsCategoryText: String?
+        let reservationMethodText: String?
     }
 
     func mutate(action: Action) -> Observable<Mutation> {
@@ -36,11 +45,14 @@ final class RegisteredProgramsReactor: BaseReactor {
                 .do(onSuccess: { programs in
                     Self.printRegisteredPrograms(programs)
                 })
-                .map(Mutation.setPrograms)
+                .map { programs in
+                    programs.map(Self.makeRegisteredProgramItem)
+                }
+                .map(Mutation.setItems)
                 .asObservable()
                 .catch { error in
                     print("[RegisteredPrograms][Fetch][Error] \(error.localizedDescription)")
-                    return .just(.setPrograms([]))
+                    return .just(.setItems([]))
                 }
         }
     }
@@ -49,8 +61,8 @@ final class RegisteredProgramsReactor: BaseReactor {
         var newState = state
 
         switch mutation {
-        case .setPrograms(let programs):
-            newState.programs = programs
+        case .setItems(let items):
+            newState.items = items
         }
 
         return newState
@@ -58,6 +70,33 @@ final class RegisteredProgramsReactor: BaseReactor {
 }
 
 private extension RegisteredProgramsReactor {
+    nonisolated static func makeRegisteredProgramItem(_ program: RegisteredProgram) -> RegisteredProgramItem {
+        RegisteredProgramItem(
+            programName: program.programName,
+            facilityNameText: program.facilityName,
+            dayText: program.days.isEmpty ? "요일" : program.days.joined(separator: ", "),
+            timeText: makeTimeText(startMinute: program.startMinuteOfDay, endMinute: program.endMinuteOfDay),
+            sportsCategoryText: program.sportsCategory?.rawValue,
+            reservationMethodText: program.reservationMethodRawValues.isEmpty
+                ? nil
+                : program.reservationMethodRawValues.joined(separator: ", ")
+        )
+    }
+
+    nonisolated static func makeTimeText(startMinute: Int?, endMinute: Int?) -> String {
+        guard let startMinute, let endMinute else {
+            return "시간 미정"
+        }
+
+        return "\(makeClockText(minuteOfDay: startMinute))-\(makeClockText(minuteOfDay: endMinute))"
+    }
+
+    nonisolated static func makeClockText(minuteOfDay: Int) -> String {
+        let hour = minuteOfDay / 60
+        let minute = minuteOfDay % 60
+        return String(format: "%02d:%02d", hour, minute)
+    }
+
     nonisolated static func printRegisteredPrograms(_ programs: [RegisteredProgram]) {
         print("[RegisteredPrograms][Fetch] count: \(programs.count)")
 
