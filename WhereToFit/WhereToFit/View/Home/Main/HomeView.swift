@@ -208,6 +208,7 @@ extension HomeView {
     
     func setProgramHeaderTitle(_ title: String) {
         programHeaderTitle = title
+        collectionView.reloadData()
     }
 }
 

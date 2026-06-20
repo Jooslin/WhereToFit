@@ -46,6 +46,7 @@ final class HomeReactor: BaseReactor {
     private let fetchUserProfileUseCase: FetchUserProfileUseCase
     private let fetchSelectedUserLocationUseCase: FetchSelectedUserLocationUseCase
     private let recommendSportsUseCase: RecommendSportsUseCase
+    private let generateHomeRecommendationCopyUseCase: GenerateHomeRecommendationCopyUseCase
     
     init(
         userStore: UserStore = UserStore(),
@@ -60,6 +61,9 @@ final class HomeReactor: BaseReactor {
         ),
         recommendSportsUseCase: RecommendSportsUseCase = RecommendSportsUseCase(
             repository: SportRecommendationRuleRepository()
+        ),
+        generateHomeRecommendationCopyUseCase: GenerateHomeRecommendationCopyUseCase = GenerateHomeRecommendationCopyUseCase(
+            repository: HomeRecommendationCopyRepository()
         )
     ) {
         self.userStore = userStore
@@ -69,6 +73,7 @@ final class HomeReactor: BaseReactor {
         self.fetchUserProfileUseCase = fetchUserProfileUseCase
         self.fetchSelectedUserLocationUseCase = fetchSelectedUserLocationUseCase
         self.recommendSportsUseCase = recommendSportsUseCase
+        self.generateHomeRecommendationCopyUseCase = generateHomeRecommendationCopyUseCase
     }
     
     //MARK: Reactor func
@@ -159,8 +164,7 @@ extension HomeReactor {
                     .just(.setLocationTitle(locationTitle)),
                     .just(.setProgramSectionTitle(programSectionTitle)),
                     self.makeWeatherSection(location: context.location),
-                    self.makeRecommendSection(context: context),
-                    self.makeRecommendReasonSection(context: context),
+                    self.makeRecommendationContent(context: context),
                     self.makeOnboardingSection(context: context),
                     self.makeProgramSection()
                 ])
@@ -174,8 +178,7 @@ extension HomeReactor {
                     .just(.setLocationTitle(Self.defaultLocationTitle)),
                     .just(.setProgramSectionTitle(Self.defaultProgramSectionTitle)),
                     self.makeWeatherSection(location: nil),
-                    self.makeRecommendSection(context: HomeContext(profile: nil, location: nil)),
-                    self.makeRecommendReasonSection(context: HomeContext(profile: nil, location: nil)),
+                    self.makeRecommendationContent(context: HomeContext(profile: nil, location: nil)),
                     self.makeOnboardingSection(context: HomeContext(profile: nil, location: nil)),
                     self.makeProgramSection()
                 ])
@@ -218,25 +221,52 @@ extension HomeReactor {
             .catch { _ in .just(.setWeatherSectionItem([])) }
     }
     
-    private func makeRecommendSection(context: HomeContext) -> Observable<Mutation> {
+    private func makeRecommendationContent(context: HomeContext) -> Observable<Mutation> {
         guard let profile = context.profile else {
-            return .just(.setRecommendSectionItem([]))
+            return Observable.concat([
+                .just(.setRecommendSectionItem([])),
+                .just(.setRecommendReasonSectionItem([]))
+            ])
         }
         
         return recommendSportsUseCase.execute(profile: profile)
-            .map { sports in
-                Mutation.setRecommendSectionItem(sports.map(HomeCollectionView.Item.recommend))
-            }
             .asObservable()
-            .catch { _ in .just(.setRecommendSectionItem([])) }
-    }
-    
-    private func makeRecommendReasonSection(context: HomeContext) -> Observable<Mutation> {
-        guard context.didCompleteOnboarding else {
-            return .just(.setRecommendReasonSectionItem([]))
-        }
-        
-        return .just(.setRecommendReasonSectionItem([]))
+            .flatMap { [generateHomeRecommendationCopyUseCase] sports -> Observable<Mutation> in
+                let recommendMutation = Mutation.setRecommendSectionItem(
+                    sports.map(HomeCollectionView.Item.recommend)
+                )
+                
+                guard sports.isEmpty == false else {
+                    return Observable.concat([
+                        .just(recommendMutation),
+                        .just(.setRecommendReasonSectionItem([]))
+                    ])
+                }
+                
+                let copyMutation = generateHomeRecommendationCopyUseCase
+                    .execute(profile: profile, recommendedSports: sports)
+                    .asObservable()
+                    .flatMap { copy -> Observable<Mutation> in
+                        Observable.from([
+                            .setProgramSectionTitle(copy.categoryTitle),
+                            .setRecommendReasonSectionItem([
+                                .recommendReason(copy.personalizedReason)
+                            ])
+                        ])
+                    }
+                    .catch { _ in .just(.setRecommendReasonSectionItem([])) }
+                
+                return Observable.concat([
+                    .just(recommendMutation),
+                    copyMutation
+                ])
+            }
+            .catch { _ in
+                Observable.concat([
+                    .just(.setRecommendSectionItem([])),
+                    .just(.setRecommendReasonSectionItem([]))
+                ])
+            }
     }
     
     private func makeOnboardingSection(context: HomeContext) -> Observable<Mutation> {

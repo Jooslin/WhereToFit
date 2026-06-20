@@ -216,6 +216,37 @@ extension NetworkService {
 
         return Int(totalText)
     }
+    
+    func invokeSupabaseFunction<Response: Decodable & Sendable, Body: Encodable & Sendable>(
+        name: String,
+        body: Body
+    ) async throws -> Response {
+        guard !supabaseBaseURL.isEmpty,
+              !supabaseBaseURL.contains("$("),
+              !supabasePublishableKey.isEmpty,
+              !supabasePublishableKey.contains("$(") else {
+            throw NetworkServiceError.missingSupabaseConfiguration
+        }
+        
+        let baseURL = supabaseBaseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let url = "\(baseURL)/functions/v1/\(name)"
+        let headers: HTTPHeaders = [
+            "apikey": supabasePublishableKey,
+            "Authorization": "Bearer \(supabasePublishableKey)",
+            "Accept": "application/json"
+        ]
+        
+        return try await AF.request(
+            url,
+            method: .post,
+            parameters: body,
+            encoder: JSONParameterEncoder.default,
+            headers: headers
+        )
+        .validate()
+        .serializingDecodable(Response.self)
+        .value
+    }
 }
 
 //MARK: API Networking
