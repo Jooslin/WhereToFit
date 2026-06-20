@@ -72,7 +72,7 @@ nonisolated enum ExerciseGoal: String, Equatable, Sendable, CaseIterable {
     case healthCare = "건강 관리"
     case stressRelief = "스트레스 해소"
     
-    var imageString: String {
+    var imageName: String {
         switch self {
         case .strengthImprovement: "strengthImprovement"
         case .diet: "diet"

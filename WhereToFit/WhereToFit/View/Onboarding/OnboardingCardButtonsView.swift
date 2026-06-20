@@ -22,7 +22,7 @@ final class OnboardingCardButtonsView: OnboardingBaseView {
             buttons = source.reduce([OnboardingButton]()) { arr, preference in
                 let button = OnboardingButton(config: .onboardingCard, selectedConfig: .selectedOnboardingCard, type: .card).then {
                     $0.title = preference.rawValue
-                    $0.image = preference.icon
+                    $0.image = UIImage(named: preference.iconName)
                 }
                 return arr + [button]
             }

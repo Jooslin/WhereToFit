@@ -19,7 +19,7 @@ final class OnboardingGoalView: OnboardingBaseView {
         buttons = source.reduce([OnboardingButton]()) { arr, goal in
             let button = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .image).then {
                 $0.title = goal.rawValue
-                $0.image = UIImage(named: goal.imageString)
+                $0.image = UIImage(named: goal.imageName)
             }
             return arr + [button]
         }

@@ -14,7 +14,7 @@ final class AppFlow: Flow {
     let window: UIWindow
     var root: any RxFlow.Presentable { window }
     
-    private let dateService: DateService()
+    private let dateService = DateService()
     
     init(windowScene: UIWindowScene) {
         self.window = UIWindow(windowScene: windowScene)
