@@ -7,15 +7,25 @@
 import UIKit
 import Then
 import SnapKit
+import Kingfisher
 
 final class FavoriteListCell: UICollectionViewCell {
     static let reuseIdentifier = "FavoriteProgramCell"
+    var favoriteButtonTapped: (() -> Void)?
 
     private let programImageView = ProgramImageView(image: nil)
-    private let nameLabel = UILabel(config: .body16Medium)
-    private let facilityLabel = UILabel(config: .body12Regular, color: .gray500)
-    private let dayLabel = UILabel(config: .body12Regular, color: .gray500)
-    private let timeLabel = UILabel(config: .body12Regular, color: .gray500)
+    private let nameLabel = UILabel(config: .body16Medium).then {
+        $0.numberOfLines = 1
+    }
+    private let facilityLabel = UILabel(config: .body12Regular, color: .gray500).then {
+        $0.numberOfLines = 1
+    }
+    private let dayLabel = UILabel(config: .body12Regular, color: .gray500).then {
+        $0.numberOfLines = 1
+    }
+    private let timeLabel = UILabel(config: .body12Regular, color: .gray500).then {
+        $0.numberOfLines = 1
+    }
     private let scheduleStackView = UIStackView().then {
         $0.axis = .horizontal
         $0.spacing = 4
@@ -41,11 +51,21 @@ final class FavoriteListCell: UICollectionViewCell {
 
         setLayout()
         setPriority()
+        programImageView.favoriteButton.addTarget(self, action: #selector(didTapFavoriteButton), for: .touchUpInside)
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+
+        favoriteButtonTapped = nil
+        programImageView.kf.cancelDownloadTask()
+        programImageView.image = nil
+        programImageView.favoriteButton.isSelected = true
     }
 }
 
@@ -65,6 +85,12 @@ private final class FavoriteReservationBadge: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+}
+
+extension FavoriteReservationBadge {
+    func configure(title: String?) {
+        titleLabel.text = title ?? "예약필요"
     }
 }
 
@@ -101,7 +127,20 @@ extension FavoriteListCell {
         timeLabel.text = item.time
         distanceLabel.text = item.distance
         priceLabel.text = item.price
+        reservationBadge.configure(title: item.reservationMethodText)
         programImageView.favoriteButton.isSelected = true
+
+        let placeholderImage = UIImage(resource: .emptyNotification)
+        if let imageURLString = item.imageURLString,
+           let imageURL = URL(string: imageURLString) {
+            programImageView.kf.setImage(with: imageURL, placeholder: placeholderImage)
+        } else {
+            programImageView.image = placeholderImage
+        }
+    }
+
+    @objc func didTapFavoriteButton() {
+        favoriteButtonTapped?()
     }
 
     func setPriority() {
