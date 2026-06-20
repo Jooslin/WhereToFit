@@ -13,20 +13,20 @@ import ReactorKit
 final class AppFlow: Flow {
     let window: UIWindow
     var root: any RxFlow.Presentable { window }
-    
+
     private let dateService = DateService()
-    
+
     init(windowScene: UIWindowScene) {
         self.window = UIWindow(windowScene: windowScene)
         self.window.makeKeyAndVisible()
     }
-    
+
     func navigate(to step: any RxFlow.Step) -> RxFlow.FlowContributors {
         // 정의한 AppStep일 때만 동작
         guard let step = step as? AppStep else {
             return .none
         }
-        
+
         switch step {
             //TODO: 추후 수정 필요
         case .splash:
@@ -40,13 +40,16 @@ final class AppFlow: Flow {
 
         case .onboarding:
             return navigateToOnboarding()
-            
+
         case .main:
             return navigateToMain()
 
+        case let .alert(title, message):
+            return presentAlert(title: title, message: message)
+
         case let .updateRequired(message, storeURL):
             return .none
-            
+
         default:
             return .none
         }
@@ -57,7 +60,7 @@ extension AppFlow {
 //    private func navigateToSplash() -> FlowContributors {
 //        let splashViewController = SplashViewController()
 //        window.rootViewController = splashViewController
-//        
+//
 //        return .one(
 //            flowContributor: .contribute(
 //                withNextPresentable: splashViewController,
@@ -65,7 +68,7 @@ extension AppFlow {
 //            )
 //        )
 //    }
-    
+
     private func navigateToMain() -> FlowContributors {
         let mainFlow = MainFlow(window: window, dateService: dateService)
         return .one(
@@ -88,7 +91,7 @@ extension AppFlow {
 //        window.rootViewController = updateRequiredViewController
 //        return .none
 //    }
-    
+
     private func navigateToOnboarding() -> FlowContributors {
         let vc = OnboardingViewController(reactor: OnboardingReactor(dateService: dateService))
         window.rootViewController = vc
@@ -97,5 +100,13 @@ extension AppFlow {
                 withNextPresentable: vc,
                 withNextStepper: vc
             ))
+    }
+
+    private func presentAlert(title: String, message: String) -> FlowContributors {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+
+        window.rootViewController?.present(alert, animated: true)
+        return .none
     }
 }
