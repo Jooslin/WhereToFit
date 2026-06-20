@@ -26,6 +26,7 @@ extension HomeCollectionView {
     enum Section: Int {
         case weather = 0
         case recommend
+        case recommendReason
         case onboarding
         case program
 //        case notice
@@ -35,6 +36,7 @@ extension HomeCollectionView {
     enum Item: Hashable {
         case weather(WeatherSectionItem)
         case recommend(SportsCategory)
+        case recommendReason(String)
         case onboarding
         case program(ProgramSectionItem)
 //        case notice
@@ -58,7 +60,7 @@ extension HomeCollectionView {
     
     struct ProgramSectionItem: Hashable {
         let imageName: String
-        let matchRate: Double
+        let matchRate: Double?
         let place: String
         let name: String
         let facility: Facility

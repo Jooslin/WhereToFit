@@ -124,6 +124,15 @@ extension HomeView {
             }
         }
         
+        let recommendReasonCellRegistration = UICollectionView.CellRegistration<HomeOnboardingReasonCell, HomeCollectionView.Item> { cell, indexPath, item in
+            switch item {
+            case .recommendReason(let text):
+                cell.configure(text)
+            default:
+                break
+            }
+        }
+        
         let onboardingCellRegistration = UICollectionView.CellRegistration<HomeOnboardingCell, HomeCollectionView.Item> { [weak self] cell,indexPath,item in
             guard let self else { return }
             
@@ -159,6 +168,8 @@ extension HomeView {
                 collectionView.dequeueConfiguredReusableCell(using: weatherCellRegistration, for: indexPath, item: item)
             case .recommend:
                 collectionView.dequeueConfiguredReusableCell(using: recommendCellRegistration, for: indexPath, item: item)
+            case .recommendReason:
+                collectionView.dequeueConfiguredReusableCell(using: recommendReasonCellRegistration, for: indexPath, item: item)
             case .onboarding:
                 collectionView.dequeueConfiguredReusableCell(using: onboardingCellRegistration, for: indexPath, item: item)
             case .program:
@@ -226,6 +237,10 @@ extension HomeView {
                 section?.contentInsets = .init(top: 12, leading: 0, bottom: 0, trailing: 0)
                 return section
                 
+            case .recommendReason:
+                let section = self?.singleEstimatedItemSectionLayout(height: 128)
+                return section
+                
             case .onboarding:
                 let section = self?.singleItemSectionLayout(height: 68)
                 return section
@@ -255,6 +270,24 @@ extension HomeView {
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
                 heightDimension: .absolute(height)),
+            subitems: [item]
+        )
+        
+        let section = NSCollectionLayoutSection(group: group)
+        return section
+    }
+    
+    private func singleEstimatedItemSectionLayout(height: CGFloat) -> NSCollectionLayoutSection {
+        let item = NSCollectionLayoutItem(
+            layoutSize: NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1),
+                heightDimension: .estimated(height)
+            ))
+        
+        let group = NSCollectionLayoutGroup.vertical(
+            layoutSize: NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1),
+                heightDimension: .estimated(height)),
             subitems: [item]
         )
         

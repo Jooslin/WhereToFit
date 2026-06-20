@@ -38,10 +38,12 @@ final class HomeReactor: BaseReactor {
     private let sportsRepository: SportsRepositoryProtocol
     
     init(
+        userStore: UserStore = UserStore(),
         dateService: DateService,
         weatherRepository: WeatherRepositoryProtocol,
         sportsRepository: SportsRepositoryProtocol
     ) {
+        self.userStore = userStore
         self.dateService = dateService
         self.weatherRepository = weatherRepository
         self.sportsRepository = sportsRepository
@@ -73,6 +75,8 @@ final class HomeReactor: BaseReactor {
             .map { location -> Mutation in
                 .setCurrentLocation(location)
             }
+        
+        return Observable.merge(mutation, profileMutation, locationMutation)
     }
     
     func reduce(state: State, mutation: Mutation) -> State {
@@ -81,6 +85,8 @@ final class HomeReactor: BaseReactor {
         switch mutation {
         case .setLoading(let isLoading):
             newState.isLoading = isLoading
+        case .setUserProfile, .setCurrentLocation:
+            break
         case .setWeatherSectionItem(let item):
             newState.data[.weather] = item
         case .setRecommendSectionItem(let item):

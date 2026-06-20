@@ -55,7 +55,13 @@ extension HomeProgramCell {
             imageView.image = UIImage(named: item.imageName)
         }
         
-        matchLabel.text = "\(Int(item.matchRate))% 일치"
+        if let matchRate = item.matchRate {
+            matchLabel.isHidden = false
+            matchLabel.text = "\(Int(matchRate))% 일치"
+        } else {
+            matchLabel.isHidden = true
+            matchLabel.text = nil
+        }
         placeLabel.text = item.place
         nameLabel.text = item.name
         facilityLabel.text = item.facility.facilityName
