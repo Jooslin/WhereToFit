@@ -45,6 +45,7 @@ final class HomeReactor: BaseReactor {
     private let sportsRepository: SportsRepositoryProtocol
     private let fetchUserProfileUseCase: FetchUserProfileUseCase
     private let fetchSelectedUserLocationUseCase: FetchSelectedUserLocationUseCase
+    private let recommendSportsUseCase: RecommendSportsUseCase
     
     init(
         userStore: UserStore = UserStore(),
@@ -56,6 +57,9 @@ final class HomeReactor: BaseReactor {
         ),
         fetchSelectedUserLocationUseCase: FetchSelectedUserLocationUseCase = FetchSelectedUserLocationUseCase(
             repository: CoreDataUserLocationRepository()
+        ),
+        recommendSportsUseCase: RecommendSportsUseCase = RecommendSportsUseCase(
+            repository: SportRecommendationRuleRepository()
         )
     ) {
         self.userStore = userStore
@@ -64,6 +68,7 @@ final class HomeReactor: BaseReactor {
         self.sportsRepository = sportsRepository
         self.fetchUserProfileUseCase = fetchUserProfileUseCase
         self.fetchSelectedUserLocationUseCase = fetchSelectedUserLocationUseCase
+        self.recommendSportsUseCase = recommendSportsUseCase
     }
     
     //MARK: Reactor func
@@ -213,16 +218,17 @@ extension HomeReactor {
             .catch { _ in .just(.setWeatherSectionItem([])) }
     }
     
-    //TODO: 온보딩 추천 결과로 수정 필요
     private func makeRecommendSection(context: HomeContext) -> Observable<Mutation> {
-        guard context.didCompleteOnboarding else {
+        guard let profile = context.profile else {
             return .just(.setRecommendSectionItem([]))
         }
         
-        let categories = context.profile?.preferredSportsCategories ?? []
-        let items = categories.map(HomeCollectionView.Item.recommend)
-        
-        return .just(.setRecommendSectionItem(items))
+        return recommendSportsUseCase.execute(profile: profile)
+            .map { sports in
+                Mutation.setRecommendSectionItem(sports.map(HomeCollectionView.Item.recommend))
+            }
+            .asObservable()
+            .catch { _ in .just(.setRecommendSectionItem([])) }
     }
     
     private func makeRecommendReasonSection(context: HomeContext) -> Observable<Mutation> {

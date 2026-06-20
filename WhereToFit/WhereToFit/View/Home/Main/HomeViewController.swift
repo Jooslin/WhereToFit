@@ -50,13 +50,6 @@ final class HomeViewController: BaseViewController<HomeReactor> {
         let state = reactor.state
             .asDriver(onErrorJustReturn: .init())
         
-        state.map(\.data)
-            .drive(with: homeView,
-                   onNext: { homeView, data in
-                homeView.setSnapshot(data)
-            })
-            .disposed(by: disposeBag)
-        
         state.map(\.locationTitle)
             .distinctUntilChanged()
             .drive(with: homeView,
@@ -70,6 +63,13 @@ final class HomeViewController: BaseViewController<HomeReactor> {
             .drive(with: homeView,
                    onNext: { homeView, title in
                 homeView.setProgramHeaderTitle(title)
+            })
+            .disposed(by: disposeBag)
+        
+        state.map(\.data)
+            .drive(with: homeView,
+                   onNext: { homeView, data in
+                homeView.setSnapshot(data)
             })
             .disposed(by: disposeBag)
     }

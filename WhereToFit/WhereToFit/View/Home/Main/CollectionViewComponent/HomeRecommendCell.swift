@@ -35,9 +35,9 @@ final class HomeRecommendCell: UICollectionViewCell {
 
 //MARK: Configure
 extension HomeRecommendCell {
-    func configure(_ category: SportsCategory) {
-        imageView.image = UIImage(named: category.imageName)
-        label.text = category.rawValue
+    func configure(_ sport: RecommendedSport) {
+        imageView.image = UIImage(named: sport.sportsCategory.imageName)
+        label.text = sport.sportName
     }
 }
 

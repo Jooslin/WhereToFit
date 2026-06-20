@@ -417,6 +417,7 @@ extension NetworkService {
         case naverLocalSearch
         case facility
         case classInfo
+        case sportRecommendationRules
         
         var baseUrl: String? {
             switch self {
@@ -426,7 +427,7 @@ extension NetworkService {
                 return "https://maps.apigw.ntruss.com/map-geocode/v2/geocode"
             case .naverLocalSearch:
                 return "https://openapi.naver.com/v1/search/local.json"
-            case .facility, .classInfo:
+            case .facility, .classInfo, .sportRecommendationRules:
                 return nil
             }
         }
@@ -439,6 +440,8 @@ extension NetworkService {
                 return "public_facilities"
             case .classInfo:
                 return "class_information"
+            case .sportRecommendationRules:
+                return "sport_recommendation_rules"
             }
         }
     }
