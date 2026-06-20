@@ -32,11 +32,11 @@ final class RegisteredProgramCell: UICollectionViewCell {
         $0.setContentHuggingPriority(.required, for: .horizontal)
         $0.setContentCompressionResistancePriority(.required, for: .horizontal)
     }
-    private let categoryLabel = UILabel(config: .body12Regular, color: .gray600).then {
+    private let rightUpperLabel = UILabel(config: .body12Regular, color: .gray600).then {
         $0.textAlignment = .right
         $0.numberOfLines = 1
     }
-    private let reservationMethodLabel = UILabel().then {
+    private let rightDownLabel = UILabel().then {
         $0.font = .systemFont(ofSize: 16, weight: .semibold)
         $0.textColor = .gray900
         $0.textAlignment = .right
@@ -68,14 +68,14 @@ final class RegisteredProgramCell: UICollectionViewCell {
 extension RegisteredProgramCell {
     func configure(item: RegisteredProgramsReactor.RegisteredProgramItem) {
         nameLabel.text = item.programName
-        facilityLabel.text = item.facilityNameText
+        facilityLabel.text = item.facilityNameText.map { "\($0) |" }
         facilityLabel.isHidden = item.facilityNameText == nil
         dayLabel.text = item.dayText
         timeLabel.text = item.timeText
-        categoryLabel.text = item.sportsCategoryText
-        reservationMethodLabel.text = item.reservationMethodText
-        reservationMethodLabel.isHidden = item.reservationMethodText == nil
-        programImageView.image = UIImage(resource: .emptyNotification)
+        rightUpperLabel.text = ""
+        rightDownLabel.text = ""
+        rightDownLabel.isHidden = item.reservationMethodText == nil
+        programImageView.image = item.sportsCategory?.image ?? UIImage(resource: .emptyNotification)
     }
 
     func setPriority() {
@@ -94,8 +94,8 @@ extension RegisteredProgramCell {
             programImageView,
             nameLabel,
             scheduleStackView,
-            categoryLabel,
-            reservationMethodLabel,
+            rightUpperLabel,
+            rightDownLabel,
             divider
         ].forEach(contentView.addSubview)
 
@@ -113,22 +113,22 @@ extension RegisteredProgramCell {
         nameLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(4)
             $0.leading.equalTo(programImageView.snp.trailing).offset(12)
-            $0.trailing.lessThanOrEqualTo(categoryLabel.snp.leading).offset(-8)
+            $0.trailing.lessThanOrEqualTo(rightUpperLabel.snp.leading).offset(-8)
         }
 
         scheduleStackView.snp.makeConstraints {
             $0.top.equalTo(nameLabel.snp.bottom).offset(4)
             $0.leading.equalTo(nameLabel)
-            $0.trailing.lessThanOrEqualTo(categoryLabel.snp.leading).offset(-8)
+            $0.trailing.lessThanOrEqualTo(rightUpperLabel.snp.leading).offset(-8)
         }
 
-        categoryLabel.snp.makeConstraints {
+        rightUpperLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(7)
             $0.trailing.equalToSuperview()
             $0.width.equalTo(72)
         }
 
-        reservationMethodLabel.snp.makeConstraints {
+        rightDownLabel.snp.makeConstraints {
             $0.trailing.equalToSuperview()
             $0.bottom.equalTo(programImageView.snp.bottom).inset(9)
             $0.leading.greaterThanOrEqualTo(nameLabel)

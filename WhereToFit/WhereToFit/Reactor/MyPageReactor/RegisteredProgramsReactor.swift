@@ -34,6 +34,7 @@ final class RegisteredProgramsReactor: BaseReactor {
         let facilityNameText: String?
         let dayText: String
         let timeText: String
+        let sportsCategory: SportsCategory?
         let sportsCategoryText: String?
         let reservationMethodText: String?
     }
@@ -76,6 +77,7 @@ private extension RegisteredProgramsReactor {
             facilityNameText: program.facilityName,
             dayText: program.days.isEmpty ? "요일" : program.days.joined(separator: ", "),
             timeText: makeTimeText(startMinute: program.startMinuteOfDay, endMinute: program.endMinuteOfDay),
+            sportsCategory: program.sportsCategory,
             sportsCategoryText: program.sportsCategory?.rawValue,
             reservationMethodText: program.reservationMethodRawValues.isEmpty
                 ? nil
