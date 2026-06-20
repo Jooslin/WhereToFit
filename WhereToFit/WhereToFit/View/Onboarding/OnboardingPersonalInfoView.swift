@@ -20,10 +20,10 @@ final class OnboardingPersonalInfoView: OnboardingBaseView {
         $0.keyboardType = .numberPad
     }
     let maleButton = DesignButton(config: .smallFilledLightGray, selectedConfig: .selectedSmallBorderBlue).then {
-        $0.title = "남성"
+        $0.title = UserGender.male.rawValue
     }
     let femaleButton = DesignButton(config: .smallFilledLightGray, selectedConfig: .selectedSmallBorderBlue).then {
-        $0.title = "여성"
+        $0.title = UserGender.female.rawValue
     }
     let residenceTextField = TouchableDesignTextField().then {
         $0.setPlaceholder(text: "주소 찾기")

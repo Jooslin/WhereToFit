@@ -239,7 +239,18 @@ private extension OnboardingViewController {
             }
             .bind(to: reactor.action)
             .disposed(by: stepViewDisposeBag)
+        
+        reactor.state
+            .map { $0.gender == .male }
+            .distinctUntilChanged()
+            .bind(to: personalInfoView.maleButton.rx.isSelected)
+            .disposed(by: stepViewDisposeBag)
 
+        reactor.state
+            .map { $0.gender == .female }
+            .distinctUntilChanged()
+            .bind(to: personalInfoView.femaleButton.rx.isSelected)
+            .disposed(by: stepViewDisposeBag)
     }
 
     func bindPersonalInfoInputSanitizers(_ personalInfoView: OnboardingPersonalInfoView) {
