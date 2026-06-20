@@ -53,18 +53,12 @@ final class RegisteredProgramsReactor: BaseReactor {
         switch action {
         case .viewWillAppear:
             return fetchRegisteredProgramsUseCase.execute()
-                .do(onSuccess: { programs in
-                    Self.printRegisteredPrograms(programs)
-                })
                 .map { programs in
                     programs.map(Self.makeRegisteredProgramItem)
                 }
                 .map(Mutation.setItems)
                 .asObservable()
-                .catch { error in
-                    print("[RegisteredPrograms][Fetch][Error] \(error.localizedDescription)")
-                    return .just(.setItems([]))
-                }
+                .catch { _ in .just(.setItems([])) }
 
         case .toggleEditing:
             return .just(.setEditing(currentState.isEditing == false))
@@ -72,10 +66,7 @@ final class RegisteredProgramsReactor: BaseReactor {
         case .removeProgram(let item):
             return removeRegisteredProgramUseCase.execute(id: item.id)
                 .andThen(fetchItems())
-                .catch { error in
-                    print("[RegisteredPrograms][Remove][Error] \(error.localizedDescription)")
-                    return .empty()
-                }
+                .catch { _ in .empty() }
         }
     }
 
@@ -112,9 +103,6 @@ private extension RegisteredProgramsReactor {
 
     func fetchItems() -> Observable<Mutation> {
         fetchRegisteredProgramsUseCase.execute()
-            .do(onSuccess: { programs in
-                Self.printRegisteredPrograms(programs)
-            })
             .map { programs in
                 programs.map(Self.makeRegisteredProgramItem)
             }
@@ -136,30 +124,4 @@ private extension RegisteredProgramsReactor {
         return String(format: "%02d:%02d", hour, minute)
     }
 
-    nonisolated static func printRegisteredPrograms(_ programs: [RegisteredProgram]) {
-        print("[RegisteredPrograms][Fetch] count: \(programs.count)")
-
-        programs.enumerated().forEach { index, program in
-            print(
-                """
-                👁️🫦👁️[RegisteredPrograms][\(index)]
-                id: \(program.id)
-                programID: \(program.programID.map(String.init) ?? "nil")
-                facilityID: \(program.facilityID ?? "nil")
-                programName: \(program.programName)
-                facilityName: \(program.facilityName ?? "nil")
-                sportsCategory: \(program.sportsCategory?.rawValue ?? "nil")
-                isRecurring: \(program.isRecurring)
-                days: \(program.days)
-                hasReservationDates: \(program.hasReservationDates)
-                reservationDates: \(program.reservationDates)
-                startMinuteOfDay: \(program.startMinuteOfDay.map(String.init) ?? "nil")
-                endMinuteOfDay: \(program.endMinuteOfDay.map(String.init) ?? "nil")
-                reservationMethodRawValues: \(program.reservationMethodRawValues)
-                createdAt: \(program.createdAt)
-                updatedAt: \(program.updatedAt)
-                """
-            )
-        }
-    }
 }
