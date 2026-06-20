@@ -8,6 +8,7 @@
 import ReactorKit
 import Foundation
 import OSLog
+import RxSwift
 
 final class OnboardingReactor: BaseReactor {
     private let logger = Logger.init(subsystem: "WhereToFit", category: "OnboardingReactor")
@@ -31,6 +32,9 @@ final class OnboardingReactor: BaseReactor {
         case togglePreferredSportsCategory(String)
         case toggleDiscomfortBodyPart(String)
         case updateUsesPublicFacility(Bool)
+        
+        // 저장
+        case save
     }
 
     enum Mutation {
@@ -38,7 +42,7 @@ final class OnboardingReactor: BaseReactor {
         case setNickname(String)
         case setBirthday(Date?)
         case setGender(UserGender)
-        case setLocation
+        case setAddress(String?)
         case setWeight(Double?)
         case setHeight(Double?)
         case setExerciseExperience(ExerciseExperience)
@@ -48,7 +52,14 @@ final class OnboardingReactor: BaseReactor {
         case setUsesPublicFacility(Bool)
 
         case setError(title: String, message: String)
+        case setSaveResult(SaveResult)
+        case setIsSaving(Bool)
         case setIsNextButtonEnabled(Bool)
+    }
+
+    enum SaveResult: Equatable {
+        case success
+        case successWithLocationWarning
     }
 
     struct State {
@@ -56,7 +67,7 @@ final class OnboardingReactor: BaseReactor {
         var nickname: String?
         var birthday: Date?
         var gender: UserGender?
-        var location: UserLocation?
+        var address: String?
         var weight: Double?
         var height: Double?
         var exerciseExperience: ExerciseExperience?
@@ -66,14 +77,27 @@ final class OnboardingReactor: BaseReactor {
         var usesPublicFacility: Bool = false
 
         @Pulse var error: (String, String)?
+        @Pulse var saveResult: SaveResult?
+        var isSaving: Bool = false
         var isNextButtonEnabled: Bool = false
     }
 
     //MARK: Properties & Initializer
     private let validatePersonalInfoUseCase: ValidateOnboardingPersonalInfoUseCase
+    private let addressCoordinateUseCase: AddressCoordinateUseCase
+    private let upsertUserProfileUseCase: UpsertUserProfileUseCase
+    private let addUserLocationUseCase: AddUserLocationUseCase
 
-    init(dateService: DateService) {
+    init(
+        dateService: DateService,
+        addressCoordinateUseCase: AddressCoordinateUseCase,
+        upsertUserProfileUseCase: UpsertUserProfileUseCase,
+        addUserLocationUseCase: AddUserLocationUseCase
+    ) {
         self.validatePersonalInfoUseCase = ValidateOnboardingPersonalInfoUseCase(dateService: dateService)
+        self.addressCoordinateUseCase = addressCoordinateUseCase
+        self.upsertUserProfileUseCase = upsertUserProfileUseCase
+        self.addUserLocationUseCase = addUserLocationUseCase
     }
 
     func mutate(action: Action) -> Observable<Mutation> {
@@ -152,6 +176,9 @@ final class OnboardingReactor: BaseReactor {
 
         case .updateUsesPublicFacility(let usesPublicFacility):
             return .just(.setUsesPublicFacility(usesPublicFacility))
+            
+        case .save:
+            return saveOnboardingData()
         }
 
     }
@@ -168,8 +195,8 @@ final class OnboardingReactor: BaseReactor {
             newState.birthday = birthday
         case .setGender(let gender):
             newState.gender = gender
-        case .setLocation:
-            newState.location = nil
+        case .setAddress(let address):
+            newState.address = address
         case .setWeight(let weight):
             newState.weight = weight
         case .setHeight(let height):
@@ -195,6 +222,10 @@ final class OnboardingReactor: BaseReactor {
 
         case .setError(title: let title, message: let message):
             newState.error = (title, message)
+        case .setSaveResult(let result):
+            newState.saveResult = result
+        case .setIsSaving(let isSaving):
+            newState.isSaving = isSaving
         case .setIsNextButtonEnabled(let isEnabled):
             newState.isNextButtonEnabled = isEnabled
         }
@@ -221,8 +252,7 @@ extension OnboardingReactor {
     }
 
     private func makeLocationData(from string: String) -> Observable<Mutation> {
-
-        .just(.setLocation)
+        .just(.setAddress(string))
     }
 
     private func makeWeightData(from string: String) -> Observable<Mutation> {
@@ -253,5 +283,92 @@ extension OnboardingReactor {
         state.nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
         && state.birthday != nil
         && state.gender != nil
+    }
+
+    private func saveOnboardingData() -> Observable<Mutation> {
+        guard currentState.isSaving == false else {
+            return .empty()
+        }
+
+        guard let profileInput = makeUserProfileInput() else {
+            return .just(.setError(title: "저장 실패", message: "필수 정보를 확인해주세요."))
+        }
+
+        let address = currentState.address?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let saveResult = saveProfileAndLocation(profileInput: profileInput, address: address)
+            .asObservable()
+            .map { result in
+                switch result {
+                case .success:
+                    return Mutation.setStep(.end)
+                case .successWithLocationWarning:
+                    return Mutation.setSaveResult(result)
+                }
+            }
+            .catch { _ in
+                .just(.setError(title: "저장 실패", message: "온보딩 정보를 저장하지 못했어요."))
+            }
+
+        return .concat([
+            .just(.setIsSaving(true)),
+            saveResult,
+            .just(.setIsSaving(false))
+        ])
+    }
+
+    private func makeUserProfileInput() -> UpsertUserProfileUseCase.Input? {
+        guard let nickname = currentState.nickname,
+              let birthDate = currentState.birthday,
+              let gender = currentState.gender else {
+            return nil
+        }
+
+        return UpsertUserProfileUseCase.Input(
+            nickname: nickname,
+            birthDate: birthDate,
+            gender: gender,
+            height: currentState.height,
+            initialWeight: currentState.weight,
+            exerciseExperience: currentState.exerciseExperience,
+            exerciseGoal: currentState.exerciseGoal,
+            preferredSportsCategories: currentState.preferredSportsCategories,
+            discomfortBodyParts: currentState.discomfortBodyParts,
+            usesPublicFacility: currentState.usesPublicFacility
+        )
+    }
+
+    private func saveProfileAndLocation(
+        profileInput: UpsertUserProfileUseCase.Input,
+        address: String?
+    ) -> Single<SaveResult> {
+        upsertUserProfileUseCase.execute(profileInput)
+            .flatMap { [addressCoordinateUseCase, addUserLocationUseCase] profile -> Single<SaveResult> in
+                guard let address,
+                      address.isEmpty == false else {
+                    return .just(.success)
+                }
+
+                return addressCoordinateUseCase.execute(address: address)
+                    .flatMap { coordinate -> Single<SaveResult> in
+                        guard let coordinate else {
+                            return .just(.successWithLocationWarning)
+                        }
+
+                        let locationInput = AddUserLocationUseCase.Input(
+                            userProfileID: profile.id,
+                            name: address,
+                            address: address,
+                            latitude: coordinate.latitude,
+                            longitude: coordinate.longitude,
+                            isSelected: true,
+                            kind: .home
+                        )
+
+                        return addUserLocationUseCase.execute(locationInput)
+                            .map { _ -> SaveResult in .success }
+                            .catchAndReturn(.successWithLocationWarning)
+                    }
+                    .catchAndReturn(.successWithLocationWarning)
+            }
     }
 }

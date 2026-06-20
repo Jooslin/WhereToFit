@@ -40,6 +40,23 @@ final class OnboardingViewController: BaseViewController<OnboardingReactor> {
             .map { AppStep.alert(title: $0.0, message: $0.1) }
             .bind(to: steps)
             .disposed(by: disposeBag)
+
+        reactor.pulse(\.$saveResult)
+            .compactMap { $0 }
+            .bind(with: self) { owner, result in
+                owner.steps.accept(AppStep.main)
+
+                guard result == .successWithLocationWarning else { return }
+                DispatchQueue.main.async {
+                    owner.steps.accept(
+                        AppStep.alert(
+                            title: "주소 저장 실패",
+                            message: "현재 위치의 좌표를 찾지 못했어요."
+                        )
+                    )
+                }
+            }
+            .disposed(by: disposeBag)
     }
 }
 
@@ -140,7 +157,11 @@ private extension OnboardingViewController {
 
     func bindBaseView(_ baseView: OnboardingBaseView, reactor: OnboardingReactor) {
         baseView.nextButton.rx.tap
-            .map { OnboardingReactor.Action.nextButtonTapped }
+            .map {
+                baseView.step == .facility
+                    ? OnboardingReactor.Action.save
+                    : OnboardingReactor.Action.nextButtonTapped
+            }
             .bind(to: reactor.action)
             .disposed(by: stepViewDisposeBag)
 
@@ -183,10 +204,19 @@ private extension OnboardingViewController {
             .disposed(by: stepViewDisposeBag)
 
         selectedAddressRelay
+            .do(onNext: { [weak personalInfoView] address in
+                personalInfoView?.residenceTextField.text = address
+            })
             .map {
                 OnboardingReactor.Action.updateAddress($0)
             }
             .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
+
+        reactor.state
+            .map(\.address)
+            .distinctUntilChanged()
+            .bind(to: personalInfoView.residenceTextField.rx.text)
             .disposed(by: stepViewDisposeBag)
 
         personalInfoView.rx.weightTextFieldEditingDidEnd
@@ -364,5 +394,12 @@ extension OnboardingViewController {
 }
 
 #Preview {
-    OnboardingViewController(reactor: OnboardingReactor(dateService: DateService()))
+    OnboardingViewController(
+        reactor: OnboardingReactor(
+            dateService: DateService(),
+            addressCoordinateUseCase: AddressCoordinateUseCase(repository: NaverMapSearchRepository()),
+            upsertUserProfileUseCase: UpsertUserProfileUseCase(repository: CoreDataUserProfileRepository()),
+            addUserLocationUseCase: AddUserLocationUseCase(repository: CoreDataUserLocationRepository())
+        )
+    )
 }

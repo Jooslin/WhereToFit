@@ -93,7 +93,22 @@ extension AppFlow {
 //    }
 
     private func navigateToOnboarding() -> FlowContributors {
-        let vc = OnboardingViewController(reactor: OnboardingReactor(dateService: dateService))
+        let userProfileRepository = CoreDataUserProfileRepository()
+        let userLocationRepository = CoreDataUserLocationRepository()
+        let vc = OnboardingViewController(
+            reactor: OnboardingReactor(
+                dateService: dateService,
+                addressCoordinateUseCase: AddressCoordinateUseCase(
+                    repository: NaverMapSearchRepository()
+                ),
+                upsertUserProfileUseCase: UpsertUserProfileUseCase(
+                    repository: userProfileRepository
+                ),
+                addUserLocationUseCase: AddUserLocationUseCase(
+                    repository: userLocationRepository
+                )
+            )
+        )
         window.rootViewController = vc
         return .one(
             flowContributor: .contribute(
