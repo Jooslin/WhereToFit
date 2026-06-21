@@ -103,7 +103,13 @@ final class MyFlow: Flow {
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
 
         case .exerciseResult:
-            let vc = ExerciseResultViewController(reactor: ExerciseResultReactor())
+            let vc = ExerciseResultViewController(
+                reactor: ExerciseResultReactor(
+                    fetchUserProfileUseCase: FetchUserProfileUseCase(
+                        repository: CoreDataUserProfileRepository()
+                    )
+                )
+            )
             vc.hidesBottomBarWhenPushed = true
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))

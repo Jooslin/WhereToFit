@@ -17,6 +17,10 @@ final class ExerciseResultViewController: BaseViewController<ExerciseResultReact
     }
 
     override func bind(reactor: ExerciseResultReactor) {
+        Observable.just(ExerciseResultReactor.Action.viewDidLoad)
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
         exerciseResultView.titleView.rx.leftButtonTap
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.pageBack)
