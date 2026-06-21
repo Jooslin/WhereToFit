@@ -28,6 +28,11 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
     }
 
     override func bind(reactor: CalendarReactor) {
+        Observable.just(())
+            .map { CalendarReactor.Action.viewDidLoad }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
         calendarView.rx.selectedSegmentIndex
             .distinctUntilChanged()
             .map { $0 == 0 ? CalendarView.ContentMode.calendar : .report }
