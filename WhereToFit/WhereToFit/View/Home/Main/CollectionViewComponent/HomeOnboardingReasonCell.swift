@@ -38,6 +38,8 @@ final class HomeOnboardingReasonCell: UICollectionViewCell {
         stackView.snp.makeConstraints {
             $0.horizontalEdges.equalToSuperview().inset(16)
             $0.centerY.equalToSuperview()
+            $0.top.greaterThanOrEqualToSuperview().offset(16)
+            $0.bottom.lessThanOrEqualToSuperview().offset(-16)
         }
     }
     
