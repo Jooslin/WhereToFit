@@ -117,6 +117,7 @@ extension LocationView {
     private func makeCompositionalLayout() -> UICollectionViewCompositionalLayout {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
         configuration.contentInsetsReference = .layoutMargins
+        configuration.interSectionSpacing = 12
         
         return UICollectionViewCompositionalLayout(sectionProvider: { [weak self] sectionIndex, environment in
             
