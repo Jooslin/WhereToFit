@@ -55,7 +55,6 @@ final class ConditionInputView: UIView {
     ]).then {
         $0.axis = .horizontal
         $0.spacing = 16
-        $0.distribution = .fill
     }
 
     private lazy var secondRowStackView = UIStackView(arrangedSubviews: [
@@ -65,7 +64,6 @@ final class ConditionInputView: UIView {
     ]).then {
         $0.axis = .horizontal
         $0.spacing = 14
-        $0.distribution = .fill
     }
 
     init(currentCondition: CalendarReactor.ConditionValue) {
@@ -154,24 +152,9 @@ private extension ConditionInputView {
             $0.height.equalTo(48)
         }
 
-        [
-            veryGoodButton,
-            goodButton,
-            normalButton,
-            badButton,
-            worstButton
-        ].forEach(setConditionButtonSize)
-
         saveButton.snp.makeConstraints {
             $0.horizontalEdges.equalToSuperview().inset(16)
             $0.bottom.equalTo(safeAreaLayoutGuide)
-            $0.height.equalTo(48)
-        }
-    }
-
-    func setConditionButtonSize(_ button: ConditionOptionButton) {
-        button.snp.makeConstraints {
-            $0.width.equalTo(button.intrinsicContentSize.width)
             $0.height.equalTo(48)
         }
     }
