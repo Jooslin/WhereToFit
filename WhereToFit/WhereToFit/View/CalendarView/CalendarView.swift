@@ -137,13 +137,14 @@ extension CalendarView {
     func updateSelectedDate(_ date: Date, text: String) {
         let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
 
+        calendarView.setVisibleDateComponents(dateComponents, animated: true)
+
         if let selection = calendarView.selectionBehavior as? UICalendarSelectionSingleDate {
             isUpdatingSelectedDate = true
             selection.setSelected(dateComponents, animated: true)
             isUpdatingSelectedDate = false
         }
 
-        calendarView.setVisibleDateComponents(dateComponents, animated: true)
         selectedDateLabel.text = text
     }
 

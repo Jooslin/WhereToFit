@@ -20,6 +20,9 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
     }
 
     override func loadView() {
+        // 캘린더 레이아웃 고정
+        calendarView.minimumContentSizeCategory = .extraSmall
+        calendarView.maximumContentSizeCategory = .extraSmall
         calendarView.setExerciseCollectionViewDataSource(self)
         view = calendarView
     }
