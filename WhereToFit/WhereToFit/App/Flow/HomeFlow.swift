@@ -16,6 +16,7 @@ final class HomeFlow: Flow {
     private let dateService: DateService
     private let weatherRepository: WeatherRepositoryProtocol
     private let sportsRepository: SportsRepositoryProtocol
+    private let registeredProgramRepository: RegisteredProgramRepositoryProtocol
     private let userStore: UserStoreProtocol
     
     private lazy var locationReactor = LocationReactor(userStore: userStore)
@@ -23,12 +24,14 @@ final class HomeFlow: Flow {
     init(userStore: UserStoreProtocol,
          dateService: DateService,
          weatherRepository: WeatherRepositoryProtocol,
-         sportsRepository: SportsRepositoryProtocol
+         sportsRepository: SportsRepositoryProtocol,
+         registeredProgramRepository: RegisteredProgramRepositoryProtocol
     ) {
         self.userStore = userStore
         self.dateService = dateService
         self.weatherRepository = weatherRepository
         self.sportsRepository = sportsRepository
+        self.registeredProgramRepository = registeredProgramRepository
     }
     
     func navigate(to step: any RxFlow.Step) -> RxFlow.FlowContributors {
@@ -83,7 +86,7 @@ final class HomeFlow: Flow {
                         repository: sportsRepository
                     ),
                     saveRegisteredProgramUseCase: SaveRegisteredProgramUseCase(
-                        repository: CoreDataRegisteredProgramRepository()
+                        repository: registeredProgramRepository
                     )
                 )
             )
