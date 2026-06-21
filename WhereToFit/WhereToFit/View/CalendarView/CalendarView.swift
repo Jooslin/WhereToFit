@@ -49,14 +49,26 @@ final class CalendarView: UIView {
 
     private let calendarView = UICalendarView().then {
         let calendar = Calendar(identifier: .gregorian)
+        let today = calendar.startOfDay(for: Date())
+        let startDate = calendar.date(
+            from: calendar.dateComponents([.year, .month], from: calendar.date(byAdding: .year, value: -5, to: today) ?? today)
+        ) ?? today
+        let endBaseDate = calendar.date(byAdding: .year, value: 1, to: today) ?? today
+        let endMonthStartDate = calendar.date(
+            from: calendar.dateComponents([.year, .month], from: endBaseDate)
+        ) ?? endBaseDate
+        let endDate = calendar.date(
+            byAdding: DateComponents(month: 1, day: -1),
+            to: endMonthStartDate
+        ) ?? endBaseDate
 
         $0.calendar = Calendar(identifier: .gregorian)
         $0.locale = Locale(identifier: "ko_KR")
         $0.tintColor = .primary400
         $0.backgroundColor = .clear
         $0.availableDateRange = DateInterval(
-            start: DateComponents(calendar: Calendar(identifier: .gregorian), year: 2026, month: 1, day: 1).date ?? Date(),
-            end: DateComponents(calendar: Calendar(identifier: .gregorian), year: 2026, month: 12, day: 31).date ?? Date()
+            start: startDate,
+            end: endDate
         )
         $0.visibleDateComponents = calendar.dateComponents([.year, .month], from: Date())
     }
