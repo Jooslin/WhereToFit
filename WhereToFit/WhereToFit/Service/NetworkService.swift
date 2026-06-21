@@ -423,7 +423,7 @@ extension NetworkService {
             case .weather:
                 return "https://api.openweathermap.org/data/2.5/weather"
             case .naverGeocode:
-                return "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode"
+                return "https://maps.apigw.ntruss.com/map-geocode/v2/geocode"
             case .naverLocalSearch:
                 return "https://openapi.naver.com/v1/search/local.json"
             case .facility, .classInfo:

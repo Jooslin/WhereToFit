@@ -84,12 +84,12 @@ final class CalendarView: UIView {
         $0.isUserInteractionEnabled = false
     }
 
-    fileprivate let weightCard = CalendarInfoCardView(title: "몸무게", value: "54.2", unit: "kg")
+    fileprivate let weightCard = CalendarInfoCardView(title: "몸무게", value: "입력 필요", unit: "kg")
     fileprivate let conditionCard = CalendarInfoCardView(
         title: "컨디션",
-        value: "최악",
+        value: "입력 필요",
         unit: nil,
-        valueImage: CalendarReactor.ConditionValue.worst.image
+        valueImage: nil
     )
     fileprivate let weightCardTapArea = UIControl()
     fileprivate let conditionCardTapArea = UIControl()
@@ -130,13 +130,14 @@ final class CalendarView: UIView {
 }
 
 extension CalendarView {
-    func updateWeight(_ weight: CalendarReactor.WeightValue) {
-        weightCard.updateValue(weight.displayText)
+    func updateWeight(_ weight: CalendarReactor.WeightValue?) {
+        weightCard.updateValue(weight?.displayText ?? "입력 필요")
+        weightCard.updateUnitHidden(weight == nil)
     }
 
-    func updateCondition(_ condition: CalendarReactor.ConditionValue) {
-        conditionCard.updateValue(condition.displayText)
-        conditionCard.updateValueImage(condition.image)
+    func updateCondition(_ condition: CalendarReactor.ConditionValue?) {
+        conditionCard.updateValue(condition?.displayText ?? "입력 필요")
+        conditionCard.updateValueImage(condition?.image)
     }
 
     func setExerciseCollectionViewDataSource(_ dataSource: UICollectionViewDataSource) {

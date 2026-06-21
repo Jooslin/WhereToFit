@@ -17,7 +17,7 @@ final class ConditionInputViewController: UIViewController {
 
     init(reactor: CalendarReactor) {
         self.reactor = reactor
-        conditionInputView = ConditionInputView(currentCondition: reactor.currentState.condition)
+        conditionInputView = ConditionInputView(currentCondition: reactor.currentState.condition ?? .normal)
 
         super.init(nibName: nil, bundle: nil)
 

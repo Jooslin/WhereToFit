@@ -47,6 +47,10 @@ extension CalendarInfoCardView {
         valueLabel.text = value
     }
 
+    func updateUnitHidden(_ isHidden: Bool) {
+        unitLabel?.isHidden = isHidden
+    }
+
     func updateValueImage(_ image: UIImage?) {
         valueImageView.image = image
         valueImageView.isHidden = image == nil

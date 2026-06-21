@@ -12,8 +12,8 @@ import RxSwift
 final class CalendarReactor: BaseReactor {
     let initialState = State(
         selectedDate: CalendarReactor.normalizedDate(Date()),
-        weight: WeightValue(integer: 54, decimal: 2),
-        condition: .worst,
+        weight: nil,
+        condition: nil,
         exerciseItems: [
             ExerciseItem(title: "수영", duration: "120분", calories: "210칼로리", sportsCategory: .aquaticSports),
             ExerciseItem(title: "요가", duration: "30분", calories: "120칼로리", sportsCategory: .yogaPilates),
@@ -75,8 +75,8 @@ final class CalendarReactor: BaseReactor {
 
     struct State {
         var selectedDate: Date
-        var weight: WeightValue
-        var condition: ConditionValue
+        var weight: WeightValue?
+        var condition: ConditionValue?
         var exerciseItems: [ExerciseItem]
     }
 

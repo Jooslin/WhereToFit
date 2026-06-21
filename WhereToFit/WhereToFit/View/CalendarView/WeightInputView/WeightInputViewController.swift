@@ -17,7 +17,9 @@ final class WeightInputViewController: UIViewController {
 
     init(reactor: CalendarReactor) {
         self.reactor = reactor
-        weightInputView = WeightInputView(currentWeight: reactor.currentState.weight)
+        weightInputView = WeightInputView(
+            currentWeight: reactor.currentState.weight ?? CalendarReactor.WeightValue(integer: 54, decimal: 2)
+        )
 
         super.init(nibName: nil, bundle: nil)
 
