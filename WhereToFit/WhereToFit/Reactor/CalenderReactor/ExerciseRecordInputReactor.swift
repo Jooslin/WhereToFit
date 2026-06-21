@@ -11,8 +11,13 @@ import RxSwift
 
 final class ExerciseRecordInputReactor: Reactor {
     let initialState: State
+    private let saveExerciseRecordUseCase: SaveExerciseRecordUseCase
 
-    init(selectedDate: Date) {
+    init(
+        selectedDate: Date,
+        saveExerciseRecordUseCase: SaveExerciseRecordUseCase
+    ) {
+        self.saveExerciseRecordUseCase = saveExerciseRecordUseCase
         initialState = State(selectedDate: selectedDate)
     }
 
@@ -38,6 +43,10 @@ final class ExerciseRecordInputReactor: Reactor {
 
             return components.isEmpty ? "0분" : components.joined(separator: " ")
         }
+
+        var timeInterval: TimeInterval {
+            TimeInterval(hour * 3600 + minute * 60 + second)
+        }
     }
 
     enum Action {
@@ -51,6 +60,7 @@ final class ExerciseRecordInputReactor: Reactor {
         case durationFieldTapped
         case durationPickerChanged(DurationValue)
         case durationPickerSelectButtonTapped
+        case saveButtonTapped
     }
 
     enum Mutation {
@@ -63,6 +73,7 @@ final class ExerciseRecordInputReactor: Reactor {
         case setDurationPickerVisible(Bool)
         case setSelectedDuration(DurationValue)
         case setConfirmedDuration(DurationValue)
+        case setDidSave(Bool)
     }
 
     struct State {
@@ -86,6 +97,7 @@ final class ExerciseRecordInputReactor: Reactor {
         var isDurationPickerVisible = false
         var selectedDuration = DurationValue(hour: 0, minute: 0, second: 0)
         var confirmedDuration = DurationValue(hour: 0, minute: 0, second: 0)
+        @Pulse var didSave: Bool?
     }
 
     func mutate(action: Action) -> Observable<Mutation> {
@@ -142,6 +154,24 @@ final class ExerciseRecordInputReactor: Reactor {
                 .just(.setConfirmedDuration(currentState.selectedDuration)),
                 .just(.setDurationPickerVisible(false))
             ])
+
+        case .saveButtonTapped:
+            guard let exerciseName = currentState.appliedExerciseName,
+                  currentState.confirmedDuration.timeInterval > 0 else {
+                return .empty()
+            }
+
+            return saveExerciseRecordUseCase.execute(
+                input: SaveExerciseRecordUseCase.Input(
+                    date: currentState.selectedDate,
+                    exerciseName: exerciseName,
+                    sportsCategoryRawValue: currentState.selectedExerciseCategory?.rawValue,
+                    duration: currentState.confirmedDuration.timeInterval,
+                    calories: nil
+                )
+            )
+            .asObservable()
+            .map { _ in .setDidSave(true) }
         }
     }
 
@@ -175,6 +205,9 @@ final class ExerciseRecordInputReactor: Reactor {
 
         case .setConfirmedDuration(let duration):
             newState.confirmedDuration = duration
+
+        case .setDidSave(let didSave):
+            newState.didSave = didSave
         }
 
         return newState
