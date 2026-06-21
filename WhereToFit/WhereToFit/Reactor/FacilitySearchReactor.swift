@@ -141,28 +141,27 @@ private extension FacilitySearchReactor {
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmedQuery.isEmpty == false else { return [] }
         
-        var nearestItemsByName: [String: (facility: FitnessFacility, distanceInMeters: Int)] = [:]
+        var nearestItemsByID: [String: (facility: FitnessFacility, distanceInMeters: Int)] = [:]
         
         facilities
             .filter { $0.matchesFacilitySearchQuery(trimmedQuery) }
             .forEach { facility in
-                let key = facility.name.normalizedFacilitySearchText
                 let calculatedDistance = distanceInMeters(
                     from: referenceCoordinate,
                     to: facility.coordinate
                 )
                 
-                guard let existingItem = nearestItemsByName[key] else {
-                    nearestItemsByName[key] = (facility, calculatedDistance)
+                guard let existingItem = nearestItemsByID[facility.id] else {
+                    nearestItemsByID[facility.id] = (facility, calculatedDistance)
                     return
                 }
                 
                 if calculatedDistance < existingItem.distanceInMeters {
-                    nearestItemsByName[key] = (facility, calculatedDistance)
+                    nearestItemsByID[facility.id] = (facility, calculatedDistance)
                 }
             }
         
-        return nearestItemsByName.values
+        return nearestItemsByID.values
             .sorted { $0.distanceInMeters < $1.distanceInMeters }
             .map { item in
                 FacilitySearchResult(
