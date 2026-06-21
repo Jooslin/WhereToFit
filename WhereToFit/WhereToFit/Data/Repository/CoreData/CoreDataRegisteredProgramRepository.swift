@@ -9,7 +9,7 @@ import CoreData
 import Foundation
 import RxSwift
 
-final class CoreDataRegisteredProgramRepository: RegisteredProgramRepositoryProtocol {
+final class CoreDataRegisteredProgramRepository: RegisteredProgramRepositoryProtocol, RegisteredProgramReminderRepositoryProtocol {
     private let context: NSManagedObjectContext
 
     init(context: NSManagedObjectContext = CoreDataStack.shared.viewContext) {
@@ -74,6 +74,27 @@ final class CoreDataRegisteredProgramRepository: RegisteredProgramRepositoryProt
 
             return Disposables.create()
         }
+    }
+
+    func fetchReminderTargets() throws -> [ProgramReminderTarget] {
+        var result: Result<[ProgramReminderTarget], Error>!
+
+        context.performAndWait {
+            do {
+                let objects = try context.fetchObjects(
+                    entityName: "RegisteredProgramEntity",
+                    sortDescriptors: [NSSortDescriptor(key: "createdAt", ascending: false)]
+                )
+                let targets = objects
+                    .compactMap(Self.makeRegisteredProgram)
+                    .compactMap(\.reminderTarget)
+                result = .success(targets)
+            } catch {
+                result = .failure(error)
+            }
+        }
+
+        return try result.get()
     }
 }
 
