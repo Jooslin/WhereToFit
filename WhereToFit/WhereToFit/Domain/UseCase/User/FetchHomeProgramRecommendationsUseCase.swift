@@ -99,9 +99,12 @@ private extension FetchHomeProgramRecommendationsUseCase {
                     return .just(CandidateResult(candidates: [], radiusMeters: radiusMeters))
                 }
                 
-                let facilitiesByID = Dictionary(uniqueKeysWithValues: facilities.compactMap { facility in
-                    facility.id.map { ($0, facility) }
-                })
+                let facilitiesByID = Dictionary(
+                    facilities.compactMap { facility in
+                        facility.id.map { ($0, facility) }
+                    },
+                    uniquingKeysWith: { first, _ in first }
+                )
                 let chunks = Array(facilitiesByID.keys).chunked(into: Self.programFacilityChunkSize)
                 
                 return Observable.from(chunks)
@@ -263,7 +266,10 @@ private extension FetchHomeProgramRecommendationsUseCase {
     }
     
     static func sportScores(from sports: [RecommendedSport]) -> [String: Int] {
-        Dictionary(uniqueKeysWithValues: sports.map { ($0.sportName, $0.matchRate) })
+        Dictionary(
+            sports.map { ($0.sportName, $0.matchRate) },
+            uniquingKeysWith: { first, _ in first }
+        )
     }
     
     static func ageConditionScore(program: Program, profile: UserProfile) -> Int {
