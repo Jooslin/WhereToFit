@@ -14,13 +14,20 @@ import RxSwift
 final class FacilitySearchView: UIView {
     let titleView = TitleView(text: "시설 검색", leftButtonImage: .arrowLeft)
     let searchBar = SearchBar(placeholder: "주소나 이름으로 검색하기")
+    private lazy var keyboardDismissTapGesture = UITapGestureRecognizer(
+        target: self,
+        action: #selector(dismissKeyboard)
+    ).then {
+        $0.cancelsTouchesInView = false
+    }
     private(set) lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout()).then {
         $0.layoutMargins = .init(top: 0, left: 16, bottom: 0, right: 16)
+        $0.keyboardDismissMode = .onDrag
     }
     private(set) lazy var dataSource = makeDiffableDataSource(collectionView)
     
     let emptyLabel = UILabel(text: "검색 결과가 없어요", config: .body16Medium, color: .gray600)
-    let emptyButton = IconButton(config: .iconAdditional, iconSize: .tiny).then {
+    let emptyButton = IconButton(config: .iconAdditional, style: .leftImage, iconSize: .tiny).then {
         $0.normalImage = .plus
     }
     private(set) lazy var emptyStack = UIStackView(arrangedSubviews: [emptyLabel, emptyButton]).then {
@@ -47,6 +54,7 @@ extension FacilitySearchView {
         addSubview(searchBar)
         addSubview(collectionView)
         addSubview(emptyStack)
+        collectionView.addGestureRecognizer(keyboardDismissTapGesture)
         
         titleView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
@@ -69,6 +77,10 @@ extension FacilitySearchView {
             $0.centerY.equalToSuperview().multipliedBy(0.85)
         }
 
+    }
+
+    @objc private func dismissKeyboard() {
+        endEditing(true)
     }
 }
 
@@ -98,6 +110,12 @@ extension FacilitySearchView {
         snapshot.appendItems(data, toSection: 0)
         
         dataSource.apply(snapshot, animatingDifferences: false)
+        collectionView.isHidden = data.isEmpty
+    }
+    
+    func setEmptyState(isHidden: Bool, searchText: String) {
+        emptyStack.isHidden = isHidden
+        emptyButton.title = "'\(searchText)'(으)로 등록하기"
     }
 }
 
@@ -140,10 +158,10 @@ extension FacilitySearchView {
 extension FacilitySearchView {
     nonisolated
     struct Item: Hashable {
-        let id: UUID
+        let id: String
         let name: String
         let address: String
-        let distance: Double
+        let distanceText: String
     }
 }
 
@@ -159,5 +177,13 @@ extension Reactive where Base: FacilitySearchView {
                 base.dataSource.itemIdentifier(for: indexPath)
             }
             .asObservable()
+    }
+    
+    var searchText: ControlProperty<String?> {
+        base.searchBar.rx.text
+    }
+    
+    var emptyButtonTap: ControlEvent<Void> {
+        base.emptyButton.rx.tap
     }
 }

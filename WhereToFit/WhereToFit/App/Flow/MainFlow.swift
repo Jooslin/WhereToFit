@@ -19,6 +19,7 @@ final class MainFlow: Flow {
     private let dateService: DateService
     private let weatherRepository = WeatherRepository()
     private let sportsRepository = SportsRepository()
+    private let registeredProgramRepository = CoreDataRegisteredProgramRepository()
     
     init(window: UIWindow, dateService: DateService) {
         window.rootViewController = tabBarController
@@ -74,7 +75,8 @@ extension MainFlow {
             userStore: userStore,
             dateService: dateService,
             weatherRepository: weatherRepository,
-            sportsRepository: sportsRepository)
+            sportsRepository: sportsRepository,
+            registeredProgramRepository: registeredProgramRepository)
         let mapFlow = MapFlow()
         let calendarFlow = CalendarFlow()
         let myFlow = MyFlow()

@@ -19,6 +19,10 @@ final class FetchNearbyFacilitiesUseCase {
     func fetch() -> Single<FitnessFacilityDataSet> {
         repository.fetchFacilities()
     }
+    
+    func searchFacilities(keyword: String) -> Single<[FitnessFacility]> {
+        repository.searchFacilities(keyword: keyword)
+    }
 
     func fetchPrograms(for facilities: [FitnessFacility]) -> Single<[FitnessFacility]> {
         repository.fetchPrograms(for: facilities)
