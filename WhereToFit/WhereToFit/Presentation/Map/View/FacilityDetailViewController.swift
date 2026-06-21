@@ -8,16 +8,25 @@
 import UIKit
 import Kingfisher
 import NMapsMap
+import RxSwift
 import SnapKit
 import Then
 
+struct FacilityDetailFavoriteRequest {
+    let targetKey: FavoriteTargetKey
+    let facility: FitnessFacility
+    let isSelected: Bool
+    let completion: (Bool) -> Void
+}
+
 final class FacilityDetailViewController: UIViewController {
-    var favoriteButtonTapped: ((FitnessFacility) -> Void)?
+    var favoriteButtonTapped: ((FacilityDetailFavoriteRequest) -> Void)?
     var reservationButtonTapped: ((FitnessFacility) -> Void)?
 
     private let facility: FitnessFacility
     private let relatedPrograms: [FitnessFacility]
     private let kind: DetailKind
+    private let showsFavoriteButton: Bool
     private let detailView: FacilityDetailView
     private var heroGradientLayer: CAGradientLayer { detailView.heroGradientLayer }
     private var heroImageView: UIImageView { detailView.heroImageView }
@@ -33,6 +42,8 @@ final class FacilityDetailViewController: UIViewController {
     private var locationMarker: NMFMarker?
     private var programCards: [FacilityProgramCardView] = []
     private var programCardFacilities: [FitnessFacility] = []
+    private let favoriteRepository = CoreDataFavoriteRepository()
+    private let disposeBag = DisposeBag()
 //    private let interactivePopGestureDelegate = InteractivePopGestureDelegate()
     private var priceSectionValue: String {
         let listPriceText = FacilityProgramListItem(facility: facility).priceText
@@ -49,11 +60,16 @@ final class FacilityDetailViewController: UIViewController {
         return listPriceText
     }
 
-    init(facility: FitnessFacility, relatedPrograms: [FitnessFacility] = []) {
+    init(
+        facility: FitnessFacility,
+        relatedPrograms: [FitnessFacility] = [],
+        showsFavoriteButton: Bool = true
+    ) {
         let detailKind: DetailKind = facility.sourceKind == .facility ? .facility : .program
         self.facility = facility
         self.relatedPrograms = Self.uniquePrograms(relatedPrograms)
         self.kind = detailKind
+        self.showsFavoriteButton = showsFavoriteButton
         self.detailView = FacilityDetailView(
             kind: detailKind,
             showsReservationButton: Self.shouldShowReservationButton(facility: facility, kind: detailKind)
@@ -63,10 +79,16 @@ final class FacilityDetailViewController: UIViewController {
         modalPresentationStyle = .fullScreen
     }
 
-    private init(facility: FitnessFacility, relatedPrograms: [FitnessFacility], kind: DetailKind) {
+    private init(
+        facility: FitnessFacility,
+        relatedPrograms: [FitnessFacility],
+        kind: DetailKind,
+        showsFavoriteButton: Bool = true
+    ) {
         self.facility = facility
         self.relatedPrograms = Self.uniquePrograms(relatedPrograms)
         self.kind = kind
+        self.showsFavoriteButton = showsFavoriteButton
         self.detailView = FacilityDetailView(
             kind: kind,
             showsReservationButton: Self.shouldShowReservationButton(facility: facility, kind: kind)
@@ -94,7 +116,9 @@ final class FacilityDetailViewController: UIViewController {
         configureContent()
         configureAppLifecycleObservers()
         backButton.addTarget(self, action: #selector(didTapBackButton), for: .touchUpInside)
-        favoriteButton.addTarget(self, action: #selector(didTapFavoriteButton), for: .touchUpInside)
+        if showsFavoriteButton {
+            favoriteButton.addTarget(self, action: #selector(didTapFavoriteButton), for: .touchUpInside)
+        }
         facilityNameButton.addTarget(self, action: #selector(didTapFacilityNameButton), for: .touchUpInside)
         phoneInfoButton.addTarget(self, action: #selector(didTapPhoneButton), for: .touchUpInside)
         reservationButton.addTarget(self, action: #selector(didTapReservationButton), for: .touchUpInside)
@@ -103,6 +127,7 @@ final class FacilityDetailViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: false)
+        refreshFavoriteStateFromStore()
 //        interactivePopGestureDelegate.attach(to: navigationController)
     }
 
@@ -152,6 +177,8 @@ final class FacilityDetailViewController: UIViewController {
 
     private func configureFloatingButtons() {
         configureFloatingButton(backButton, image: UIImage(named: "arrowLeft"))
+        favoriteButton.isHidden = showsFavoriteButton == false
+        favoriteButton.isUserInteractionEnabled = showsFavoriteButton
         updateFavoriteButton()
     }
 
@@ -191,10 +218,13 @@ final class FacilityDetailViewController: UIViewController {
 
     private func configureFacilityDetailContent() {
         let summaryView = makeFacilitySummaryView()
+        let openPrograms = openProgramFacilities()
         contentStackView.addArrangedSubview(summaryView)
         contentStackView.addArrangedSubview(makeDivider())
-        contentStackView.addArrangedSubview(makeOpenProgramsSection())
-        contentStackView.addArrangedSubview(makeDivider())
+        if openPrograms.isEmpty == false {
+            contentStackView.addArrangedSubview(makeOpenProgramsSection(programs: openPrograms))
+            contentStackView.addArrangedSubview(makeDivider())
+        }
         contentStackView.addArrangedSubview(makeScheduleSection())
         contentStackView.addArrangedSubview(makePriceSection())
         contentStackView.addArrangedSubview(makeApplicationMethodSection())
@@ -212,11 +242,6 @@ final class FacilityDetailViewController: UIViewController {
             $0.spacing = 8
         }
 
-        let matchingLabel = ColoredLabel(text: "", style: .fill).then {
-            $0.text = "매칭률 \(facility.matchingRate)%"
-        }
-        let matchingContainerView = UIView()
-        matchingContainerView.addSubview(matchingLabel)
         let titleLabel = UILabel(text: programTitle, config: .title20Bold, color: .gray900)
         let metaView = makeProgramMetaView()
         let addressRow = makeIconTextRow(
@@ -226,22 +251,30 @@ final class FacilityDetailViewController: UIViewController {
 
         configurePhoneInfoButton()
 
-        stackView.addArrangedSubview(matchingContainerView)
+        if let matchingRate = facility.matchingRate {
+            let matchingLabel = ColoredLabel(text: "", style: .fill).then {
+                $0.text = "매칭률 \(matchingRate)%"
+            }
+            let matchingContainerView = UIView()
+            matchingContainerView.addSubview(matchingLabel)
+            stackView.addArrangedSubview(matchingContainerView)
+
+            matchingLabel.setContentHuggingPriority(.required, for: .horizontal)
+            matchingLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+            matchingContainerView.snp.makeConstraints {
+                $0.height.equalTo(24)
+            }
+            matchingLabel.snp.makeConstraints {
+                $0.leading.top.bottom.equalToSuperview()
+                $0.trailing.lessThanOrEqualToSuperview()
+                $0.height.equalTo(24)
+            }
+        }
         stackView.addArrangedSubview(titleLabel)
         stackView.addArrangedSubview(metaView)
         stackView.addArrangedSubview(addressRow)
         stackView.addArrangedSubview(phoneInfoButton)
-        stackView.setCustomSpacing(10, after: titleLabel)
-        matchingLabel.setContentHuggingPriority(.required, for: .horizontal)
-        matchingLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
-        matchingContainerView.snp.makeConstraints {
-            $0.height.equalTo(24)
-        }
-        matchingLabel.snp.makeConstraints {
-            $0.leading.top.bottom.equalToSuperview()
-            $0.trailing.lessThanOrEqualToSuperview()
-            $0.height.equalTo(24)
-        }
+        stackView.setCustomSpacing(8, after: titleLabel)
 
         return stackView
     }
@@ -271,6 +304,7 @@ final class FacilityDetailViewController: UIViewController {
     }
 
     private func makeProgramMetaView() -> UIView {
+        let containerView = UIView()
         let stackView = UIStackView().then {
             $0.axis = .horizontal
             $0.alignment = .center
@@ -278,7 +312,7 @@ final class FacilityDetailViewController: UIViewController {
         }
 
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: LabelConfiguration.body14Regular.font,
+            .font: LabelConfiguration.body14Medium.font,
             .foregroundColor: UIColor.gray600,
             .underlineStyle: NSUnderlineStyle.single.rawValue
         ]
@@ -286,14 +320,36 @@ final class FacilityDetailViewController: UIViewController {
             NSAttributedString(string: facilityDisplayName, attributes: attributes),
             for: .normal
         )
+        facilityNameButton.contentHorizontalAlignment = .leading
+        facilityNameButton.titleLabel?.lineBreakMode = .byTruncatingTail
+        facilityNameButton.setContentHuggingPriority(.required, for: .horizontal)
+        facilityNameButton.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-        let separatorLabel = UILabel(text: "|", config: .body14Regular, color: .gray400)
-        let timeLabel = UILabel(text: compactOperatingHoursText, config: .body14Regular, color: .gray600)
+        let separatorView = UIView().then {
+            $0.backgroundColor = .gray200
+        }
+        let timeLabel = UILabel(text: compactOperatingHoursText, config: .body14Medium, color: .gray600).then {
+            $0.numberOfLines = 1
+        }
+        timeLabel.setContentHuggingPriority(.required, for: .horizontal)
+        timeLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
 
+        containerView.addSubview(stackView)
         stackView.addArrangedSubview(facilityNameButton)
-        stackView.addArrangedSubview(separatorLabel)
+        stackView.addArrangedSubview(separatorView)
         stackView.addArrangedSubview(timeLabel)
-        return stackView
+
+        stackView.snp.makeConstraints {
+            $0.leading.top.bottom.equalToSuperview()
+            $0.trailing.lessThanOrEqualToSuperview()
+        }
+
+        separatorView.snp.makeConstraints {
+            $0.width.equalTo(1)
+            $0.height.equalTo(8)
+        }
+
+        return containerView
     }
 
     private func configurePhoneInfoButton() {
@@ -332,7 +388,7 @@ final class FacilityDetailViewController: UIViewController {
         return containerView
     }
 
-    private func makeOpenProgramsSection() -> UIView {
+    private func makeOpenProgramsSection(programs: [FitnessFacility]) -> UIView {
         let sectionStackView = makeSectionStackView(title: "개설 프로그램")
         let scrollView = UIScrollView().then {
             $0.showsHorizontalScrollIndicator = false
@@ -345,7 +401,7 @@ final class FacilityDetailViewController: UIViewController {
         }
 
         scrollView.addSubview(cardStackView)
-        makeProgramCards().forEach { card in
+        makeProgramCards(programs: programs).forEach { card in
             card.addTarget(self, action: #selector(didTapProgramCard(_:)), for: .touchUpInside)
             cardStackView.addArrangedSubview(card)
         }
@@ -364,45 +420,23 @@ final class FacilityDetailViewController: UIViewController {
         return sectionStackView
     }
 
-    private func makeProgramCards() -> [FacilityProgramCardView] {
-        let programs = openProgramFacilities()
-        if programs.isEmpty == false {
-            programCardFacilities = programs
-            let cards = programs.enumerated().map { index, program in
-                let card = FacilityProgramCardView(
-                    title: program.name,
-                    facilityName: facilityDisplayName,
-                    matchingRate: program.matchingRate,
-                    isIndoor: index != 2,
-                    isFavorite: program.isFavorite,
-                    imageURL: program.imageURL,
-                    placeholderImageName: program.programPlaceholderImageName,
-                    tintColor: color(for: program.category)
-                )
-                card.favoriteButtonTapped = { [weak self] isSelected in
-                    self?.updateFavoriteSelection(isSelected)
-                }
-                return card
-            }
-            programCards = cards
-            return cards
-        }
-
-        programCardFacilities = []
-        let categoryTitles = fallbackRelatedProgramTitles()
-        let cards = categoryTitles.enumerated().map { index, title in
+    private func makeProgramCards(programs: [FitnessFacility]) -> [FacilityProgramCardView] {
+        programCardFacilities = programs
+        let cards = programs.enumerated().map { index, program in
             let card = FacilityProgramCardView(
-                title: title,
+                title: program.name,
                 facilityName: facilityDisplayName,
-                matchingRate: max(55, facility.matchingRate - index * 4),
+                matchingRate: program.matchingRate,
                 isIndoor: index != 2,
-                isFavorite: facility.isFavorite,
-                imageURL: facility.imageURL,
-                placeholderImageName: facility.programPlaceholderImageName,
-                tintColor: color(for: facility.category)
+                isFavorite: program.isFavorite,
+                imageURL: program.imageURL,
+                placeholderImageName: program.programPlaceholderImageName,
+                tintColor: color(for: program.category),
+                showsFavoriteButton: true
             )
-            card.favoriteButtonTapped = { [weak self] isSelected in
-                self?.updateFavoriteSelection(isSelected)
+            card.favoriteButtonTapped = { [weak self, weak card] isSelected in
+                guard let card else { return }
+                self?.updateProgramCardFavorite(at: index, card: card, isSelected: isSelected)
             }
             return card
         }
@@ -683,6 +717,12 @@ final class FacilityDetailViewController: UIViewController {
             name: UIApplication.didBecomeActiveNotification,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleFavoriteDidChange),
+            name: FavoriteChangeNotifier.notificationName,
+            object: nil
+        )
     }
 
     private var programTitle: String {
@@ -702,6 +742,14 @@ final class FacilityDetailViewController: UIViewController {
         case .gym: return "헬스장 자유 이용"
         default: return "\(facility.category.title) 프로그램"
         }
+    }
+
+    private var detailFavoriteTargetType: FavoriteTargetType {
+        kind == .facility ? .facility : .program
+    }
+
+    private var detailFavoriteTargetKey: FavoriteTargetKey {
+        FavoriteTargetKey(targetType: detailFavoriteTargetType, facility: facility)
     }
 
     private var facilityDisplayName: String {
@@ -784,21 +832,6 @@ final class FacilityDetailViewController: UIViewController {
         return Self.uniquePrograms(programs)
     }
 
-    private func fallbackRelatedProgramTitles() -> [String] {
-        switch facility.category {
-        case .swimming:
-            return ["수영"]
-        case .tennis:
-            return ["테니스장 대관", "테니스 레슨"]
-        case .soccer:
-            return ["축구장 대관"]
-        case .futsal:
-            return ["풋살장 대관"]
-        default:
-            return [programTitle]
-        }
-    }
-
     private static func uniquePrograms(_ programs: [FitnessFacility]) -> [FitnessFacility] {
         var seenKeys = Set<String>()
         return programs.filter { program in
@@ -848,12 +881,122 @@ final class FacilityDetailViewController: UIViewController {
         updateFavoriteSelection(isFavoriteSelected == false)
     }
 
-    private func updateFavoriteSelection(_ isSelected: Bool) {
+    @objc private func handleFavoriteDidChange(_ notification: Notification) {
+        guard let change = FavoriteChangeNotifier.change(from: notification) else { return }
+
+        DispatchQueue.main.async { [weak self] in
+            self?.applyFavoriteChange(change)
+        }
+    }
+
+    private func applyFavoriteChange(_ change: FavoriteChange) {
+        if change.targetKey == detailFavoriteTargetKey {
+            applyDetailFavoriteSelection(change.isFavorite)
+        }
+
+        syncProgramCardFavorite(change)
+    }
+
+    private func applyDetailFavoriteSelection(_ isSelected: Bool) {
         guard isFavoriteSelected != isSelected else { return }
         isFavoriteSelected = isSelected
         updateFavoriteButton()
-        programCards.forEach { $0.setFavoriteSelected(isSelected) }
-        favoriteButtonTapped?(facility)
+    }
+
+    private func refreshFavoriteStateFromStore() {
+        favoriteRepository.fetchFavorites()
+            .observe(on: MainScheduler.instance)
+            .subscribe(onSuccess: { [weak self] favorites in
+                guard let self else { return }
+                let favoriteKeys = Set(favorites.map(FavoriteTargetKey.init))
+                self.applyDetailFavoriteSelection(favoriteKeys.contains(self.detailFavoriteTargetKey))
+                self.syncProgramCardFavorites(favoriteKeys)
+            })
+            .disposed(by: disposeBag)
+    }
+
+    private func updateFavoriteSelection(_ isSelected: Bool) {
+        guard isFavoriteSelected != isSelected else { return }
+        let previousValue = isFavoriteSelected
+        isFavoriteSelected = isSelected
+        updateFavoriteButton()
+        forwardFavoriteRequest(
+            FacilityDetailFavoriteRequest(
+                targetKey: FavoriteTargetKey(targetType: detailFavoriteTargetType, facility: facility),
+                facility: facility,
+                isSelected: isSelected,
+                completion: { [weak self] didSucceed in
+                    guard didSucceed == false else { return }
+                    self?.isFavoriteSelected = previousValue
+                    self?.updateFavoriteButton()
+                }
+            )
+        )
+    }
+
+    private func syncProgramCardFavorite(_ change: FavoriteChange) {
+        for index in programCardFacilities.indices {
+            let program = programCardFacilities[index]
+            let programKey = FavoriteTargetKey(targetType: .program, facility: program)
+            guard programKey == change.targetKey else { continue }
+
+            setProgramCardFavorite(at: index, isSelected: change.isFavorite)
+        }
+    }
+
+    private func syncProgramCardFavorites(_ favoriteKeys: Set<FavoriteTargetKey>) {
+        for index in programCardFacilities.indices {
+            let program = programCardFacilities[index]
+            let programKey = FavoriteTargetKey(targetType: .program, facility: program)
+            let isFavorite = favoriteKeys.contains(programKey)
+
+            setProgramCardFavorite(at: index, isSelected: isFavorite)
+        }
+    }
+
+    private func updateProgramCardFavorite(
+        at index: Int,
+        card: FacilityProgramCardView,
+        isSelected: Bool
+    ) {
+        guard programCardFacilities.indices.contains(index) else {
+            card.setFavoriteSelected(false)
+            return
+        }
+
+        let program = programCardFacilities[index]
+        forwardFavoriteRequest(
+            FacilityDetailFavoriteRequest(
+                targetKey: FavoriteTargetKey(targetType: .program, facility: program),
+                facility: program,
+                isSelected: isSelected,
+                completion: { [weak self, weak card] didSucceed in
+                    guard didSucceed else {
+                        card?.setFavoriteSelected(isSelected == false)
+                        return
+                    }
+
+                    self?.setProgramCardFavorite(at: index, isSelected: isSelected)
+                }
+            )
+        )
+    }
+
+    private func setProgramCardFavorite(at index: Int, isSelected: Bool) {
+        guard programCardFacilities.indices.contains(index) else { return }
+        programCardFacilities[index].isFavorite = isSelected
+
+        guard programCards.indices.contains(index) else { return }
+        programCards[index].setFavoriteSelected(isSelected)
+    }
+
+    private func forwardFavoriteRequest(_ request: FacilityDetailFavoriteRequest) {
+        guard let favoriteButtonTapped else {
+            request.completion(false)
+            return
+        }
+
+        favoriteButtonTapped(request)
     }
 
     @objc private func didTapFacilityNameButton() {
@@ -873,20 +1016,43 @@ final class FacilityDetailViewController: UIViewController {
     }
 
     @objc private func didTapProgramCard(_ sender: FacilityProgramCardView) {
-        let selectedProgram: FitnessFacility
-        if let index = programCards.firstIndex(where: { $0 === sender }),
-           programCardFacilities.indices.contains(index) {
-            selectedProgram = programCardFacilities[index]
-        } else {
-            selectedProgram = facility
-        }
+        guard let selectedProgramIndex = programCards.firstIndex(where: { $0 === sender }),
+              programCardFacilities.indices.contains(selectedProgramIndex) else { return }
+
+        let selectedProgram = programCardFacilities[selectedProgramIndex]
 
         let viewController = FacilityDetailViewController(
             facility: selectedProgram,
             relatedPrograms: relatedPrograms,
-            kind: .program
+            kind: .program,
+            showsFavoriteButton: true
         )
-        viewController.favoriteButtonTapped = favoriteButtonTapped
+        viewController.favoriteButtonTapped = { [weak self] request in
+            guard let self else {
+                request.completion(false)
+                return
+            }
+
+            guard request.targetKey == FavoriteTargetKey(targetType: .program, facility: selectedProgram) else {
+                self.forwardFavoriteRequest(request)
+                return
+            }
+
+            self.forwardFavoriteRequest(
+                FacilityDetailFavoriteRequest(
+                    targetKey: request.targetKey,
+                    facility: request.facility,
+                    isSelected: request.isSelected,
+                    completion: { [weak self] didSucceed in
+                        request.completion(didSucceed)
+                        guard didSucceed,
+                              let self else { return }
+
+                        self.setProgramCardFavorite(at: selectedProgramIndex, isSelected: request.isSelected)
+                    }
+                )
+            )
+        }
         viewController.reservationButtonTapped = reservationButtonTapped
         if let navigationController {
             navigationController.pushViewController(viewController, animated: true)
@@ -945,12 +1111,13 @@ private final class FacilityProgramCardView: UIControl {
     init(
         title: String,
         facilityName: String,
-        matchingRate: Int,
+        matchingRate: Int?,
         isIndoor: Bool,
         isFavorite: Bool,
         imageURL: URL?,
         placeholderImageName: String,
-        tintColor: UIColor
+        tintColor: UIColor,
+        showsFavoriteButton: Bool
     ) {
         super.init(frame: .zero)
         imageView.backgroundColor = tintColor
@@ -959,12 +1126,22 @@ private final class FacilityProgramCardView: UIControl {
         if let imageURL {
             imageView.kf.setImage(with: imageURL, placeholder: placeholderImage)
         }
-        matchLabel.text = "매칭률\(matchingRate)%"
+        if let matchingRate {
+            matchLabel.text = "매칭률\(matchingRate)%"
+            matchLabel.isHidden = false
+        } else {
+            matchLabel.text = nil
+            matchLabel.isHidden = true
+        }
         placeLabel.text = isIndoor ? "실내" : "야외"
         nameLabel.text = title
         facilityLabel.text = facilityName
         imageView.favoriteButton.isSelected = isFavorite
-        imageView.favoriteButton.addTarget(self, action: #selector(didTapFavoriteButton), for: .touchUpInside)
+        imageView.favoriteButton.isHidden = showsFavoriteButton == false
+        imageView.favoriteButton.isUserInteractionEnabled = showsFavoriteButton
+        if showsFavoriteButton {
+            imageView.favoriteButton.addTarget(self, action: #selector(didTapFavoriteButton), for: .touchUpInside)
+        }
         configureLayout()
     }
 

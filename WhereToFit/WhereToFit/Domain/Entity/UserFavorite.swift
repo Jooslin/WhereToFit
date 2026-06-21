@@ -22,7 +22,35 @@ nonisolated struct Favorite: Equatable, Sendable {
     let updatedAt: Date
 }
 
-nonisolated enum FavoriteTargetType: String, Equatable, Sendable {
+nonisolated enum FavoriteTargetType: String, Hashable, Sendable {
     case facility
     case program
+}
+
+nonisolated struct FavoriteTargetKey: Hashable, Sendable {
+    let targetType: FavoriteTargetType
+    let targetID: String
+
+    init(targetType: FavoriteTargetType, targetID: String) {
+        self.targetType = targetType
+        self.targetID = targetID
+    }
+
+    init(favorite: Favorite) {
+        self.init(targetType: favorite.targetType, targetID: favorite.targetID)
+    }
+
+    init(facility: FitnessFacility) {
+        let targetType: FavoriteTargetType = facility.sourceKind == .facility ? .facility : .program
+        self.init(targetType: targetType, facility: facility)
+    }
+
+    init(targetType: FavoriteTargetType, facility: FitnessFacility) {
+        switch targetType {
+        case .facility:
+            self.init(targetType: targetType, targetID: facility.sourceFacilityID ?? facility.id)
+        case .program:
+            self.init(targetType: targetType, targetID: facility.id)
+        }
+    }
 }

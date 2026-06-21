@@ -20,7 +20,8 @@ final class MapReactor: BaseReactor {
         case toggleDay(DayOfWeek?)
         case toggleTimeSlot(TimeSlot?)
         case selectFacility(String?)
-        case toggleFavorite(String)
+        case refreshFavorites
+        case setFavorite(FavoriteTargetKey, Bool)
         case tapReservation(String)
         case updateVisibleFacilityIDs([String])
         case setSearchErrorMessage(String?)
@@ -37,7 +38,10 @@ final class MapReactor: BaseReactor {
         case setSearchText(String)
         case setFilter(FacilityFilter)
         case setSelectedFacilityID(String?)
-        case setFavorite(String, Bool)
+        case setFavoriteKeys(Set<FavoriteTargetKey>)
+        case setFavorite(FavoriteTargetKey, Bool)
+        case setUserProfileExists(Bool)
+        case requestAIOnboarding
         case setReservationURLToOpen(URL?)
         case setVisibleFacilityIDs(Set<String>)
         case setSearchErrorMessage(String?)
@@ -53,6 +57,8 @@ final class MapReactor: BaseReactor {
         var filter = FacilityFilter.empty
         var selectedFacilityID: String?
         var reservationURLToOpen: URL?
+        var hasUserProfile = false
+        @Pulse var shouldOpenOnboardingForAIRecommendation = false
         var visibleFacilityIDs = Set<String>()
         var searchErrorMessage: String?
         var isLoading = false
@@ -99,12 +105,22 @@ final class MapReactor: BaseReactor {
 
     let initialState = State()
     private let fetchNearbyFacilitiesUseCase: FetchNearbyFacilitiesUseCase
-    private var favoriteIDs = Set<String>()
+    private let fetchFavoritesUseCase: FetchFavoritesUseCase
+    private let fetchUserProfileUseCase: FetchUserProfileUseCase
+    private var favoriteKeys = Set<FavoriteTargetKey>()
     private var loadedProgramFacilityIDs = Set<String>()
     private var loadingProgramFacilityIDs = Set<String>()
 
-    init(fetchNearbyFacilitiesUseCase: FetchNearbyFacilitiesUseCase) {
+    init(
+        fetchNearbyFacilitiesUseCase: FetchNearbyFacilitiesUseCase,
+        fetchFavoritesUseCase: FetchFavoritesUseCase,
+        fetchUserProfileUseCase: FetchUserProfileUseCase = FetchUserProfileUseCase(
+            repository: CoreDataUserProfileRepository()
+        )
+    ) {
         self.fetchNearbyFacilitiesUseCase = fetchNearbyFacilitiesUseCase
+        self.fetchFavoritesUseCase = fetchFavoritesUseCase
+        self.fetchUserProfileUseCase = fetchUserProfileUseCase
     }
 
     func mutate(action: Action) -> Observable<Mutation> {
@@ -115,37 +131,62 @@ final class MapReactor: BaseReactor {
 
             return .concat([
                 .just(.setLoading(true)),
-                fetchNearbyFacilitiesUseCase.fetch()
+                fetchUserProfileUseCase.execute()
                     .asObservable()
-                    .flatMap { [weak self] dataSet -> Observable<Mutation> in
+                    .catch { _ in .just(nil) }
+                    .flatMap { [weak self] profile -> Observable<Mutation> in
                         guard let self else { return .empty() }
-                        let allFacilities = dataSet.programFacilities
-                        let filteredFacilities = self.filterFacilities(
-                            allFacilities,
-                            searchText: self.currentState.searchText,
-                            filter: self.currentState.filter
-                        )
-                        let markerFacilities = self.filterMarkerFacilities(
-                            allMarkerFacilities: dataSet.markerFacilities,
-                            allFacilities: allFacilities,
-                            searchText: self.currentState.searchText,
-                            filter: self.currentState.filter
-                        )
-                        return .from([
-                            .setAllMarkerFacilities(dataSet.markerFacilities),
-                            .setMarkerFacilities(markerFacilities),
-                            .setAllFacilities(allFacilities),
-                            .setFacilities(filteredFacilities),
-                            .setErrorMessage(nil)
-                        ])
-                    }
-                    .catch { error in
-                        .from([
-                            .setAllMarkerFacilities([]),
-                            .setMarkerFacilities([]),
-                            .setAllFacilities([]),
-                            .setFacilities([]),
-                            .setErrorMessage(error.localizedDescription)
+                        let hasUserProfile = profile != nil
+                        var initialFilter = self.currentState.filter
+                        initialFilter.isAIRecommendationEnabled = hasUserProfile
+
+                        let fetchFacilities = self.fetchFavoriteKeys()
+                            .flatMap { [weak self] favoriteKeys -> Observable<Mutation> in
+                                guard let self else { return .empty() }
+                                self.favoriteKeys = favoriteKeys
+
+                                return self.fetchNearbyFacilitiesUseCase.fetch()
+                                    .asObservable()
+                                    .flatMap { [weak self] dataSet -> Observable<Mutation> in
+                                        guard let self else { return .empty() }
+                                        let allMarkerFacilities = self.applyFavoriteState(to: dataSet.markerFacilities)
+                                        let allFacilities = self.applyFavoriteState(to: dataSet.programFacilities)
+                                        let filteredFacilities = self.filterFacilities(
+                                            allFacilities,
+                                            searchText: self.currentState.searchText,
+                                            filter: initialFilter
+                                        )
+                                        let markerFacilities = self.filterMarkerFacilities(
+                                            allMarkerFacilities: allMarkerFacilities,
+                                            allFacilities: allFacilities,
+                                            searchText: self.currentState.searchText,
+                                            filter: initialFilter
+                                        )
+                                        return .from([
+                                            .setAllMarkerFacilities(allMarkerFacilities),
+                                            .setMarkerFacilities(markerFacilities),
+                                            .setAllFacilities(allFacilities),
+                                            .setFacilities(filteredFacilities),
+                                            .setErrorMessage(nil)
+                                        ])
+                                    }
+                                    .catch { error in
+                                        .from([
+                                            .setAllMarkerFacilities([]),
+                                            .setMarkerFacilities([]),
+                                            .setAllFacilities([]),
+                                            .setFacilities([]),
+                                            .setErrorMessage(error.localizedDescription)
+                                        ])
+                                    }
+                            }
+
+                        return .concat([
+                            .from([
+                                .setUserProfileExists(hasUserProfile),
+                                .setFilter(initialFilter)
+                            ]),
+                            fetchFacilities
                         ])
                     },
                 .just(.setLoading(false))
@@ -186,7 +227,7 @@ final class MapReactor: BaseReactor {
 
                         let existingIDs = Set(self.currentState.allFacilities.map(\.id))
                         let newFacilities = facilities.filter { existingIDs.contains($0.id) == false }
-                        let allFacilities = self.currentState.allFacilities + newFacilities
+                        let allFacilities = self.applyFavoriteState(to: self.currentState.allFacilities + newFacilities)
                         let filteredFacilities = self.filterFacilities(
                             allFacilities,
                             searchText: self.currentState.searchText,
@@ -235,6 +276,15 @@ final class MapReactor: BaseReactor {
             ])
 
         case .toggleAIRecommendation:
+            guard currentState.hasUserProfile else {
+                var filter = currentState.filter
+                filter.isAIRecommendationEnabled = false
+                return .concat([
+                    updateFilter(filter),
+                    .just(.requestAIOnboarding)
+                ])
+            }
+
             var filter = currentState.filter
             filter.isAIRecommendationEnabled.toggle()
             return updateFilter(filter)
@@ -299,14 +349,20 @@ final class MapReactor: BaseReactor {
                 .just(.setSearchErrorMessage(nil))
             ])
 
-        case let .toggleFavorite(id):
-            let willFavorite = favoriteIDs.contains(id) == false
-            if willFavorite {
-                favoriteIDs.insert(id)
+        case .refreshFavorites:
+            return fetchFavoriteKeys()
+                .do(onNext: { [weak self] favoriteKeys in
+                    self?.favoriteKeys = favoriteKeys
+                })
+                .map(Mutation.setFavoriteKeys)
+
+        case let .setFavorite(key, isFavorite):
+            if isFavorite {
+                favoriteKeys.insert(key)
             } else {
-                favoriteIDs.remove(id)
+                favoriteKeys.remove(key)
             }
-            return .just(.setFavorite(id, willFavorite))
+            return .just(.setFavorite(key, isFavorite))
 
         case let .tapReservation(id):
             let url = currentState.facilities.first { $0.id == id }?.reservationURL
@@ -364,14 +420,17 @@ final class MapReactor: BaseReactor {
         case let .setSelectedFacilityID(id):
             newState.selectedFacilityID = id
 
-        case let .setFavorite(id, isFavorite):
-            newState.facilities = newState.facilities.map { facility in
-                var updatedFacility = facility
-                if updatedFacility.id == id {
-                    updatedFacility.isFavorite = isFavorite
-                }
-                return updatedFacility
-            }
+        case let .setFavoriteKeys(favoriteKeys):
+            applyFavoriteKeys(favoriteKeys, to: &newState)
+
+        case let .setFavorite(key, isFavorite):
+            updateFavoriteState(key: key, isFavorite: isFavorite, in: &newState)
+
+        case let .setUserProfileExists(hasUserProfile):
+            newState.hasUserProfile = hasUserProfile
+
+        case .requestAIOnboarding:
+            newState.shouldOpenOnboardingForAIRecommendation = true
 
         case let .setReservationURLToOpen(url):
             newState.reservationURLToOpen = url
@@ -387,6 +446,15 @@ final class MapReactor: BaseReactor {
         }
 
         return newState
+    }
+
+    private func fetchFavoriteKeys() -> Observable<Set<FavoriteTargetKey>> {
+        fetchFavoritesUseCase.execute()
+            .map { favorites in
+                Set(favorites.map(FavoriteTargetKey.init(favorite:)))
+            }
+            .asObservable()
+            .catch { _ in .just(Set<FavoriteTargetKey>()) }
     }
 
     private func updateFilter(_ filter: FacilityFilter) -> Observable<Mutation> {
@@ -420,12 +488,7 @@ final class MapReactor: BaseReactor {
             filter: filter
         )
         .map { facility in
-            var updatedFacility = facility
-            updatedFacility.isFavorite = favoriteIDs.contains(facility.id) || facility.isFavorite
-            if updatedFacility.isFavorite {
-                favoriteIDs.insert(updatedFacility.id)
-            }
-            return updatedFacility
+            applyFavoriteState(to: facility)
         }
     }
 
@@ -447,9 +510,68 @@ final class MapReactor: BaseReactor {
                 matchingSourceIDs.contains(facility.sourceFacilityID ?? facility.id)
             }
             .map { facility in
-                var updatedFacility = facility
-                updatedFacility.isFavorite = favoriteIDs.contains(facility.id) || facility.isFavorite
-                return updatedFacility
+                applyFavoriteState(to: facility)
             }
+    }
+
+    private func applyFavoriteState(to facilities: [FitnessFacility]) -> [FitnessFacility] {
+        applyFavoriteState(to: facilities, favoriteKeys: favoriteKeys)
+    }
+
+    private func applyFavoriteState(
+        to facilities: [FitnessFacility],
+        favoriteKeys: Set<FavoriteTargetKey>
+    ) -> [FitnessFacility] {
+        facilities.map { facility in
+            applyFavoriteState(to: facility, favoriteKeys: favoriteKeys)
+        }
+    }
+
+    private func applyFavoriteState(to facility: FitnessFacility) -> FitnessFacility {
+        applyFavoriteState(to: facility, favoriteKeys: favoriteKeys)
+    }
+
+    private func applyFavoriteKeys(
+        _ favoriteKeys: Set<FavoriteTargetKey>,
+        to state: inout State
+    ) {
+        state.allMarkerFacilities = applyFavoriteState(to: state.allMarkerFacilities, favoriteKeys: favoriteKeys)
+        state.markerFacilities = applyFavoriteState(to: state.markerFacilities, favoriteKeys: favoriteKeys)
+        state.allFacilities = applyFavoriteState(to: state.allFacilities, favoriteKeys: favoriteKeys)
+        state.facilities = applyFavoriteState(to: state.facilities, favoriteKeys: favoriteKeys)
+    }
+
+    private func applyFavoriteState(
+        to facility: FitnessFacility,
+        favoriteKeys: Set<FavoriteTargetKey>
+    ) -> FitnessFacility {
+        var updatedFacility = facility
+        updatedFacility.isFavorite = favoriteKeys.contains(FavoriteTargetKey(facility: facility))
+        return updatedFacility
+    }
+
+    private func updateFavoriteState(
+        key: FavoriteTargetKey,
+        isFavorite: Bool,
+        in state: inout State
+    ) {
+        state.allMarkerFacilities = updateFavoriteState(in: state.allMarkerFacilities, key: key, isFavorite: isFavorite)
+        state.markerFacilities = updateFavoriteState(in: state.markerFacilities, key: key, isFavorite: isFavorite)
+        state.allFacilities = updateFavoriteState(in: state.allFacilities, key: key, isFavorite: isFavorite)
+        state.facilities = updateFavoriteState(in: state.facilities, key: key, isFavorite: isFavorite)
+    }
+
+    private func updateFavoriteState(
+        in facilities: [FitnessFacility],
+        key: FavoriteTargetKey,
+        isFavorite: Bool
+    ) -> [FitnessFacility] {
+        facilities.map { facility in
+            var updatedFacility = facility
+            if FavoriteTargetKey(facility: facility) == key {
+                updatedFacility.isFavorite = isFavorite
+            }
+            return updatedFacility
+        }
     }
 }
