@@ -103,6 +103,7 @@ final class CalendarReactor: BaseReactor {
         case setWeight(WeightValue)
         case setCondition(ConditionValue)
         case setCalendarDayRecords(CalendarDayRecords)
+        case setError(String, String)
     }
 
     struct State {
@@ -110,6 +111,7 @@ final class CalendarReactor: BaseReactor {
         var weight: WeightValue?
         var condition: ConditionValue?
         var exerciseItems: [ExerciseItem]
+        @Pulse var error: (String, String)?
     }
 
     func mutate(action: Action) -> Observable<Mutation> {
@@ -144,6 +146,9 @@ final class CalendarReactor: BaseReactor {
                 guard let self else { return .empty() }
                 return self.fetchCalendarDayRecords(date: self.currentState.selectedDate)
             }
+            .catch { _ in
+                .just(.setError("저장 실패", "몸무게 기록을 저장할 수 없습니다.\n잠시 후 다시 시도해주세요."))
+            }
 
         case .updateCondition(let condition):
             return saveConditionRecordUseCase.execute(
@@ -154,6 +159,9 @@ final class CalendarReactor: BaseReactor {
             .flatMap { [weak self] _ -> Observable<Mutation> in
                 guard let self else { return .empty() }
                 return self.fetchCalendarDayRecords(date: self.currentState.selectedDate)
+            }
+            .catch { _ in
+                .just(.setError("저장 실패", "컨디션 기록을 저장할 수 없습니다.\n잠시 후 다시 시도해주세요."))
             }
         }
     }
@@ -172,6 +180,8 @@ final class CalendarReactor: BaseReactor {
             newState.weight = Self.makeWeightValue(from: records.weightRecord)
             newState.condition = Self.makeConditionValue(from: records.conditionRecord)
             newState.exerciseItems = records.exerciseRecords.map(Self.makeExerciseItem)
+        case .setError(let title, let message):
+            newState.error = (title, message)
         }
 
         return newState
@@ -185,6 +195,9 @@ final class CalendarReactor: BaseReactor {
         fetchCalendarDayRecordsUseCase.execute(date: date)
             .asObservable()
             .map(Mutation.setCalendarDayRecords)
+            .catch { _ in
+                .just(.setError("기록 조회 실패", "선택한 날짜의 기록을 불러올 수 없습니다.\n잠시 후 다시 시도해주세요."))
+            }
     }
 
     nonisolated private static func makeWeightValue(from record: WeightRecord?) -> WeightValue? {

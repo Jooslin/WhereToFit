@@ -102,6 +102,12 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
                 owner.calendarView.reloadExerciseItems(count: items.count)
             }
             .disposed(by: disposeBag)
+
+        reactor.pulse(\.$error)
+            .compactMap { $0 }
+            .map { AppStep.alert(title: $0.0, message: $0.1) }
+            .bind(to: steps)
+            .disposed(by: disposeBag)
     }
 }
 

@@ -82,6 +82,7 @@ final class ExerciseRecordInputReactor: Reactor {
         case setSelectedDuration(DurationValue)
         case setConfirmedDuration(DurationValue)
         case setDidSave(Bool)
+        case setError(String, String)
     }
 
     struct State {
@@ -111,6 +112,7 @@ final class ExerciseRecordInputReactor: Reactor {
             appliedExerciseName?.isEmpty == false && confirmedDuration.timeInterval > 0
         }
         @Pulse var didSave: Bool?
+        @Pulse var error: (String, String)?
     }
 
     func mutate(action: Action) -> Observable<Mutation> {
@@ -213,6 +215,9 @@ final class ExerciseRecordInputReactor: Reactor {
             )
             .asObservable()
             .map { _ in .setDidSave(true) }
+            .catch { _ in
+                .just(.setError("저장 실패", "운동 기록을 저장할 수 없습니다.\n잠시 후 다시 시도해주세요."))
+            }
         }
     }
 
@@ -255,6 +260,9 @@ final class ExerciseRecordInputReactor: Reactor {
 
         case .setDidSave(let didSave):
             newState.didSave = didSave
+
+        case .setError(let title, let message):
+            newState.error = (title, message)
         }
 
         return newState
