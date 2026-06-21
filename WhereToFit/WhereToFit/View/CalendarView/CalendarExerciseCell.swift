@@ -35,7 +35,7 @@ final class CalendarExerciseCell: UICollectionViewCell {
 
 extension CalendarExerciseCell {
     func configure(item: CalendarReactor.ExerciseItem, hidesDivider: Bool) {
-        iconView.image = item.sportsCategory.icon
+        iconView.image = item.sportsCategoryRawValue.flatMap(SportsCategory.init(rawValue:))?.icon ?? SportsCategory.other.icon
         titleLabel.text = item.title
         timeLabel.text = item.duration
         calorieLabel.text = item.calories
