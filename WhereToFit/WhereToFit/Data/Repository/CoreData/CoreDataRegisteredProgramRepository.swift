@@ -76,25 +76,25 @@ final class CoreDataRegisteredProgramRepository: RegisteredProgramRepositoryProt
         }
     }
 
-    func fetchReminderTargets() throws -> [ProgramReminderTarget] {
-        var result: Result<[ProgramReminderTarget], Error>!
-
-        context.performAndWait {
-            do {
-                let objects = try context.fetchObjects(
-                    entityName: "RegisteredProgramEntity",
-                    sortDescriptors: [NSSortDescriptor(key: "createdAt", ascending: false)]
-                )
-                let targets = objects
-                    .compactMap(Self.makeRegisteredProgram)
-                    .compactMap(\.reminderTarget)
-                result = .success(targets)
-            } catch {
-                result = .failure(error)
+    func fetchReminderTargets() -> Single<[ProgramReminderTarget]> {
+        Single.create { [context] single in
+            context.perform {
+                do {
+                    let objects = try context.fetchObjects(
+                        entityName: "RegisteredProgramEntity",
+                        sortDescriptors: [NSSortDescriptor(key: "createdAt", ascending: false)]
+                    )
+                    let targets = objects
+                        .compactMap(Self.makeRegisteredProgram)
+                        .compactMap(\.reminderTarget)
+                    single(.success(targets))
+                } catch {
+                    single(.failure(error))
+                }
             }
-        }
 
-        return try result.get()
+            return Disposables.create()
+        }
     }
 }
 

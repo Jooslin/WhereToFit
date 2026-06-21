@@ -6,11 +6,12 @@
 //
 
 import Foundation
+import RxSwift
 
 protocol RegisteredProgramReminderProviding {
     var reminderTarget: ProgramReminderTarget? { get }
 }
 
 protocol RegisteredProgramReminderRepositoryProtocol {
-    func fetchReminderTargets() throws -> [ProgramReminderTarget]
+    func fetchReminderTargets() -> Single<[ProgramReminderTarget]>
 }

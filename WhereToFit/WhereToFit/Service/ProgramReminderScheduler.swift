@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import RxSwift
 import UserNotifications
 
 enum ProgramReminderScheduleResult: Equatable {
@@ -22,6 +23,7 @@ final class ProgramReminderScheduler {
     private static let identifierPrefix = "program-start"
 
     private let center: UNUserNotificationCenter
+    private let disposeBag = DisposeBag()
 
     init(center: UNUserNotificationCenter = .current()) {
         self.center = center
@@ -105,12 +107,20 @@ final class ProgramReminderScheduler {
         settings: ProgramReminderSettings = ProgramReminderSettingsStore.shared.load(),
         completion: @escaping ([ProgramReminderScheduleResult]) -> Void
     ) {
-        do {
-            let targets = try repository.fetchReminderTargets()
-            rescheduleStartReminders(for: targets, settings: settings, completion: completion)
-        } catch {
-            complete([.failed(message: error.localizedDescription)], completion)
-        }
+        repository.fetchReminderTargets()
+            .subscribe(
+                onSuccess: { [weak self] targets in
+                    self?.rescheduleStartReminders(
+                        for: targets,
+                        settings: settings,
+                        completion: completion
+                    )
+                },
+                onFailure: { [weak self] error in
+                    self?.complete([.failed(message: error.localizedDescription)], completion)
+                }
+            )
+            .disposed(by: disposeBag)
     }
 
     func cancelStartReminders(for registeredProgramID: String) {
