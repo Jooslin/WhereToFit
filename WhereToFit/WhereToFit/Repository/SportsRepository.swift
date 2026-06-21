@@ -61,6 +61,13 @@ protocol SportsRepositoryProtocol {
         order: SearchOrder,
         includesTotalCount: Bool
     ) -> Single<SupabasePage<Facility>>
+
+    func fetchFacilities(
+        facilityIDs: [String],
+        limit: Int,
+        offset: Int,
+        order: SearchOrder
+    ) -> Single<SupabasePage<Facility>>
     
     func fetchFacilities(
         latitudeRange: ClosedRange<Double>,
@@ -142,6 +149,32 @@ final class SportsRepository: SportsRepositoryProtocol {
                 includesTotalCount: includesTotalCount
             )
             
+            return page.map(Facility.init)
+        }
+    }
+
+    func fetchFacilities(
+        facilityIDs: [String],
+        limit: Int = 50,
+        offset: Int = 0,
+        order: SearchOrder = .ascending
+    ) -> Single<SupabasePage<Facility>> {
+        Single.async { [networkService] in
+            guard facilityIDs.isEmpty == false else {
+                return SupabasePage(items: [], nextOffset: nil)
+            }
+
+            let filterValue = "in.(\(facilityIDs.joined(separator: ",")))"
+            let page: SupabasePage<PublicFacilityDTO> = try await networkService.fetchSupabaseData(
+                api: .facility,
+                filters: [
+                    "id": filterValue
+                ],
+                limit: limit,
+                offset: offset,
+                order: order
+            )
+
             return page.map(Facility.init)
         }
     }

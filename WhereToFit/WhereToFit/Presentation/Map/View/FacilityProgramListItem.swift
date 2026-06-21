@@ -11,7 +11,7 @@ import UIKit
 /// 시설/프로그램 리스트 셀에 필요한 표시값만 모아둔 모델입니다.
 /// `FitnessFacility` 전체를 셀이 직접 해석하지 않도록 하여, 다른 개발자가 같은 셀을 안전하게 재사용할 수 있습니다.
 struct FacilityProgramListItem {
-    let badgeText: String
+    let badgeText: String?
     let distanceText: String
     let title: String
     let detailText: String
@@ -22,7 +22,7 @@ struct FacilityProgramListItem {
     let thumbnailBackgroundColor: UIColor
 
     init(
-        badgeText: String,
+        badgeText: String?,
         distanceText: String,
         title: String,
         detailText: String,
@@ -44,9 +44,16 @@ struct FacilityProgramListItem {
     }
 
     init(facility: FitnessFacility) {
-        // sourceKind에 따라 시설은 "시설" 배지, 프로그램은 매칭률 배지를 보여줍니다.
+        let badgeText: String? = if facility.sourceKind == .facility {
+            "시설"
+        } else if let matchingRate = facility.matchingRate {
+            "매칭률 \(matchingRate)%"
+        } else {
+            nil
+        }
+
         self.init(
-            badgeText: facility.sourceKind == .facility ? "시설" : "매칭률 \(facility.matchingRate)%",
+            badgeText: badgeText,
             distanceText: "거리 \(facility.distanceText)",
             title: facility.listTitle,
             detailText: facility.listDetailText,

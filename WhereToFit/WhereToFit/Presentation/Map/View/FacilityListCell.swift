@@ -72,7 +72,7 @@ final class FacilityListCell: UITableViewCell {
 
     /// 셀 UI는 facilityProgramListItem만 바라보게 두어, API 모델이 바뀌어도 셀 레이아웃 재사용이 쉽도록 합니다.
     func configure(with facilityProgramListItem: FacilityProgramListItem) {
-        matchingLabel.text = facilityProgramListItem.badgeText
+        updateBadge(facilityProgramListItem.badgeText)
         distanceLabel.text = facilityProgramListItem.distanceText
         titleLabel.text = facilityProgramListItem.title
         detailLabel.text = facilityProgramListItem.detailText
@@ -85,6 +85,21 @@ final class FacilityListCell: UITableViewCell {
             thumbnailView.kf.setImage(with: imageURL, placeholder: placeholderImage)
         } else {
             thumbnailView.image = placeholderImage
+        }
+    }
+
+    private func updateBadge(_ badgeText: String?) {
+        matchingLabel.text = badgeText
+        matchingLabel.isHidden = badgeText == nil
+
+        titleLabel.snp.remakeConstraints {
+            if badgeText == nil {
+                $0.top.equalToSuperview().inset(16)
+            } else {
+                $0.top.equalTo(matchingLabel.snp.bottom).offset(4)
+            }
+            $0.leading.equalTo(matchingLabel)
+            $0.trailing.equalToSuperview().inset(16)
         }
     }
 

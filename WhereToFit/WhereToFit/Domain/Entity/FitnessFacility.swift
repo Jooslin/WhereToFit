@@ -336,7 +336,7 @@ nonisolated struct FitnessFacility: Equatable, Identifiable {
     let imageURL: URL?
     var isFavorite: Bool // 찜 여부
     let requiresReservation: Bool // 예약 필요 여부
-    let matchingRate: Int // 매칭률
+    let matchingRate: Int? // 매칭률
     let reservationURL: URL // 예약 링크
     let homepageURL: URL?
     let description: String
@@ -367,7 +367,7 @@ nonisolated struct FitnessFacility: Equatable, Identifiable {
         imageURL: URL?,
         isFavorite: Bool,
         requiresReservation: Bool,
-        matchingRate: Int,
+        matchingRate: Int?,
         reservationURL: URL,
         homepageURL: URL? = nil,
         description: String,

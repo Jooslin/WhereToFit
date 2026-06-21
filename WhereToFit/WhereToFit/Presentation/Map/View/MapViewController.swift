@@ -52,6 +52,7 @@ final class MapViewController: BaseViewController<MapReactor> {
     private var isShowingFacilityEmptyState = false
     private var emptyStateMessage = "조건에 맞는 프로그램이 없습니다."
     private var hasEmptyStateError = false
+    private var hasAppearedOnce = false
     private let locationService = LocationService()
     private var currentUserCoordinate: GeoCoordinate?
     private let defaultCoordinate = GeoCoordinate(latitude: 37.576022, longitude: 126.976900) // 기본 좌표 광화문
@@ -89,8 +90,17 @@ final class MapViewController: BaseViewController<MapReactor> {
         reactor?.action.onNext(.viewDidLoad)
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: false)
+        if hasAppearedOnce {
+            reactor?.action.onNext(.refreshFavorites)
+        }
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        hasAppearedOnce = true
         locationService.requestCurrentLocation()
     }
 
@@ -226,6 +236,14 @@ final class MapViewController: BaseViewController<MapReactor> {
             })
             .disposed(by: disposeBag)
 
+        reactor.pulse(\.$shouldOpenOnboardingForAIRecommendation)
+            .filter { $0 }
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] _ in
+                self?.presentAIRecommendationOnboardingAlert()
+            })
+            .disposed(by: disposeBag)
+
         reactor.state
             .map(\.isNaverMapKeyConfigured)
             .distinctUntilChanged()
@@ -276,6 +294,8 @@ final class MapViewController: BaseViewController<MapReactor> {
     }
 
     private func configureMap() {
+        mapView.naverMapView.showCompass = false
+        mapView.naverMapView.showScaleBar = false
         mapView.naverMapView.showZoomControls = false
         mapView.naverMapView.showLocationButton = false
         mapView.naverMapView.mapView.addCameraDelegate(delegate: self)
@@ -588,10 +608,12 @@ final class MapViewController: BaseViewController<MapReactor> {
         }
 
         return facilities.sorted {
-            if $0.matchingRate == $1.matchingRate {
+            let lhsMatchingRate = $0.matchingRate ?? -1
+            let rhsMatchingRate = $1.matchingRate ?? -1
+            if lhsMatchingRate == rhsMatchingRate {
                 return $0.distanceInMeters < $1.distanceInMeters
             }
-            return $0.matchingRate > $1.matchingRate
+            return lhsMatchingRate > rhsMatchingRate
         }
     }
 
@@ -822,6 +844,26 @@ final class MapViewController: BaseViewController<MapReactor> {
         )
         alertController.addAction(
             UIAlertAction(title: "기본 위치로 보기", style: .cancel)
+        )
+
+        present(alertController, animated: true)
+    }
+
+    private func presentAIRecommendationOnboardingAlert() {
+        guard presentedViewController == nil else { return }
+
+        let alertController = UIAlertController(
+            title: "AI 추천을 받으려면 정보 입력이 필요해요",
+            message: "운동 목적과 선호 정보를 바탕으로 나에게 맞는 시설과 프로그램을 추천해드려요.",
+            preferredStyle: .alert
+        )
+        alertController.addAction(
+            UIAlertAction(title: "정보 입력하기", style: .default) { [weak self] _ in
+                self?.steps.accept(AppStep.onboarding)
+            }
+        )
+        alertController.addAction(
+            UIAlertAction(title: "다음에 할게요", style: .cancel)
         )
 
         present(alertController, animated: true)
