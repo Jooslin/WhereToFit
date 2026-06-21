@@ -48,6 +48,12 @@ private extension ConditionInputViewController {
             }
             .disposed(by: disposeBag)
 
+        conditionInputView.rx.swipeDownToDismiss
+            .bind(with: self) { owner, _ in
+                owner.dismiss(animated: true)
+            }
+            .disposed(by: disposeBag)
+
         [
             conditionInputView.veryGoodButton,
             conditionInputView.goodButton,

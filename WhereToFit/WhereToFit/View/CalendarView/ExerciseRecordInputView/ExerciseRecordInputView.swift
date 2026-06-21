@@ -24,6 +24,8 @@ final class ExerciseRecordInputView: UIView {
     private let dimmedView = UIView().then {
         $0.backgroundColor = UIColor.black.withAlphaComponent(0.2)
     }
+    fileprivate let swipeDismissRelay = PublishRelay<Void>()
+    private var swipeDismissHandler: BottomSheetSwipeDismissHandler?
 
     private let sheetView = UIView().then {
         $0.backgroundColor = .white
@@ -131,6 +133,10 @@ extension ExerciseRecordInputView {
 private extension ExerciseRecordInputView {
     func setStyle() {
         backgroundColor = .clear
+        swipeDismissHandler = BottomSheetSwipeDismissHandler(sheetView: sheetView)
+        swipeDismissHandler?.onDismiss = { [weak self] in
+            self?.swipeDismissRelay.accept(())
+        }
         customButton.setContentHuggingPriority(.required, for: .horizontal)
         customButton.setContentCompressionResistancePriority(.required, for: .horizontal)
     }
@@ -318,6 +324,10 @@ extension Reactive where Base == ExerciseRecordInputView {
 
     var durationPickerChanged: ControlEvent<ExerciseRecordInputReactor.DurationValue> {
         base.durationPickerSheetView.rx.durationChanged
+    }
+
+    var swipeDownToDismiss: ControlEvent<Void> {
+        ControlEvent(events: base.swipeDismissRelay)
     }
 }
 

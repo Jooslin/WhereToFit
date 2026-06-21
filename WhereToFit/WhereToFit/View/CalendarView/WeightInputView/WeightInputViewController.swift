@@ -50,6 +50,12 @@ private extension WeightInputViewController {
             }
             .disposed(by: disposeBag)
 
+        weightInputView.rx.swipeDownToDismiss
+            .bind(with: self) { owner, _ in
+                owner.dismiss(animated: true)
+            }
+            .disposed(by: disposeBag)
+
         weightInputView.saveButton.rx.tap
             .bind(with: self) { owner, _ in
                 owner.reactor.action.onNext(.updateWeight(owner.weightInputView.selectedWeight))

@@ -82,6 +82,12 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             }
             .disposed(by: disposeBag)
 
+        exerciseRecordInputView.rx.swipeDownToDismiss
+            .bind(with: self) { owner, _ in
+                owner.dismiss(animated: true)
+            }
+            .disposed(by: disposeBag)
+
         exerciseRecordInputView.saveButton.rx.tap
             .map { ExerciseRecordInputReactor.Action.saveButtonTapped }
             .bind(to: reactor.action)

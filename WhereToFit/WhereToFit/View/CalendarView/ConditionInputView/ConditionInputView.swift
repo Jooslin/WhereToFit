@@ -5,6 +5,8 @@
 //  Created by Yeseul Jang on 6/14/26.
 //
 
+import RxCocoa
+import RxSwift
 import SnapKit
 import Then
 import UIKit
@@ -26,6 +28,8 @@ final class ConditionInputView: UIView {
     let worstButton = ConditionOptionButton(condition: .worst)
 
     private(set) var selectedCondition: CalendarReactor.ConditionValue
+    fileprivate let swipeDismissRelay = PublishRelay<Void>()
+    private var swipeDismissHandler: BottomSheetSwipeDismissHandler?
 
     private let dimmedView = UIView().then {
         $0.backgroundColor = UIColor.black.withAlphaComponent(0.2)
@@ -90,6 +94,10 @@ extension ConditionInputView {
 private extension ConditionInputView {
     func setStyle() {
         backgroundColor = .clear
+        swipeDismissHandler = BottomSheetSwipeDismissHandler(sheetView: sheetView)
+        swipeDismissHandler?.onDismiss = { [weak self] in
+            self?.swipeDismissRelay.accept(())
+        }
     }
 
     func setLayout() {
@@ -162,6 +170,12 @@ private extension ConditionInputView {
         ].forEach {
             $0.isSelected = $0.condition == selectedCondition
         }
+    }
+}
+
+extension Reactive where Base == ConditionInputView {
+    var swipeDownToDismiss: ControlEvent<Void> {
+        ControlEvent(events: base.swipeDismissRelay)
     }
 }
 
