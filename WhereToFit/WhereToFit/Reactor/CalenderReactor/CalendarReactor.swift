@@ -10,16 +10,26 @@ import ReactorKit
 import RxSwift
 
 final class CalendarReactor: BaseReactor {
-    let initialState = State(
-        selectedDate: CalendarReactor.normalizedDate(Date()),
-        weight: nil,
-        condition: nil,
-        exerciseItems: [
-            ExerciseItem(title: "수영", duration: "120분", calories: "210칼로리", sportsCategory: .aquaticSports),
-            ExerciseItem(title: "요가", duration: "30분", calories: "120칼로리", sportsCategory: .yogaPilates),
-            ExerciseItem(title: "풋살", duration: "58분", calories: "187칼로리", sportsCategory: .ballSports)
-        ]
-    )
+    let initialState: State
+    private let saveWeightRecordUseCase: SaveWeightRecordUseCase
+    private let saveConditionRecordUseCase: SaveConditionRecordUseCase
+    private let fetchCalendarDayRecordsUseCase: FetchCalendarDayRecordsUseCase
+
+    init(
+        saveWeightRecordUseCase: SaveWeightRecordUseCase,
+        saveConditionRecordUseCase: SaveConditionRecordUseCase,
+        fetchCalendarDayRecordsUseCase: FetchCalendarDayRecordsUseCase
+    ) {
+        self.saveWeightRecordUseCase = saveWeightRecordUseCase
+        self.saveConditionRecordUseCase = saveConditionRecordUseCase
+        self.fetchCalendarDayRecordsUseCase = fetchCalendarDayRecordsUseCase
+        initialState = State(
+            selectedDate: Self.normalizedDate(Date()),
+            weight: nil,
+            condition: nil,
+            exerciseItems: []
+        )
+    }
 
     struct WeightValue: Equatable {
         let integer: Int
@@ -27,6 +37,10 @@ final class CalendarReactor: BaseReactor {
 
         var displayText: String {
             "\(integer).\(decimal)"
+        }
+
+        var doubleValue: Double {
+            Double(integer) + Double(decimal) / 10
         }
     }
 
@@ -51,18 +65,35 @@ final class CalendarReactor: BaseReactor {
                 return "최악"
             }
         }
+
+        var conditionLevel: ConditionLevel {
+            switch self {
+            case .veryGood:
+                return .veryGood
+            case .good:
+                return .good
+            case .normal:
+                return .normal
+            case .bad:
+                return .bad
+            case .worst:
+                return .worst
+            }
+        }
     }
 
     struct ExerciseItem: Equatable {
         let title: String
         let duration: String
         let calories: String
-        let sportsCategory: SportsCategory
+        let sportsCategoryRawValue: String?
     }
 
     enum Action {
+        case viewDidLoad
         case selectDate(Date)
         case moveToToday
+        case refreshSelectedDate
         case updateWeight(WeightValue)
         case updateCondition(ConditionValue)
     }
@@ -71,6 +102,7 @@ final class CalendarReactor: BaseReactor {
         case setSelectedDate(Date)
         case setWeight(WeightValue)
         case setCondition(ConditionValue)
+        case setCalendarDayRecords(CalendarDayRecords)
     }
 
     struct State {
@@ -82,14 +114,47 @@ final class CalendarReactor: BaseReactor {
 
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
+        case .viewDidLoad:
+            return fetchCalendarDayRecords(date: currentState.selectedDate)
+
         case .selectDate(let date):
-            return .just(.setSelectedDate(Self.normalizedDate(date)))
+            let selectedDate = Self.normalizedDate(date)
+            return .concat([
+                .just(.setSelectedDate(selectedDate)),
+                fetchCalendarDayRecords(date: selectedDate)
+            ])
+
         case .moveToToday:
-            return .just(.setSelectedDate(Self.normalizedDate(Date())))
+            let selectedDate = Self.normalizedDate(Date())
+            return .concat([
+                .just(.setSelectedDate(selectedDate)),
+                fetchCalendarDayRecords(date: selectedDate)
+            ])
+
+        case .refreshSelectedDate:
+            return fetchCalendarDayRecords(date: currentState.selectedDate)
+
         case .updateWeight(let weight):
-            return .just(.setWeight(weight))
+            return saveWeightRecordUseCase.execute(
+                date: currentState.selectedDate,
+                value: weight.doubleValue
+            )
+            .asObservable()
+            .flatMap { [weak self] _ -> Observable<Mutation> in
+                guard let self else { return .empty() }
+                return self.fetchCalendarDayRecords(date: self.currentState.selectedDate)
+            }
+
         case .updateCondition(let condition):
-            return .just(.setCondition(condition))
+            return saveConditionRecordUseCase.execute(
+                date: currentState.selectedDate,
+                condition: condition.conditionLevel
+            )
+            .asObservable()
+            .flatMap { [weak self] _ -> Observable<Mutation> in
+                guard let self else { return .empty() }
+                return self.fetchCalendarDayRecords(date: self.currentState.selectedDate)
+            }
         }
     }
 
@@ -103,6 +168,10 @@ final class CalendarReactor: BaseReactor {
             newState.weight = weight
         case .setCondition(let condition):
             newState.condition = condition
+        case .setCalendarDayRecords(let records):
+            newState.weight = Self.makeWeightValue(from: records.weightRecord)
+            newState.condition = Self.makeConditionValue(from: records.conditionRecord)
+            newState.exerciseItems = records.exerciseRecords.map(Self.makeExerciseItem)
         }
 
         return newState
@@ -110,5 +179,60 @@ final class CalendarReactor: BaseReactor {
 
     private static func normalizedDate(_ date: Date) -> Date {
         Calendar(identifier: .gregorian).startOfDay(for: date)
+    }
+
+    private func fetchCalendarDayRecords(date: Date) -> Observable<Mutation> {
+        fetchCalendarDayRecordsUseCase.execute(date: date)
+            .asObservable()
+            .map(Mutation.setCalendarDayRecords)
+    }
+
+    nonisolated private static func makeWeightValue(from record: WeightRecord?) -> WeightValue? {
+        guard let record else { return nil }
+
+        let tenths = Int((record.value * 10).rounded())
+        return WeightValue(integer: tenths / 10, decimal: abs(tenths % 10))
+    }
+
+    nonisolated private static func makeConditionValue(from record: ConditionRecord?) -> ConditionValue? {
+        guard let condition = record?.condition else { return nil }
+
+        switch condition {
+        case .veryGood:
+            return .veryGood
+        case .good:
+            return .good
+        case .normal:
+            return .normal
+        case .bad:
+            return .bad
+        case .worst:
+            return .worst
+        }
+    }
+
+    nonisolated private static func makeExerciseItem(from record: ExerciseRecord) -> ExerciseItem {
+        ExerciseItem(
+            title: record.exerciseName,
+            duration: makeDurationText(record.duration),
+            calories: "\(Int(record.calories ?? 0))칼로리",
+            sportsCategoryRawValue: record.sportsCategoryRawValue
+        )
+    }
+
+    nonisolated private static func makeDurationText(_ duration: TimeInterval) -> String {
+        let totalMinutes = Int(duration / 60)
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+
+        if hours > 0, minutes > 0 {
+            return "\(hours)시간 \(minutes)분"
+        }
+
+        if hours > 0 {
+            return "\(hours)시간"
+        }
+
+        return "\(minutes)분"
     }
 }
