@@ -81,6 +81,9 @@ final class HomeFlow: Flow {
                 reactor: ProgramRegisterReactor(
                     fetchFacilityProgramsUseCase: FetchFacilityProgramsUseCase(
                         repository: sportsRepository
+                    ),
+                    saveRegisteredProgramUseCase: SaveRegisteredProgramUseCase(
+                        repository: CoreDataRegisteredProgramRepository()
                     )
                 )
             )

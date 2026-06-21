@@ -11,9 +11,14 @@ import Foundation
 final class ProgramRegisterReactor: BaseReactor {
     let initialState: State = State()
     private let fetchFacilityProgramsUseCase: FetchFacilityProgramsUseCase
+    private let saveRegisteredProgramUseCase: SaveRegisteredProgramUseCase
 
-    init(fetchFacilityProgramsUseCase: FetchFacilityProgramsUseCase) {
+    init(
+        fetchFacilityProgramsUseCase: FetchFacilityProgramsUseCase,
+        saveRegisteredProgramUseCase: SaveRegisteredProgramUseCase
+    ) {
         self.fetchFacilityProgramsUseCase = fetchFacilityProgramsUseCase
+        self.saveRegisteredProgramUseCase = saveRegisteredProgramUseCase
     }
     
     enum Action {
@@ -29,6 +34,7 @@ final class ProgramRegisterReactor: BaseReactor {
         case selectDates([Date])
         case selectStartTime(Int?)
         case selectEndTime(Int?)
+        case save
     }
     
     enum Mutation {
@@ -44,6 +50,7 @@ final class ProgramRegisterReactor: BaseReactor {
         case setDates([Date])
         case setStartTime(Int?)
         case setEndTime(Int?)
+        case setSaveResult(Bool)
     }
     
     nonisolated struct ProgramOption: Equatable {
@@ -67,6 +74,23 @@ final class ProgramRegisterReactor: BaseReactor {
         var dates: [Date] = []
         var startMinuteOfDay: Int?
         var endMinuteOfDay: Int?
+        @Pulse var saveResult: Bool?
+
+        var isRegisterButtonEnabled: Bool {
+            guard isLoading == false else {
+                return false
+            }
+
+            guard let programName,
+                  programName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false,
+                  let facilityName,
+                  facilityName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false,
+                  sportsCategory != nil else {
+                return false
+            }
+
+            return true
+        }
     }
     
     func mutate(action: Action) -> Observable<Mutation> {
@@ -132,6 +156,20 @@ final class ProgramRegisterReactor: BaseReactor {
             }
 
             return .just(.setEndTime(minuteOfDay))
+        case .save:
+            guard currentState.isLoading == false else {
+                return .empty()
+            }
+
+            guard currentState.isRegisterButtonEnabled else {
+                return .just(.setSaveResult(false))
+            }
+
+            return .concat([
+                .just(.setLoading(true)),
+                saveRegisteredProgram(),
+                .just(.setLoading(false))
+            ])
         }
     }
     
@@ -166,6 +204,8 @@ final class ProgramRegisterReactor: BaseReactor {
             newState.startMinuteOfDay = minuteOfDay
         case .setEndTime(let minuteOfDay):
             newState.endMinuteOfDay = minuteOfDay
+        case .setSaveResult(let isSuccess):
+            newState.saveResult = isSuccess
         }
         
         return newState
@@ -188,5 +228,29 @@ private extension ProgramRegisterReactor {
             }
             .map(Mutation.setProgramOptions)
             .catchAndReturn(.setProgramOptions([]))
+    }
+
+    func saveRegisteredProgram() -> Observable<Mutation> {
+        let input = SaveRegisteredProgramUseCase.Input(
+            programID: currentState.programID,
+            facilityID: currentState.facilityID,
+            programName: currentState.programName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            facilityName: currentState.facilityName?.trimmingCharacters(in: .whitespacesAndNewlines),
+            sportsCategory: currentState.sportsCategory,
+            isRecurring: currentState.isRecurring,
+            days: currentState.selectedWeekdays
+                .sorted { $0.rawValue < $1.rawValue }
+                .map(\.title),
+            hasReservationDates: currentState.hasReservationDates,
+            reservationDates: currentState.dates,
+            startMinuteOfDay: currentState.startMinuteOfDay,
+            endMinuteOfDay: currentState.endMinuteOfDay,
+            reservationMethodRawValues: []
+        )
+
+        return saveRegisteredProgramUseCase.execute(input)
+            .asObservable()
+            .map { _ in Mutation.setSaveResult(true) }
+            .catchAndReturn(.setSaveResult(false))
     }
 }

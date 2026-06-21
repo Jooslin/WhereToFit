@@ -121,6 +121,12 @@ final class ProgramRegisterViewController: BaseViewController<ProgramRegisterRea
                 }
             }
             .disposed(by: disposeBag)
+
+        registerView.registerButton.rx.tap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .map { ProgramRegisterReactor.Action.save }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
     }
     
     private func bindState(reactor: ProgramRegisterReactor) {
@@ -210,6 +216,22 @@ final class ProgramRegisterViewController: BaseViewController<ProgramRegisterRea
             .distinctUntilChanged()
             .map(Self.makeTimeText)
             .bind(to: registerView.endTimeTextField.rx.text)
+            .disposed(by: disposeBag)
+
+        reactor.state
+            .map(\.isRegisterButtonEnabled)
+            .distinctUntilChanged()
+            .bind(to: registerView.registerButton.rx.isEnabled)
+            .disposed(by: disposeBag)
+
+        reactor.pulse(\.$saveResult)
+            .compactMap { $0 }
+            .map {
+                $0
+                ? AppStep.pageBack
+                : AppStep.alert(title: "저장 실패", message: "필수 정보를 확인해주세요.")
+            }
+            .bind(to: steps)
             .disposed(by: disposeBag)
     }
 }
