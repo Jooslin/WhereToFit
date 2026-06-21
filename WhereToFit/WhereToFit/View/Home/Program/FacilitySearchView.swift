@@ -14,8 +14,15 @@ import RxSwift
 final class FacilitySearchView: UIView {
     let titleView = TitleView(text: "시설 검색", leftButtonImage: .arrowLeft)
     let searchBar = SearchBar(placeholder: "주소나 이름으로 검색하기")
+    private lazy var keyboardDismissTapGesture = UITapGestureRecognizer(
+        target: self,
+        action: #selector(dismissKeyboard)
+    ).then {
+        $0.cancelsTouchesInView = false
+    }
     private(set) lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout()).then {
         $0.layoutMargins = .init(top: 0, left: 16, bottom: 0, right: 16)
+        $0.keyboardDismissMode = .onDrag
     }
     private(set) lazy var dataSource = makeDiffableDataSource(collectionView)
     
@@ -47,6 +54,7 @@ extension FacilitySearchView {
         addSubview(searchBar)
         addSubview(collectionView)
         addSubview(emptyStack)
+        collectionView.addGestureRecognizer(keyboardDismissTapGesture)
         
         titleView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
@@ -69,6 +77,10 @@ extension FacilitySearchView {
             $0.centerY.equalToSuperview().multipliedBy(0.85)
         }
 
+    }
+
+    @objc private func dismissKeyboard() {
+        endEditing(true)
     }
 }
 
