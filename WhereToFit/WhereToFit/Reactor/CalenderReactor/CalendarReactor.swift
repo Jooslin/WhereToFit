@@ -14,20 +14,24 @@ final class CalendarReactor: BaseReactor {
     private let saveWeightRecordUseCase: SaveWeightRecordUseCase
     private let saveConditionRecordUseCase: SaveConditionRecordUseCase
     private let fetchCalendarDayRecordsUseCase: FetchCalendarDayRecordsUseCase
+    private let fetchReportRecordsUseCase: FetchReportRecordsUseCase
 
     init(
         saveWeightRecordUseCase: SaveWeightRecordUseCase,
         saveConditionRecordUseCase: SaveConditionRecordUseCase,
-        fetchCalendarDayRecordsUseCase: FetchCalendarDayRecordsUseCase
+        fetchCalendarDayRecordsUseCase: FetchCalendarDayRecordsUseCase,
+        fetchReportRecordsUseCase: FetchReportRecordsUseCase
     ) {
         self.saveWeightRecordUseCase = saveWeightRecordUseCase
         self.saveConditionRecordUseCase = saveConditionRecordUseCase
         self.fetchCalendarDayRecordsUseCase = fetchCalendarDayRecordsUseCase
+        self.fetchReportRecordsUseCase = fetchReportRecordsUseCase
         initialState = State(
             selectedDate: Self.normalizedDate(Date()),
             weight: nil,
             condition: nil,
-            exerciseItems: []
+            exerciseItems: [],
+            report: .empty
         )
     }
 
@@ -89,11 +93,76 @@ final class CalendarReactor: BaseReactor {
         let sportsCategoryRawValue: String?
     }
 
+    struct ReportState: Equatable {
+        let isEmpty: Bool
+        let weight: WeightReportState
+        let exercise: ExerciseReportState
+        let condition: ConditionReportState
+
+        static let empty = ReportState(
+            isEmpty: true,
+            weight: .empty,
+            exercise: .empty,
+            condition: .empty
+        )
+    }
+
+    struct WeightReportState: Equatable {
+        let changeText: String
+        let values: [Double]
+        let yLabels: [String]
+        let startLabel: String
+        let endLabel: String
+        let selectedValueText: String?
+        let emptyMessage: String?
+
+        static let empty = WeightReportState(
+            changeText: "-",
+            values: [],
+            yLabels: [],
+            startLabel: "",
+            endLabel: "",
+            selectedValueText: nil,
+            emptyMessage: "몸무게 기록을 2개 이상 입력하면 변화 그래프를 볼 수 있어요"
+        )
+    }
+
+    struct ExerciseReportState: Equatable {
+        let totalMinutesText: String
+        let dailyMinutes: [Double]
+        let emptyMessage: String?
+
+        static let empty = ExerciseReportState(
+            totalMinutesText: "0",
+            dailyMinutes: Array(repeating: 0, count: 7),
+            emptyMessage: "운동 기록을 입력하면 주간 운동 현황을 볼 수 있어요"
+        )
+    }
+
+    struct ConditionReportState: Equatable {
+        let latestText: String
+        let values: [Double]
+        let startLabel: String
+        let endLabel: String
+        let conditionValues: [ConditionValue]
+        let emptyMessage: String?
+
+        static let empty = ConditionReportState(
+            latestText: "-",
+            values: [],
+            startLabel: "",
+            endLabel: "",
+            conditionValues: [],
+            emptyMessage: "컨디션 기록을 2개 이상 입력하면 변화 그래프를 볼 수 있어요"
+        )
+    }
+
     enum Action {
         case viewDidLoad
         case selectDate(Date)
         case moveToToday
         case refreshSelectedDate
+        case reportTabSelected
         case updateWeight(WeightValue)
         case updateCondition(ConditionValue)
     }
@@ -103,6 +172,7 @@ final class CalendarReactor: BaseReactor {
         case setWeight(WeightValue)
         case setCondition(ConditionValue)
         case setCalendarDayRecords(CalendarDayRecords)
+        case setReport(ReportState)
         case setError(String, String)
     }
 
@@ -111,6 +181,7 @@ final class CalendarReactor: BaseReactor {
         var weight: WeightValue?
         var condition: ConditionValue?
         var exerciseItems: [ExerciseItem]
+        var report: ReportState
         @Pulse var error: (String, String)?
     }
 
@@ -135,6 +206,9 @@ final class CalendarReactor: BaseReactor {
 
         case .refreshSelectedDate:
             return fetchCalendarDayRecords(date: currentState.selectedDate)
+
+        case .reportTabSelected:
+            return fetchReportRecords()
 
         case .updateWeight(let weight):
             return saveWeightRecordUseCase.execute(
@@ -180,6 +254,8 @@ final class CalendarReactor: BaseReactor {
             newState.weight = Self.makeWeightValue(from: records.weightRecord)
             newState.condition = Self.makeConditionValue(from: records.conditionRecord)
             newState.exerciseItems = records.exerciseRecords.map(Self.makeExerciseItem)
+        case .setReport(let report):
+            newState.report = report
         case .setError(let title, let message):
             newState.error = (title, message)
         }
@@ -197,6 +273,17 @@ final class CalendarReactor: BaseReactor {
             .map(Mutation.setCalendarDayRecords)
             .catch { _ in
                 .just(.setError("기록 조회 실패", "선택한 날짜의 기록을 불러올 수 없습니다.\n잠시 후 다시 시도해주세요."))
+            }
+    }
+
+    private func fetchReportRecords() -> Observable<Mutation> {
+        fetchReportRecordsUseCase.execute()
+            .asObservable()
+            .map { records in
+                .setReport(Self.makeReportState(from: records))
+            }
+            .catch { _ in
+                .just(.setError("리포트 조회 실패", "리포트 기록을 불러올 수 없습니다.\n잠시 후 다시 시도해주세요."))
             }
     }
 
@@ -247,5 +334,120 @@ final class CalendarReactor: BaseReactor {
         }
 
         return "\(minutes)분"
+    }
+}
+
+private extension CalendarReactor {
+    static func makeReportState(from records: ReportRecords) -> ReportState {
+        let weight = makeWeightReportState(from: records.weightRecords)
+        let exercise = makeExerciseReportState(from: records.exerciseRecords)
+        let condition = makeConditionReportState(from: records.conditionRecords)
+
+        return ReportState(
+            isEmpty: records.weightRecords.isEmpty
+                && records.exerciseRecords.isEmpty
+                && records.conditionRecords.isEmpty,
+            weight: weight,
+            exercise: exercise,
+            condition: condition
+        )
+    }
+
+    static func makeWeightReportState(from records: [WeightRecord]) -> WeightReportState {
+        guard records.count > 1,
+              let first = records.first,
+              let last = records.last else {
+            return .empty
+        }
+
+        let values = records.map(\.value)
+        let minimum = floor((values.min() ?? 0) - 1)
+        let maximum = ceil((values.max() ?? 0) + 1)
+        let step = max((maximum - minimum) / 5, 1)
+        let yLabels = stride(from: maximum, through: minimum, by: -step)
+            .prefix(6)
+            .map { "\(Int($0))kg" }
+        let change = last.value - first.value
+        let changeText = change > 0 ? "+\(formatDecimal(change))" : formatDecimal(change)
+
+        return WeightReportState(
+            changeText: changeText,
+            values: values,
+            yLabels: yLabels,
+            startLabel: makeMonthDayText(first.date),
+            endLabel: makeMonthDayText(last.date),
+            selectedValueText: "\(formatDecimal(last.value))kg",
+            emptyMessage: nil
+        )
+    }
+
+    static func makeExerciseReportState(from records: [ExerciseRecord]) -> ExerciseReportState {
+        let calendar = Calendar(identifier: .gregorian)
+        let today = calendar.startOfDay(for: Date())
+        let dates = (0..<7).compactMap { offset in
+            calendar.date(byAdding: .day, value: offset - 6, to: today)
+        }
+        let minutesByDate = Dictionary(grouping: records, by: { calendar.startOfDay(for: $0.date) })
+            .mapValues { records in
+                records.reduce(0.0) { $0 + $1.duration / 60 }
+            }
+        let dailyMinutes = dates.map { minutesByDate[$0] ?? 0 }
+        let totalMinutes = Int(dailyMinutes.reduce(0, +).rounded())
+
+        return ExerciseReportState(
+            totalMinutesText: "\(totalMinutes)",
+            dailyMinutes: dailyMinutes,
+            emptyMessage: records.isEmpty ? ExerciseReportState.empty.emptyMessage : nil
+        )
+    }
+
+    static func makeConditionReportState(from records: [ConditionRecord]) -> ConditionReportState {
+        guard records.count > 1,
+              let first = records.first,
+              let last = records.last,
+              let latestCondition = makeConditionValue(from: last) else {
+            return .empty
+        }
+
+        let values = records.map { Double(conditionScore($0.condition)) }
+        let conditionValues = records.compactMap(makeConditionValue)
+
+        return ConditionReportState(
+            latestText: latestCondition.displayText,
+            values: values,
+            startLabel: makeMonthDayText(first.date),
+            endLabel: makeMonthDayText(last.date),
+            conditionValues: conditionValues,
+            emptyMessage: nil
+        )
+    }
+
+    static func conditionScore(_ condition: ConditionLevel) -> Int {
+        switch condition {
+        case .worst:
+            return 0
+        case .bad:
+            return 1
+        case .normal:
+            return 2
+        case .good:
+            return 3
+        case .veryGood:
+            return 4
+        }
+    }
+
+    static func makeMonthDayText(_ date: Date) -> String {
+        let components = Calendar(identifier: .gregorian).dateComponents([.month, .day], from: date)
+        return "\(components.month ?? 0)/\(components.day ?? 0)"
+    }
+
+    static func formatDecimal(_ value: Double) -> String {
+        let rounded = (value * 10).rounded() / 10
+        if rounded.truncatingRemainder(dividingBy: 1) == 0 {
+            return "\(Int(rounded))"
+        }
+
+        return String(format: "%.1f", rounded)
     }
 }

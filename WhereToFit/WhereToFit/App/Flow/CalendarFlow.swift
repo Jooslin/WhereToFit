@@ -16,7 +16,8 @@ final class CalendarFlow: Flow {
     private lazy var calendarReactor = CalendarReactor(
         saveWeightRecordUseCase: SaveWeightRecordUseCase(repository: calendarRecordRepository),
         saveConditionRecordUseCase: SaveConditionRecordUseCase(repository: calendarRecordRepository),
-        fetchCalendarDayRecordsUseCase: FetchCalendarDayRecordsUseCase(repository: calendarRecordRepository)
+        fetchCalendarDayRecordsUseCase: FetchCalendarDayRecordsUseCase(repository: calendarRecordRepository),
+        fetchReportRecordsUseCase: FetchReportRecordsUseCase(repository: calendarRecordRepository)
     )
     private lazy var calendarViewController = CalendarViewController(reactor: calendarReactor)
     var root: any RxFlow.Presentable { navigationController }
