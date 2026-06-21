@@ -79,6 +79,8 @@ final class CalendarView: UIView {
         unit: nil,
         valueImage: CalendarReactor.ConditionValue.worst.image
     )
+    fileprivate let weightCardTapArea = UIControl()
+    fileprivate let conditionCardTapArea = UIControl()
 
     private let exerciseTitleLabel = UILabel(text: "운동", config: .body16Medium)
 
@@ -178,6 +180,8 @@ private extension CalendarView {
             selectedDateLabel,
             weightCard,
             conditionCard,
+            weightCardTapArea,
+            conditionCardTapArea,
             exerciseTitleLabel,
             exerciseCollectionView
         ].forEach(calendarContentView.addSubview)
@@ -251,6 +255,14 @@ private extension CalendarView {
             $0.leading.equalTo(calendarContentView.snp.centerX).offset(8)
             $0.trailing.equalToSuperview().inset(16)
             $0.height.equalTo(weightCard)
+        }
+
+        weightCardTapArea.snp.makeConstraints {
+            $0.edges.equalTo(weightCard)
+        }
+
+        conditionCardTapArea.snp.makeConstraints {
+            $0.edges.equalTo(conditionCard)
         }
 
         exerciseTitleLabel.snp.makeConstraints {
@@ -336,11 +348,11 @@ extension Reactive where Base == CalendarView {
     }
 
     var weightCardTap: ControlEvent<Void> {
-        base.weightCard.rx.controlEvent(.touchUpInside)
+        base.weightCardTapArea.rx.controlEvent(.touchUpInside)
     }
 
     var conditionCardTap: ControlEvent<Void> {
-        base.conditionCard.rx.controlEvent(.touchUpInside)
+        base.conditionCardTapArea.rx.controlEvent(.touchUpInside)
     }
 
     var selectedSegmentIndex: ControlProperty<Int> {

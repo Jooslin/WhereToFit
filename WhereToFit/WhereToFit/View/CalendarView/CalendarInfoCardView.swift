@@ -9,7 +9,7 @@ import SnapKit
 import Then
 import UIKit
 
-final class CalendarInfoCardView: UIControl {
+final class CalendarInfoCardView: UIView {
     private let titleLabel: UILabel
     private let valueImageView = UIImageView().then {
         $0.contentMode = .scaleAspectFit

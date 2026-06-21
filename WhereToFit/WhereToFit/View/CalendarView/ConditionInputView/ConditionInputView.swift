@@ -51,7 +51,7 @@ final class ConditionInputView: UIView {
     ]).then {
         $0.axis = .horizontal
         $0.spacing = 16
-        $0.distribution = .fillEqually
+        $0.distribution = .fill
     }
 
     private lazy var secondRowStackView = UIStackView(arrangedSubviews: [
@@ -61,7 +61,7 @@ final class ConditionInputView: UIView {
     ]).then {
         $0.axis = .horizontal
         $0.spacing = 14
-        $0.distribution = .fillEqually
+        $0.distribution = .fill
     }
 
     init(currentCondition: CalendarReactor.ConditionValue) {
@@ -176,7 +176,14 @@ final class ConditionOptionButton: UIControl {
     }
 
     private let titleLabel = UILabel(config: .body15, lines: 1).then {
+        $0.lineBreakMode = .byClipping
+        $0.setContentHuggingPriority(.required, for: .horizontal)
         $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+    }
+
+    override var intrinsicContentSize: CGSize {
+        let width = 6 + 36 + 12 + titleLabel.intrinsicContentSize.width + 10
+        return CGSize(width: width, height: 48)
     }
 
     override var isSelected: Bool {
