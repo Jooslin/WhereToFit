@@ -183,12 +183,14 @@ private extension ExerciseRecordInputView {
 
         fieldStackView.snp.makeConstraints {
             $0.top.equalTo(customButton.snp.bottom).offset(12)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().inset(16)
+            $0.trailing.equalToSuperview().inset(16).priority(999)
         }
 
         saveButton.snp.makeConstraints {
             $0.top.equalTo(fieldStackView.snp.bottom).offset(20)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().inset(16)
+            $0.trailing.equalToSuperview().inset(16).priority(999)
             $0.bottom.equalTo(sheetView.safeAreaLayoutGuide).inset(20)
             $0.height.equalTo(48)
         }
@@ -362,7 +364,8 @@ private extension ExerciseTypeButton {
         addSubview(titleLabel)
 
         titleLabel.snp.makeConstraints {
-            $0.horizontalEdges.equalToSuperview().inset(14)
+            $0.leading.equalToSuperview().inset(14)
+            $0.trailing.equalToSuperview().inset(14).priority(999)
             $0.centerY.equalToSuperview()
         }
     }
@@ -415,12 +418,14 @@ fileprivate extension ExerciseRecordField {
         ].forEach(addSubview)
 
         titleLabel.snp.makeConstraints {
-            $0.top.horizontalEdges.equalToSuperview()
+            $0.top.leading.equalToSuperview()
+            $0.trailing.equalToSuperview().priority(999)
         }
 
         textField.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(10)
-            $0.horizontalEdges.bottom.equalToSuperview()
+            $0.leading.bottom.equalToSuperview()
+            $0.trailing.equalToSuperview().priority(999)
             $0.height.equalTo(48)
         }
     }

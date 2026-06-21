@@ -173,25 +173,29 @@ private extension ExerciseNameSelectionSheetView {
 
         searchBar.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(14)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().inset(16)
+            $0.trailing.equalToSuperview().inset(16).priority(999)
             $0.height.equalTo(48)
         }
 
         searchResultTableView.snp.makeConstraints {
             $0.top.equalTo(searchBar.snp.bottom).offset(10)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().inset(16)
+            $0.trailing.equalToSuperview().inset(16).priority(999)
             searchResultHeightConstraint = $0.height.equalTo(0).constraint
         }
 
         dividerView.snp.makeConstraints {
             $0.top.equalTo(searchResultTableView.snp.bottom).offset(16)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().inset(16)
+            $0.trailing.equalToSuperview().inset(16).priority(999)
             $0.height.equalTo(1)
         }
 
         listContainerView.snp.makeConstraints {
             $0.top.equalTo(dividerView.snp.bottom).offset(16)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().inset(16)
+            $0.trailing.equalToSuperview().inset(16).priority(999)
             $0.height.equalTo(320)
         }
 
@@ -208,7 +212,8 @@ private extension ExerciseNameSelectionSheetView {
 
         buttonStackView.snp.makeConstraints {
             $0.top.equalTo(listContainerView.snp.bottom).offset(28)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().inset(16)
+            $0.trailing.equalToSuperview().inset(16).priority(999)
             $0.bottom.equalTo(sheetView.safeAreaLayoutGuide).inset(20)
             $0.height.equalTo(48)
         }

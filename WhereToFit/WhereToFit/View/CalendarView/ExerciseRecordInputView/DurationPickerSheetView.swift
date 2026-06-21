@@ -113,13 +113,15 @@ private extension DurationPickerSheetView {
 
         pickerView.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(22)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().inset(16)
+            $0.trailing.equalToSuperview().inset(16).priority(999)
             $0.height.equalTo(168)
         }
 
         selectButton.snp.makeConstraints {
             $0.top.equalTo(pickerView.snp.bottom).offset(32)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().inset(16)
+            $0.trailing.equalToSuperview().inset(16).priority(999)
             $0.bottom.equalTo(sheetView.safeAreaLayoutGuide).inset(20)
             $0.height.equalTo(48)
         }
