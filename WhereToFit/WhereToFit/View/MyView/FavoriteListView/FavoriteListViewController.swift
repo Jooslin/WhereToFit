@@ -11,6 +11,7 @@ import UIKit
 
 final class FavoriteListViewController: BaseViewController<FavoriteListReactor> {
     let favoriteProgramsView = FavoriteListView()
+    var favoriteItemSelected: ((FavoriteListReactor.FavoriteItem) -> Void)?
 
     override func loadView() {
         view = favoriteProgramsView
@@ -31,6 +32,10 @@ final class FavoriteListViewController: BaseViewController<FavoriteListReactor> 
 
         favoriteProgramsView.favoriteButtonTapped = { [weak self] item in
             self?.presentRemoveFavoriteAlert(item)
+        }
+
+        favoriteProgramsView.itemSelected = { [weak self] item in
+            self?.favoriteItemSelected?(item)
         }
 
         favoriteProgramsView.segmentedControl.rx

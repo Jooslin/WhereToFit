@@ -15,11 +15,13 @@ final class FavoriteListView: UIView {
         items: FavoriteListReactor.FavoriteTab.allCases.map(\.title)
     )
     var favoriteButtonTapped: ((FavoriteListReactor.FavoriteItem) -> Void)?
+    var itemSelected: ((FavoriteListReactor.FavoriteItem) -> Void)?
 
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionViewLayout()).then {
         $0.backgroundColor = .white
         $0.showsVerticalScrollIndicator = false
         $0.dataSource = self
+        $0.delegate = self
         $0.register(FavoriteListCell.self, forCellWithReuseIdentifier: FavoriteListCell.reuseIdentifier)
     }
     private var items: [FavoriteListReactor.FavoriteItem] = []
@@ -138,5 +140,13 @@ extension FavoriteListView: UICollectionViewDataSource {
             self?.favoriteButtonTapped?(item)
         }
         return cell
+    }
+}
+
+extension FavoriteListView: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        guard items.indices.contains(indexPath.item) else { return }
+        itemSelected?(items[indexPath.item])
     }
 }

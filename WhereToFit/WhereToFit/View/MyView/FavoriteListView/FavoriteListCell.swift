@@ -130,10 +130,13 @@ extension FavoriteListCell {
         reservationBadge.configure(title: item.reservationMethodText)
         programImageView.favoriteButton.isSelected = true
 
-        let placeholderImage = UIImage(resource: .emptyNotification)
-        if let imageURLString = item.imageURLString,
-           let imageURL = URL(string: imageURLString) {
-            programImageView.kf.setImage(with: imageURL, placeholder: placeholderImage)
+        let placeholderImage = placeholderImage(for: item)
+        if let imageURL = imageURL(from: item.imageURLString) {
+            programImageView.kf.setImage(
+                with: imageURL,
+                placeholder: placeholderImage,
+                options: [.transition(.fade(0.18))]
+            )
         } else {
             programImageView.image = placeholderImage
         }
@@ -210,5 +213,68 @@ extension FavoriteListCell {
             $0.trailing.bottom.equalToSuperview()
             $0.height.equalTo(1 / UIScreen.main.scale)
         }
+    }
+
+    private func imageURL(from imageURLString: String?) -> URL? {
+        guard let imageURLString,
+              imageURLString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            return nil
+        }
+
+        let trimmedURLString = imageURLString.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let url = URL(string: trimmedURLString) {
+            return url
+        }
+
+        guard let encodedURLString = trimmedURLString.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed) else {
+            return nil
+        }
+
+        return URL(string: encodedURLString)
+    }
+
+    private func placeholderImage(for item: FavoriteListReactor.FavoriteItem) -> UIImage {
+        let imageName = placeholderImageName(for: item)
+        return UIImage(named: imageName) ?? UIImage(resource: .emptyNotification)
+    }
+
+    private func placeholderImageName(for item: FavoriteListReactor.FavoriteItem) -> String {
+        let text = [
+            item.sportsCategoryRawValue,
+            item.name,
+            item.facilityLabelText
+        ]
+            .compactMap { $0 }
+            .joined(separator: " ")
+
+        let normalizedText = text
+            .lowercased()
+            .replacingOccurrences(of: " ", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        func contains(_ keywords: String...) -> Bool {
+            keywords.contains { normalizedText.contains($0) }
+        }
+
+        if contains("수영", "수중", "아쿠아") {
+            return item.targetType == .facility ? "centerImageSwimming" : "sportsAqua"
+        }
+        if contains("테니스", "배드민턴", "탁구", "정구") {
+            return item.targetType == .facility ? "centerImageTennis" : "sportsTennis"
+        }
+        if contains("축구", "풋살", "야구") { return "sportsSoccer" }
+        if contains("농구", "배구", "볼링", "당구") { return "sportsBall" }
+        if contains("자전거", "사이클", "스피닝") { return "sportsCycle" }
+        if contains("댄스", "무용", "발레", "에어로빅") { return "sportsDance" }
+        if contains("헬스", "피트니스", "웨이트", "근력") { return "sportsHealth" }
+        if contains("체조", "스트레칭") { return "sportsGymnastic" }
+        if contains("등산", "하이킹") { return "sportsHiking" }
+        if contains("스케이트", "빙상") { return "sportsIce" }
+        if contains("태권도", "검도", "유도", "복싱", "펜싱") { return "sportsMartial" }
+        if contains("요가") { return "sportsYoga" }
+        if contains("필라테스", "snpe") { return "sportsPilates" }
+        if contains("러닝", "달리기", "육상") { return "sportsRunning" }
+
+        return "sportsHealth"
     }
 }

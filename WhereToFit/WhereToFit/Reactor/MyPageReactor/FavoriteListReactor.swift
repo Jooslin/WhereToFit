@@ -68,6 +68,7 @@ final class FavoriteListReactor: BaseReactor {
         let price: String
         let reservationMethodText: String?
         let imageURLString: String?
+        let sportsCategoryRawValue: String?
     }
 
     enum Action {
@@ -159,7 +160,8 @@ private extension FavoriteListReactor {
             distance: snapshot?.distance ?? "거리 0.0km",
             price: snapshot?.price ?? "원~",
             reservationMethodText: snapshot?.reservationMethods,
-            imageURLString: snapshot?.imageURLString
+            imageURLString: snapshot?.imageURLString,
+            sportsCategoryRawValue: favorite.sportsCategoryRawValue
         )
     }
 }
