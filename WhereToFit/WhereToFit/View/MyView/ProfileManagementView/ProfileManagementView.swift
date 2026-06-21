@@ -9,17 +9,24 @@ import SnapKit
 import Then
 import UIKit
 
-// TODO: 선택시 버튼 색 바뀌도록
 final class ProfileManagementView: UIView {
     let titleView = TitleView(text: "프로필 관리", leftButtonImage: UIImage(systemName: "chevron.left"))
 
-    private let nicknameField = ProfileInputField(title: "닉네임", text: "김아정")
-    private let birthDateField = ProfileInputField(title: "생년월일", text: "19980609")
-    private let genderField = ProfileGenderField()
-    private let addressField = ProfileInputField(title: "거주 지역 (선택)", placeholder: "주소 찾기")
+    let nicknameField = ProfileInputField(title: "닉네임")
+    let birthDateField = ProfileInputField(title: "생년월일", placeholder: "ex)19991208").then {
+        $0.textField.keyboardType = .numberPad
+    }
+    let genderField = ProfileGenderField()
+    let addressField = ProfileInputField(title: "거주 지역 (선택)", placeholder: "주소 찾기").then {
+        $0.textField.isEnabled = false
+    }
 
-    private let heightField = ProfileInputField(title: "키 (선택)", placeholder: "키를 입력해주세요")
-    private let weightField = ProfileInputField(title: "몸무게 (선택)", placeholder: "몸무게를 입력해주세요")
+    let heightField = ProfileInputField(title: "키 (선택)", placeholder: "키를 입력해주세요").then {
+        $0.textField.keyboardType = .decimalPad
+    }
+    let weightField = ProfileInputField(title: "몸무게 (선택)", placeholder: "몸무게를 입력해주세요").then {
+        $0.textField.keyboardType = .decimalPad
+    }
 
     private let bodyInfoStackView = UIStackView().then {
         $0.axis = .horizontal
@@ -27,8 +34,9 @@ final class ProfileManagementView: UIView {
         $0.distribution = .fillEqually
     }
     
-    private let saveButton = DesignButton(config: .largeFilledGray).then {
+    let saveButton = DesignButton(config: .largeFilledBlue).then {
         $0.title = "저장하기"
+        $0.isEnabled = false
     }
 
     override init(frame: CGRect) {
@@ -41,6 +49,28 @@ final class ProfileManagementView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+}
+
+extension ProfileManagementView {
+    func update(
+        nickname: String,
+        birthday: String,
+        gender: UserGender,
+        address: String?,
+        height: String,
+        weight: String
+    ) {
+        nicknameField.textField.text = nickname
+        birthDateField.textField.text = birthday
+        genderField.update(gender: gender)
+        addressField.textField.text = address
+        heightField.textField.text = height
+        weightField.textField.text = weight
+    }
+
+    func updateSaveButton(isEnabled: Bool) {
+        saveButton.isEnabled = isEnabled
     }
 }
 
@@ -101,9 +131,9 @@ private extension ProfileManagementView {
     }
 }
 
-private final class ProfileInputField: UIView {
+final class ProfileInputField: UIView {
     private let titleLabel: UILabel
-    private let textField = UITextField().then {
+    let textField = UITextField().then {
         $0.backgroundColor = .gray50
         $0.layer.cornerRadius = 8
         $0.font = .systemFont(ofSize: 15, weight: .medium)
@@ -149,14 +179,13 @@ private extension ProfileInputField {
     }
 }
 
-private final class ProfileGenderField: UIView {
+final class ProfileGenderField: UIView {
     private let titleLabel = UILabel(text: "성별", config: .body14Medium, color: .gray600)
     
-    private let maleButton = DesignButton(config: .smallFilledLightGray).then {
+    let maleButton = DesignButton(config: .smallFilledLightGray, selectedConfig: .selectedSmallBorderBlue).then {
         $0.title = "남성"
     }
-    private let femaleButton = DesignButton(config: .smallFilledLightGray).then {
-        $0.isSelected = true
+    let femaleButton = DesignButton(config: .smallFilledLightGray, selectedConfig: .selectedSmallBorderBlue).then {
         $0.title = "여성"
     }
 
@@ -169,6 +198,13 @@ private final class ProfileGenderField: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+}
+
+extension ProfileGenderField {
+    func update(gender: UserGender) {
+        maleButton.isSelected = gender == .male
+        femaleButton.isSelected = gender == .female
     }
 }
 

@@ -14,6 +14,12 @@ final class MyFlow: Flow {
     private let myReactor = MyReactor(
         fetchICloudSyncStatusUseCase: FetchICloudSyncStatusUseCase(
             service: ICloudStatusService()
+        ),
+        fetchUserProfileUseCase: FetchUserProfileUseCase(
+            repository: CoreDataUserProfileRepository()
+        ),
+        fetchUserLocationsUseCase: FetchUserLocationsUseCase(
+            repository: CoreDataUserLocationRepository()
         )
     )
     private lazy var myViewController = MyViewController(reactor: myReactor)
@@ -40,7 +46,22 @@ final class MyFlow: Flow {
             )
 
         case .profileManagement:
-            let vc = ProfileManagementViewController(reactor: ProfileManagementReactor())
+            let vc = ProfileManagementViewController(
+                reactor: ProfileManagementReactor(
+                    fetchUserProfileUseCase: FetchUserProfileUseCase(
+                        repository: CoreDataUserProfileRepository()
+                    ),
+                    upsertUserProfileUseCase: UpsertUserProfileUseCase(
+                        repository: CoreDataUserProfileRepository()
+                    ),
+                    fetchUserLocationsUseCase: FetchUserLocationsUseCase(
+                        repository: CoreDataUserLocationRepository()
+                    ),
+                    validatePersonalInfoUseCase: ValidateOnboardingPersonalInfoUseCase(
+                        dateService: DateService()
+                    )
+                )
+            )
             vc.hidesBottomBarWhenPushed = true
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))

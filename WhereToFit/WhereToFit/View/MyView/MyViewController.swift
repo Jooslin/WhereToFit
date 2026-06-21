@@ -67,6 +67,18 @@ final class MyViewController: BaseViewController<MyReactor> {
                 owner.myView.updateICloudStatus(isAvailable: status == .available)
             }
             .disposed(by: disposeBag)
+
+        reactor.state
+            .map(\.profileSummary)
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind(with: self) { owner, summary in
+                owner.myView.updateProfileSummary(
+                    nickname: summary.nickname,
+                    homeAddress: summary.homeAddress
+                )
+            }
+            .disposed(by: disposeBag)
     }
 }
 

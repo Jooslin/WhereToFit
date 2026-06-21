@@ -263,18 +263,18 @@ private struct ReportSummaryCardSwiftUIView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                Text("AI 분석")
+                Text("안내 사항")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(Color(.primary400))
                     .frame(width: 52, height: 24)
                     .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
 
-                Text("오늘의 리포트 요약")
+                Text("칼로리는 예상 값이에요.")
                     .font(.system(size: 14, weight: .medium))
             }
 
-            Text("최근 4주 동안 운동 시간이 꾸준히 증가했어요. 체중 변화는\n크지 않지만 운동 빈도는 안정적으로 유지되고 있어요.")
+            Text("칼로리는 운동 종류와 시간을 기준으로 계산돼요. 실제 소모 칼로리는 개인의 체중, 강도에 따라 달라질 수 있어요.")
                 .font(.system(size: 14, weight: .regular))
                 .foregroundStyle(Color(.gray700))
                 .lineSpacing(3)

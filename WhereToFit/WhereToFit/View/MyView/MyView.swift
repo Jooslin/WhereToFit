@@ -109,6 +109,11 @@ final class MyView: UIView {
         iCloudSyncInfoRow.updateStatus(isAvailable: isAvailable)
     }
 
+    func updateProfileSummary(nickname: String, homeAddress: String?) {
+        nameLabel.text = "\(nickname)님"
+        addressLabel.text = homeAddress ?? "거주 지역 미등록"
+    }
+
     private lazy var activityGroup = MenuGroupView(rows: [
         registeredProgramsRow,
         favoriteProgramsRow,
