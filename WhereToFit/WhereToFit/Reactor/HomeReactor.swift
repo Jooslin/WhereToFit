@@ -287,9 +287,17 @@ extension HomeReactor {
         )
             .asObservable()
             .map { programs in
-                let items = programs.map { recommendedProgram in
-                    HomeCollectionView.Item.program(
+                var seenProgramIDs = Set<Int>()
+                let items = programs.enumerated().compactMap { index, recommendedProgram -> HomeCollectionView.Item? in
+                    let programID = recommendedProgram.program.id ?? -(index + 1)
+                    
+                    guard seenProgramIDs.insert(programID).inserted else {
+                        return nil
+                    }
+                    
+                    return HomeCollectionView.Item.program(
                         HomeCollectionView.ProgramSectionItem(
+                            id: programID,
                             imageName: recommendedProgram.program.sportsCategory.imageName,
                             matchRate: recommendedProgram.matchRate.map(Double.init),
                             place: Self.place(for: recommendedProgram.facility),

@@ -59,10 +59,19 @@ extension HomeCollectionView {
     }
     
     struct ProgramSectionItem: Hashable {
+        let id: Int
         let imageName: String
         let matchRate: Double?
         let place: String
         let name: String
         let facility: Facility
+        
+        static func == (lhs: ProgramSectionItem, rhs: ProgramSectionItem) -> Bool {
+            lhs.id == rhs.id
+        }
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(id)
+        }
     }
 }
