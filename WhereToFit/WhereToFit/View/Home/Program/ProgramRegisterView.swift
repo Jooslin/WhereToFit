@@ -29,6 +29,10 @@ final class ProgramRegisterView: UIView {
     let programTextField = DesignTextField().then {
         $0.placeholder = "프로그램명을 입력해주세요"
     }
+    let programMenuButton = UIButton(type: .custom).then {
+        $0.backgroundColor = .clear
+        $0.showsMenuAsPrimaryAction = true
+    }
     
     let sportsTextField = TouchableDesignTextField().then {
         $0.placeholder = "운동 종목을 선택해주세요"
@@ -61,6 +65,26 @@ final class ProgramRegisterView: UIView {
         $0.title = "등록하기"
     }
     
+    private(set) lazy var buttonStack = makeVerticalStackView(title: "요일 선택", view: weekdayButtons).then {
+        $0.alignment = .leading
+        $0.isHidden = true
+    }
+    private(set) lazy var dateStack = makeVerticalStackView(title: "날짜 선택", view: dateTextField).then {
+        $0.isHidden = true
+    }
+    private(set) lazy var startTimeStack = makeVerticalStackView(title: "시작 시간 (선택)", view: startTimeTextField).then {
+        $0.isHidden = true
+    }
+    private(set) lazy var endTimeStack = makeVerticalStackView(title: "끝나는 시간 (선택)", view: endTimeTextField).then {
+        $0.isHidden = true
+    }
+    private lazy var timeStack = UIStackView(arrangedSubviews: [startTimeStack, endTimeStack]).then {
+        $0.axis = .horizontal
+        $0.spacing = 22
+        $0.distribution = .fillEqually
+        $0.isHidden = true
+    }
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .white
@@ -70,6 +94,18 @@ final class ProgramRegisterView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    func updateScheduleInputVisibility() {
+        let isRegularSelected = regularButton.isSelected
+        let isReservationSelected = reservationButton.isSelected
+        let shouldShowTime = isRegularSelected || isReservationSelected
+        
+        buttonStack.isHidden = !isRegularSelected
+        dateStack.isHidden = !isReservationSelected
+        timeStack.isHidden = !shouldShowTime
+        startTimeStack.isHidden = !shouldShowTime
+        endTimeStack.isHidden = !shouldShowTime
     }
 }
 
@@ -91,14 +127,18 @@ extension ProgramRegisterView {
             $0.alignment = .center
         }
         
-        let buttonStack = makeVerticalStackView(title: "요일 선택", view: weekdayButtons)
-        let dateStack = makeVerticalStackView(title: "날짜 선택", view: dateTextField)
-        let startTimeStack = makeVerticalStackView(title: "시작 시간 (선택)", view: startTimeTextField)
-        let endTimeStack = makeVerticalStackView(title: "끝나는 시간 (선택)", view: endTimeTextField)
-        let timeStack = UIStackView(arrangedSubviews: [startTimeStack, endTimeStack]).then {
-            $0.axis = .horizontal
-            $0.spacing = 22
-            $0.distribution = .fillEqually
+        let formStack = UIStackView(arrangedSubviews: [
+            facilityStack,
+            sportsStack,
+            programStack,
+            regularStack,
+            reservationStack,
+            buttonStack,
+            dateStack,
+            timeStack
+        ]).then {
+            $0.axis = .vertical
+            $0.spacing = 20
         }
         
         addSubview(titleView)
@@ -107,14 +147,9 @@ extension ProgramRegisterView {
         
         scrollView.addSubview(contentView)
         
-        contentView.addSubview(facilityStack)
-        contentView.addSubview(programStack)
-        contentView.addSubview(sportsStack)
-        contentView.addSubview(regularStack)
-        contentView.addSubview(reservationStack)
-        contentView.addSubview(buttonStack)
-        contentView.addSubview(dateStack)
-        contentView.addSubview(timeStack)
+        contentView.addSubview(formStack)
+        
+        formStack.setCustomSpacing(8, after: regularStack)
         
         titleView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
@@ -137,51 +172,20 @@ extension ProgramRegisterView {
             $0.width.equalTo(scrollView.frameLayoutGuide)
         }
         
-        facilityStack.snp.makeConstraints {
-            $0.top.horizontalEdges.equalToSuperview()
-        }
-        
-        sportsStack.snp.makeConstraints {
-            $0.top.equalTo(facilityStack.snp.bottom).offset(20)
-            $0.horizontalEdges.equalToSuperview()
-        }
-        
-        programStack.snp.makeConstraints {
-            $0.top.equalTo(sportsStack.snp.bottom).offset(20)
-            $0.horizontalEdges.equalToSuperview()
-        }
-        
-        regularStack.snp.makeConstraints {
-            $0.top.equalTo(programStack.snp.bottom).offset(20)
-            $0.leading.equalToSuperview()
-        }
-        
-        reservationStack.snp.makeConstraints {
-            $0.top.equalTo(regularStack.snp.bottom).offset(8)
-            $0.leading.equalToSuperview()
-        }
-
-        buttonStack.snp.makeConstraints {
-            $0.top.equalTo(reservationStack.snp.bottom).offset(20)
-            $0.leading.equalToSuperview()
-        }
-        
-        dateStack.snp.makeConstraints {
-            $0.top.equalTo(buttonStack.snp.bottom).offset(20)
-            $0.horizontalEdges.equalToSuperview()
-        }
-        
-        timeStack.snp.makeConstraints {
-            $0.top.equalTo(dateStack.snp.bottom).offset(20)
-            $0.horizontalEdges.equalToSuperview()
-            $0.bottom.equalToSuperview()
+        formStack.snp.makeConstraints {
+            $0.edges.equalToSuperview()
         }
         
         programTextField.addSubview(arrowImageView)
+        programTextField.addSubview(programMenuButton)
         
         arrowImageView.snp.makeConstraints {
             $0.width.height.equalTo(24)
             $0.verticalEdges.trailing.equalToSuperview().inset(12)
+        }
+
+        programMenuButton.snp.makeConstraints {
+            $0.edges.equalToSuperview()
         }
     }
     
@@ -217,8 +221,18 @@ extension ProgramRegisterView {
     }
 }
 
+//MARK: Reactive
 extension Reactive where Base: ProgramRegisterView {
     var backButtonTap: ControlEvent<Void> {
         base.titleView.leftButton.rx.tap
+    }
+
+    var weekdayButtonSelected: ControlEvent<Int> {
+        let events = base.weekdayButtons.arrangedSubviews.map { view -> Observable<Int> in
+            guard let button  = view as? DesignButton else { return .empty() }
+            return button.rx.tap.map { button.tag }
+        }
+        
+        return ControlEvent(events: Observable.merge(events))
     }
 }

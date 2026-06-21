@@ -16,6 +16,7 @@ final class HomeFlow: Flow {
     private let dateService: DateService
     private let weatherRepository: WeatherRepositoryProtocol
     private let sportsRepository: SportsRepositoryProtocol
+    private let registeredProgramRepository: RegisteredProgramRepositoryProtocol
     private let userStore: UserStoreProtocol
     
     private lazy var locationReactor = LocationReactor(userStore: userStore)
@@ -23,12 +24,14 @@ final class HomeFlow: Flow {
     init(userStore: UserStoreProtocol,
          dateService: DateService,
          weatherRepository: WeatherRepositoryProtocol,
-         sportsRepository: SportsRepositoryProtocol
+         sportsRepository: SportsRepositoryProtocol,
+         registeredProgramRepository: RegisteredProgramRepositoryProtocol
     ) {
         self.userStore = userStore
         self.dateService = dateService
         self.weatherRepository = weatherRepository
         self.sportsRepository = sportsRepository
+        self.registeredProgramRepository = registeredProgramRepository
     }
     
     func navigate(to step: any RxFlow.Step) -> RxFlow.FlowContributors {
@@ -77,19 +80,51 @@ final class HomeFlow: Flow {
                     .contribute(withNextPresentable: vc, withNextStepper: vc))
             
         case .programRegistration:
-            let vc = ProgramRegisterViewController(reactor: ProgramRegisterReactor())
+            let vc = ProgramRegisterViewController(
+                reactor: ProgramRegisterReactor(
+                    fetchFacilityProgramsUseCase: FetchFacilityProgramsUseCase(
+                        repository: sportsRepository
+                    ),
+                    saveRegisteredProgramUseCase: SaveRegisteredProgramUseCase(
+                        repository: registeredProgramRepository
+                    )
+                )
+            )
             navigationController.pushViewController(vc, animated: true)
             
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
             
         case .facilitySearch:
-            let vc = FacilitySearchViewController(reactor: FacilitySearchReactor())
-            vc.onSelectFacility = { [weak self] id in
-                self?.sendToProgramRegister(.selectFacility(id: id))
+            let vc = FacilitySearchViewController(
+                reactor: FacilitySearchReactor(
+                    userStore: userStore,
+                    fetchNearbyFacilitiesUseCase: FetchNearbyFacilitiesUseCase(
+                        repository: SportsFacilityRepository()
+                    )
+                )
+            )
+            vc.onSelectFacility = { [weak self] id, name in
+                self?.sendToProgramRegister(.selectFacility(id: id, name: name))
             }
             
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
+            
+        case .sportsCategorySelection:
+            let vc = MapFilterViewController(
+                filter: .empty,
+                mode: .category,
+                categorySelectionBehavior: .single
+            )
+            vc.singleCategorySelected = { [weak self] category in
+                self?.sendToProgramRegister(.selectSportsCategory(
+                    displayName: category.title,
+                    category: SportsCategory(sport: category.title)
+                ))
+            }
+            
+            navigationController.present(vc, animated: true)
+            return .none
             
         case .selectDate:
             let vc = ProgramDateViewController(reactor: ProgramDateReactor(dateService: dateService))

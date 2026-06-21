@@ -10,5 +10,6 @@ import RxSwift
 
 protocol FacilityRepositoryProtocol {
     func fetchFacilities() -> Single<FitnessFacilityDataSet>
+    func searchFacilities(keyword: String) -> Single<[FitnessFacility]>
     func fetchPrograms(for facilities: [FitnessFacility]) -> Single<[FitnessFacility]>
 }

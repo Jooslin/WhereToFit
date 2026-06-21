@@ -76,10 +76,25 @@ final class ProgramDateViewController: BaseViewController<ProgramDateReactor> {
             .map { ProgramDateReactor.Action.deselectDate($0) }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
+
+        resetButton.rx.tap
+            .do(onNext: { [weak self] in
+                self?.clearSelectedDates()
+            })
+            .map { ProgramDateReactor.Action.resetDates }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        applyButton.rx.tap
+            .withLatestFrom(reactor.state.map(\.dates))
+            .bind(with: self) { owner, dates in
+                owner.onSelectDate?(dates.sorted())
+                owner.dismiss(animated: true)
+            }
+            .disposed(by: disposeBag)
     }
     
     private func bindState(reactor: ProgramDateReactor) {
-        
     }
 }
 
@@ -93,6 +108,12 @@ extension ProgramDateViewController: UICalendarSelectionMultiDateDelegate {
     }
     
     
+}
+
+private extension ProgramDateViewController {
+    func clearSelectedDates() {
+        multiSelection.setSelectedDates([], animated: true)
+    }
 }
 
 #Preview {

@@ -43,6 +43,19 @@ final class SportsFacilityRepository: FacilityRepositoryProtocol {
             self?.cachedFacilityDataSet = dataSet
         })
     }
+    
+    func searchFacilities(keyword: String) -> Single<[FitnessFacility]> {
+        sportsRepository.searchFacilities(
+            keyword: keyword,
+            limit: 50,
+            offset: 0,
+            order: .ascending,
+            searchType: .facilityName
+        )
+        .map { page in
+            page.items.compactMap(Self.makeFitnessFacility)
+        }
+    }
 
     func fetchPrograms(for facilities: [FitnessFacility]) -> Single<[FitnessFacility]> {
         // class_information.public_facility_id로 시설과 프로그램을 매핑
