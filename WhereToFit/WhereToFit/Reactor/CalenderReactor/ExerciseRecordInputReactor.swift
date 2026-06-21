@@ -107,6 +107,9 @@ final class ExerciseRecordInputReactor: Reactor {
         var isDurationPickerVisible = false
         var selectedDuration = DurationValue(hour: 0, minute: 0, second: 0)
         var confirmedDuration = DurationValue(hour: 0, minute: 0, second: 0)
+        var isSaveButtonEnabled: Bool {
+            appliedExerciseName?.isEmpty == false && confirmedDuration.timeInterval > 0
+        }
         @Pulse var didSave: Bool?
     }
 

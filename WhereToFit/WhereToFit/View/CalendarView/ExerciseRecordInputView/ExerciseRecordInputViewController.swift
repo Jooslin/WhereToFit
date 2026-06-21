@@ -109,6 +109,13 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .disposed(by: disposeBag)
 
         reactor.state
+            .map(\.isSaveButtonEnabled)
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind(to: exerciseRecordInputView.saveButton.rx.isEnabled)
+            .disposed(by: disposeBag)
+
+        reactor.state
             .map(\.selectedDate)
             .distinctUntilChanged()
             .observe(on: MainScheduler.instance)
