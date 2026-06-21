@@ -18,7 +18,9 @@ final class NotificationCenterViewController: UIViewController, Stepper {
     private let notificationCenterView = NotificationCenterView()
     private let disposeBag = DisposeBag()
     private let settingsStore = ProgramReminderSettingsStore.shared
+    private let historyStore = NotificationHistoryStore.shared
     private var latestNotificationStatus = NotificationStatus.allEnabled
+    private var historyItems: [NotificationHistoryItem] = []
 
     override func loadView() {
         view = notificationCenterView
@@ -29,6 +31,7 @@ final class NotificationCenterViewController: UIViewController, Stepper {
 
         navigationController?.navigationBar.isHidden = true
         tabBarController?.tabBar.isHidden = true
+        setupCollectionView()
 
         notificationCenterView.titleView.rx.leftButtonTap
             .bind(with: self) { owner, _ in
@@ -44,12 +47,12 @@ final class NotificationCenterViewController: UIViewController, Stepper {
 
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(refreshNotificationStatus),
+            selector: #selector(refreshNotificationCenterState),
             name: UIApplication.didBecomeActiveNotification,
             object: nil
         )
 
-        refreshNotificationStatus()
+        refreshNotificationCenterState()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -57,11 +60,36 @@ final class NotificationCenterViewController: UIViewController, Stepper {
 
         navigationController?.navigationBar.isHidden = true
         tabBarController?.tabBar.isHidden = true
-        refreshNotificationStatus()
+        refreshNotificationCenterState()
     }
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+    }
+}
+
+extension NotificationCenterViewController: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        historyItems.count
+    }
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        cellForItemAt indexPath: IndexPath
+    ) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: NotificationHistoryCell.reuseIdentifier,
+            for: indexPath
+        ) as? NotificationHistoryCell else {
+            return UICollectionViewCell()
+        }
+
+        let item = historyItems[indexPath.item]
+        cell.configure(
+            item: item,
+            elapsedTimeText: elapsedTimeText(from: item.receivedAt)
+        )
+        return cell
     }
 }
 
@@ -90,7 +118,32 @@ private extension NotificationCenterViewController {
 
     }
 
-    @objc func refreshNotificationStatus() {
+    func setupCollectionView() {
+        notificationCenterView.collectionView.register(
+            NotificationHistoryCell.self,
+            forCellWithReuseIdentifier: NotificationHistoryCell.reuseIdentifier
+        )
+        notificationCenterView.collectionView.dataSource = self
+
+        notificationCenterView.collectionView.rx.itemSelected
+            .bind(with: self) { owner, indexPath in
+                owner.notificationCenterView.collectionView.deselectItem(at: indexPath, animated: true)
+                guard owner.historyItems.indices.contains(indexPath.item),
+                      owner.historyItems[indexPath.item].isProgramNotification else {
+                    return
+                }
+
+                owner.steps.accept(AppStep.registeredPrograms)
+            }
+            .disposed(by: disposeBag)
+    }
+
+    @objc func refreshNotificationCenterState() {
+        refreshNotificationStatus()
+        refreshNotificationHistory()
+    }
+
+    func refreshNotificationStatus() {
         UNUserNotificationCenter.current().getNotificationSettings { [weak self] notificationSettings in
             guard let self else { return }
 
@@ -106,6 +159,21 @@ private extension NotificationCenterViewController {
                     isHidden: status == .allEnabled,
                     title: status.warningTitle
                 )
+            }
+        }
+    }
+
+    func refreshNotificationHistory() {
+        UNUserNotificationCenter.current().getDeliveredNotifications { [weak self] notifications in
+            guard let self else { return }
+
+            self.historyStore.merge(notifications: notifications)
+            let items = self.historyStore.load()
+
+            DispatchQueue.main.async {
+                self.historyItems = items
+                self.notificationCenterView.updateNotificationHistory(isEmpty: items.isEmpty)
+                self.notificationCenterView.collectionView.reloadData()
             }
         }
     }
@@ -132,6 +200,21 @@ private extension NotificationCenterViewController {
 
     func handleEnableNotificationButtonTap() {
         steps.accept(AppStep.notificationSetting)
+    }
+
+    func elapsedTimeText(from date: Date) -> String {
+        let elapsedSeconds = max(0, Int(Date().timeIntervalSince(date)))
+
+        switch elapsedSeconds {
+        case 0..<60:
+            return "방금 전"
+        case 60..<3600:
+            return "\(elapsedSeconds / 60)분 전"
+        case 3600..<86400:
+            return "\(elapsedSeconds / 3600)시간 전"
+        default:
+            return "\(elapsedSeconds / 86400)일 전"
+        }
     }
 }
 

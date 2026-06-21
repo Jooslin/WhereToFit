@@ -7,12 +7,18 @@
 
 import UIKit
 import CoreData
+import UserNotifications
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     private let coreDataStack = CoreDataStack.shared
+    private let programReminderScheduler = ProgramReminderScheduler.shared // 프로그램 알림 예약 담당
+    private let registeredProgramReminderRepository = CoreDataRegisteredProgramRepository() // 사용자가 등록한 프로그램 저장소
+    private let notificationHistoryStore = NotificationHistoryStore.shared
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        UNUserNotificationCenter.current().delegate = self
+        rescheduleRegisteredProgramStartReminders()
         return true
     }
 
@@ -42,4 +48,34 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         coreDataStack.saveContext()
     }
 
+}
+
+private extension AppDelegate {
+    // 알림 재예약 함수
+    func rescheduleRegisteredProgramStartReminders() {
+        programReminderScheduler.rescheduleStartReminders(
+            using: registeredProgramReminderRepository
+        ) { _ in }
+    }
+}
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        notificationHistoryStore.save(notification: notification)
+        completionHandler([.banner, .list, .sound])
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        notificationHistoryStore.save(notification: response.notification)
+        NotificationNavigationStepper.shared.routeToRegisteredProgramsIfProgramNotification(response.notification)
+        completionHandler()
+    }
 }
