@@ -164,7 +164,7 @@ extension LocationView {
     
     nonisolated
     enum Item: Hashable {
-        case location(Location)
+        case location(UserLocation)
         case button
     }
 }
@@ -182,7 +182,7 @@ extension Reactive where Base: LocationView {
         base.currentLocationButton.rx.tap
     }
     
-    var listCellSelected: Observable<Location> {
+    var listCellSelected: Observable<UserLocation> {
         base.collectionView.rx.itemSelected
             .compactMap { indexPath in
                 guard case LocationView.Item.location(let location)? = base.dataSource.itemIdentifier(for: indexPath) else {

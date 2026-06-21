@@ -88,7 +88,7 @@ final class LocationEditListCell: LocationListCell {
         }
     }
     
-    override func configure(_ location: Location) {
+    override func configure(_ location: UserLocation) {
         super.configure(location)
         contentView.backgroundColor = .white
     }

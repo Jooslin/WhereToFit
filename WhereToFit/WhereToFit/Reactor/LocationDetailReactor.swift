@@ -32,7 +32,7 @@ final class LocationDetailReactor: BaseReactor {
         var address: String?
         var buttonType: Location.LocationButtonType?
         var name: String?
-        var selectedLocation: Location?
+        var selectedLocation: UserLocation?
         
         var registerButtonTitle: String {
             selectedLocation == nil ? "등록하기" : "수정하기"
@@ -46,11 +46,11 @@ final class LocationDetailReactor: BaseReactor {
         @Pulse var updateResult: Bool?
     }
     
-    init(location: Location?) {
+    init(location: UserLocation?) {
         if let location {
             self.initialState = State(
                 address: location.address,
-                buttonType: location.buttonType,
+                buttonType: location.kind.buttonType,
                 name: location.name,
                 selectedLocation: location
             )
@@ -125,5 +125,18 @@ extension LocationDetailReactor {
         //TODO: 현재 위치 뱉는 로직
         
         return .just(.setAddress("현재 주소"))
+    }
+}
+
+private extension UserLocationKind {
+    var buttonType: Location.LocationButtonType {
+        switch self {
+        case .home:
+            return .myHome
+        case .office:
+            return .office
+        case .custom:
+            return .additional
+        }
     }
 }

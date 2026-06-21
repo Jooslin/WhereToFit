@@ -39,7 +39,7 @@ final class HomeReactor: BaseReactor {
     }
     
     //MARK: Properties & Initialize
-    private let userStore: UserStore
+    private let userStore: UserStoreProtocol
     private let dateService: DateService
     private let weatherRepository: WeatherRepositoryProtocol
     private let sportsRepository: SportsRepositoryProtocol
@@ -50,7 +50,7 @@ final class HomeReactor: BaseReactor {
     private let generateHomeRecommendationCopyUseCase: GenerateHomeRecommendationCopyUseCase
     
     init(
-        userStore: UserStore = UserStore(),
+        userStore: UserStoreProtocol,
         dateService: DateService,
         weatherRepository: WeatherRepositoryProtocol,
         sportsRepository: SportsRepositoryProtocol,
@@ -160,6 +160,11 @@ extension HomeReactor {
             .flatMap { [weak self] context -> Observable<Mutation> in
                 guard let self else { return .empty() }
                 
+                self.userStore.setProfile(context.profile)
+                if let location = context.location {
+                    self.userStore.setCurrnetLocation(location)
+                }
+                
                 let address = context.location?.address ?? Self.defaultLocationAddress
                 let locationTitle = Self.locationTitle(from: address)
                 let programSectionTitle = context.didCompleteOnboarding ? Self.pendingCategoryRecommendationTitle : Self.defaultProgramSectionTitle
@@ -177,6 +182,8 @@ extension HomeReactor {
             }
             .catch { [weak self] _ in
                 guard let self else { return .just(.setLoading(false)) }
+                
+                self.userStore.setProfile(nil)
                 
                 return Observable.concat([
                     .just(.setUserProfile(nil)),

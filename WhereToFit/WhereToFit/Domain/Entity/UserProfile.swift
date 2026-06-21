@@ -24,7 +24,7 @@ nonisolated struct UserProfile: Equatable, Sendable {
 }
 
 // 유저 장소 저장 
-nonisolated struct UserLocation: Equatable, Sendable {
+nonisolated struct UserLocation: Hashable, Sendable {
     let id: UUID
     let userProfileID: UUID
     let name: String
@@ -37,7 +37,7 @@ nonisolated struct UserLocation: Equatable, Sendable {
     let updatedAt: Date
 }
 
-nonisolated enum UserLocationKind: String, Equatable, Sendable {
+nonisolated enum UserLocationKind: String, Hashable, Sendable {
     case home
     case office
     case custom
