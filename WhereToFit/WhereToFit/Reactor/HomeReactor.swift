@@ -46,6 +46,7 @@ final class HomeReactor: BaseReactor {
     private let fetchUserProfileUseCase: FetchUserProfileUseCase
     private let fetchSelectedUserLocationUseCase: FetchSelectedUserLocationUseCase
     private let recommendSportsUseCase: RecommendSportsUseCase
+    private let fetchHomeProgramRecommendationsUseCase: FetchHomeProgramRecommendationsUseCase
     private let generateHomeRecommendationCopyUseCase: GenerateHomeRecommendationCopyUseCase
     
     init(
@@ -62,6 +63,7 @@ final class HomeReactor: BaseReactor {
         recommendSportsUseCase: RecommendSportsUseCase = RecommendSportsUseCase(
             repository: SportRecommendationRuleRepository()
         ),
+        fetchHomeProgramRecommendationsUseCase: FetchHomeProgramRecommendationsUseCase? = nil,
         generateHomeRecommendationCopyUseCase: GenerateHomeRecommendationCopyUseCase = GenerateHomeRecommendationCopyUseCase(
             repository: HomeRecommendationCopyRepository()
         )
@@ -73,6 +75,10 @@ final class HomeReactor: BaseReactor {
         self.fetchUserProfileUseCase = fetchUserProfileUseCase
         self.fetchSelectedUserLocationUseCase = fetchSelectedUserLocationUseCase
         self.recommendSportsUseCase = recommendSportsUseCase
+        self.fetchHomeProgramRecommendationsUseCase = fetchHomeProgramRecommendationsUseCase ?? FetchHomeProgramRecommendationsUseCase(
+            sportsRepository: sportsRepository,
+            recommendSportsUseCase: recommendSportsUseCase
+        )
         self.generateHomeRecommendationCopyUseCase = generateHomeRecommendationCopyUseCase
     }
     
@@ -166,7 +172,7 @@ extension HomeReactor {
                     self.makeWeatherSection(location: context.location),
                     self.makeRecommendationContent(context: context),
                     self.makeOnboardingSection(context: context),
-                    self.makeProgramSection()
+                    self.makeProgramSection(context: context)
                 ])
             }
             .catch { [weak self] _ in
@@ -180,7 +186,7 @@ extension HomeReactor {
                     self.makeWeatherSection(location: nil),
                     self.makeRecommendationContent(context: HomeContext(profile: nil, location: nil)),
                     self.makeOnboardingSection(context: HomeContext(profile: nil, location: nil)),
-                    self.makeProgramSection()
+                    self.makeProgramSection(context: HomeContext(profile: nil, location: nil))
                 ])
             }
     }
@@ -274,51 +280,26 @@ extension HomeReactor {
         return .just(.setOnboardingSectionItem(item))
     }
     
-    private func makeProgramSection() -> Observable<Mutation> {
-        sportsRepository.fetchPrograms(limit: 5, offset: 0, order: .ascending)
+    private func makeProgramSection(context: HomeContext) -> Observable<Mutation> {
+        fetchHomeProgramRecommendationsUseCase.execute(
+            profile: context.profile,
+            location: context.location
+        )
             .asObservable()
-            .flatMap { [sportsRepository] page -> Observable<Mutation> in
-                let itemObservables: [Observable<HomeCollectionView.Item?>] = page.items
-                    .map { program -> Observable<HomeCollectionView.Item?> in
-                    guard let publicFacilityID = program.publicFacilityID?.trimmingCharacters(in: .whitespacesAndNewlines),
-                          !publicFacilityID.isEmpty else {
-                        return .just(nil)
-                    }
-                    
-                    return sportsRepository.searchFacilities(
-                        keyword: publicFacilityID,
-                        limit: 1,
-                        offset: 0,
-                        order: .ascending,
-                        searchType: .facilityID
+            .map { programs in
+                let items = programs.map { recommendedProgram in
+                    HomeCollectionView.Item.program(
+                        HomeCollectionView.ProgramSectionItem(
+                            imageName: recommendedProgram.program.sportsCategory.imageName,
+                            matchRate: recommendedProgram.matchRate.map(Double.init),
+                            place: Self.place(for: recommendedProgram.facility),
+                            name: recommendedProgram.program.className ?? recommendedProgram.program.sport ?? "",
+                            facility: recommendedProgram.facility
+                        )
                     )
-                        .map { page -> HomeCollectionView.Item? in
-                            guard let facility = page.items.first else {
-                                return nil
-                            }
-                            
-                            let item = HomeCollectionView.ProgramSectionItem(
-                                imageName: program.sportsCategory.imageName,
-                                matchRate: 0,
-                                place: Self.place(for: facility),
-                                name: program.className ?? program.sport ?? "",
-                                facility: facility
-                            )
-                            
-                            return .program(item)
-                        }
-                        .asObservable()
-                        .catch { _ in .just(nil) }
                 }
                 
-                guard !itemObservables.isEmpty else {
-                    return .just(.setProgramSectionItem([]))
-                }
-                
-                return Observable.zip(itemObservables) // Observable<[HomeCollectionView.Item?]>
-                    .map { items in
-                        Mutation.setProgramSectionItem(items.compactMap { $0 })
-                    }
+                return .setProgramSectionItem(items)
             }
             .catch { _ in .just(.setProgramSectionItem([])) }
     }
@@ -520,6 +501,25 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
         )
     }
     
+    func fetchFacilities(
+        latitudeRange: ClosedRange<Double>,
+        longitudeRange: ClosedRange<Double>,
+        limit: Int,
+        offset: Int,
+        order: SearchOrder
+    ) -> RxSwift.Single<SupabasePage<Facility>> {
+        let filteredFacilities = sampleFacilities.filter { facility in
+            guard let latitude = facility.latitude,
+                  let longitude = facility.longitude else {
+                return false
+            }
+            
+            return latitudeRange.contains(latitude) && longitudeRange.contains(longitude)
+        }
+        
+        return Single.just(page(from: filteredFacilities, limit: limit, offset: offset, order: order))
+    }
+    
     func searchFacilities(
         keyword: String,
         limit: Int,
@@ -534,6 +534,10 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
                 return facility.id == trimmedKeyword
             case .facilityName:
                 return facility.facilityName?.localizedCaseInsensitiveContains(trimmedKeyword) == true
+            case .roadAddress:
+                return facility.roadAddress?.localizedCaseInsensitiveContains(trimmedKeyword) == true
+            case .facilityLocation:
+                return false
             case .className:
                 return false
             }
@@ -562,11 +566,34 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
     }
     
     func searchPrograms(keyword: String, limit: Int, offset: Int, order: SearchOrder) -> RxSwift.Single<SupabasePage<Program>> {
+        searchPrograms(
+            keyword: keyword,
+            limit: limit,
+            offset: offset,
+            order: order,
+            searchType: .className
+        )
+    }
+    
+    func searchPrograms(
+        keyword: String,
+        limit: Int,
+        offset: Int,
+        order: SearchOrder,
+        searchType: NetworkService.SearchType
+    ) -> RxSwift.Single<SupabasePage<Program>> {
         let trimmedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
         let filteredPrograms = trimmedKeyword.isEmpty ? samplePrograms : samplePrograms.filter { program in
-            program.className?.localizedCaseInsensitiveContains(trimmedKeyword) == true ||
-            program.sport?.localizedCaseInsensitiveContains(trimmedKeyword) == true ||
-            program.facilityName?.localizedCaseInsensitiveContains(trimmedKeyword) == true
+            switch searchType {
+            case .className:
+                return program.className?.localizedCaseInsensitiveContains(trimmedKeyword) == true ||
+                program.sport?.localizedCaseInsensitiveContains(trimmedKeyword) == true ||
+                program.facilityName?.localizedCaseInsensitiveContains(trimmedKeyword) == true
+            case .facilityLocation:
+                return program.facilityLocation?.localizedCaseInsensitiveContains(trimmedKeyword) == true
+            case .facilityID, .facilityName, .roadAddress:
+                return false
+            }
         }
         
         return Single.just(page(from: filteredPrograms, limit: limit, offset: offset, order: order))

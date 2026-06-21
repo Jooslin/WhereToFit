@@ -480,6 +480,8 @@ extension NetworkService {
     enum SearchType: String {
         case facilityID = "id"
         case facilityName = "facility_name"
+        case roadAddress = "road_address"
+        case facilityLocation = "facility_location"
         case className = "class_name"
     }
 }

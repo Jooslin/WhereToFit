@@ -21,12 +21,30 @@ final class RecommendSportsUseCase {
     }
     
     func execute(profile: UserProfile) -> Single<[RecommendedSport]> {
+        executePersonalizedScores(profile: profile)
+            .map(Self.visibleRecommendations)
+    }
+    
+    func executePersonalizedScores(profile: UserProfile) -> Single<[RecommendedSport]> {
         repository.fetchActiveRules()
             .map { [calendar] rules in
-                Self.recommendSports(
+                Self.scoredSports(
                     profile: profile,
                     rules: rules,
-                    calendar: calendar
+                    calendar: calendar,
+                    includesPersonalization: true
+                )
+            }
+    }
+    
+    func executeCategory(profile: UserProfile) -> Single<[RecommendedSport]> {
+        repository.fetchActiveRules()
+            .map { [calendar] rules in
+                Self.scoredSports(
+                    profile: profile,
+                    rules: rules,
+                    calendar: calendar,
+                    includesPersonalization: false
                 )
             }
     }
@@ -39,17 +57,23 @@ private extension RecommendSportsUseCase {
     static let maximumVisibleRecommendationCount = 8
     static let preferredCategoryBonus = 5
     
-    static func recommendSports(
+    static func scoredSports(
         profile: UserProfile,
         rules: [SportRecommendationRule],
-        calendar: Calendar
+        calendar: Calendar,
+        includesPersonalization: Bool
     ) -> [RecommendedSport] {
-        let scoredSports = rules
+        rules
             .map { rule in
                 RecommendedSport(
                     sportName: rule.sportName,
                     sportsCategory: rule.sportsCategory,
-                    matchRate: matchRate(profile: profile, rule: rule, calendar: calendar)
+                    matchRate: matchRate(
+                        profile: profile,
+                        rule: rule,
+                        calendar: calendar,
+                        includesPersonalization: includesPersonalization
+                    )
                 )
             }
             .sorted {
@@ -59,7 +83,9 @@ private extension RecommendSportsUseCase {
                 
                 return $0.matchRate > $1.matchRate
             }
-        
+    }
+    
+    static func visibleRecommendations(from scoredSports: [RecommendedSport]) -> [RecommendedSport] {
         var recommendations = scoredSports.filter { $0.matchRate >= primaryThreshold }
         if recommendations.count < minimumRecommendationCount {
             recommendations = scoredSports.filter { $0.matchRate >= fallbackThreshold }
@@ -71,22 +97,32 @@ private extension RecommendSportsUseCase {
     static func matchRate(
         profile: UserProfile,
         rule: SportRecommendationRule,
-        calendar: Calendar
+        calendar: Calendar,
+        includesPersonalization: Bool
     ) -> Int {
         let ageScore = rule.ageWeights[ageGroup(for: profile.birthDate, calendar: calendar)] ?? 0
         let experienceScore = profile.exerciseExperience
             .map { rule.experienceWeights[$0.rawValue] ?? 0 } ?? 0
         let goalScore = profile.exerciseGoal
             .map { rule.goalWeights[goalKey(for: $0)] ?? 0 } ?? 0
-        let bodyPartScore = bodyPartSuitabilityScore(
-            discomfortBodyParts: profile.discomfortBodyParts,
-            riskWeights: rule.bodyPartRiskWeights
-        )
         
-        let baseScore = Double(ageScore + experienceScore + goalScore + bodyPartScore) / 4.0
-        let bonus = profile.preferredSportsCategories.contains(rule.sportsCategory)
-            ? preferredCategoryBonus
-            : 0
+        let scores: [Int]
+        let bonus: Int
+        if includesPersonalization {
+            let bodyPartScore = bodyPartSuitabilityScore(
+                discomfortBodyParts: profile.discomfortBodyParts,
+                riskWeights: rule.bodyPartRiskWeights
+            )
+            scores = [ageScore, experienceScore, goalScore, bodyPartScore]
+            bonus = profile.preferredSportsCategories.contains(rule.sportsCategory)
+                ? preferredCategoryBonus
+                : 0
+        } else {
+            scores = [ageScore, experienceScore, goalScore]
+            bonus = 0
+        }
+        
+        let baseScore = Double(scores.reduce(0, +)) / Double(scores.count)
         
         return min(100, Int((baseScore + Double(bonus)).rounded()))
     }
