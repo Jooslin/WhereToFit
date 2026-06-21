@@ -319,7 +319,7 @@ final class CalendarReactor: BaseReactor {
         ExerciseItem(
             title: record.exerciseName,
             duration: makeDurationText(record.duration),
-            calories: "\(Int(record.calories ?? 0))칼로리",
+            calories: "\(Int(calories(from: record).rounded()))칼로리",
             sportsCategoryRawValue: record.sportsCategoryRawValue
         )
     }
@@ -413,7 +413,7 @@ private extension CalendarReactor {
         )
     }
 
-    static func calories(from record: ExerciseRecord) -> Double {
+    nonisolated static func calories(from record: ExerciseRecord) -> Double {
         if let calories = record.calories {
             return calories
         }

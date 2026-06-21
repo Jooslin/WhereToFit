@@ -77,7 +77,7 @@ enum SportsCategory: String, CaseIterable, Hashable, Sendable {
         }
     }
 
-    var estimatedCaloriesPerMinute: Double {
+    nonisolated var estimatedCaloriesPerMinute: Double {
         switch self {
         case .health: 6.0
         case .fitness: 7.0
