@@ -11,9 +11,14 @@ import RxSwift
 
 final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
     private let context: NSManagedObjectContext
+    private let fetchContext: NSManagedObjectContext
 
-    init(context: NSManagedObjectContext = CoreDataStack.shared.viewContext) {
+    init(
+        context: NSManagedObjectContext = CoreDataStack.shared.viewContext,
+        fetchContext: NSManagedObjectContext = CoreDataStack.shared.makeBackgroundContext()
+    ) {
         self.context = context
+        self.fetchContext = fetchContext
     }
 
     func fetchWeightRecord(on date: Date) -> Single<WeightRecord?> {
@@ -139,10 +144,10 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
         predicate: NSPredicate?,
         mapper: @escaping (NSManagedObject) -> T?
     ) -> Single<[T]> {
-        Single.create { [context] single in
-            context.perform {
+        Single.create { [fetchContext] single in
+            fetchContext.perform {
                 do {
-                    let objects = try context.fetchObjects(
+                    let objects = try fetchContext.fetchObjects(
                         entityName: entityName,
                         predicate: predicate,
                         sortDescriptors: [NSSortDescriptor(key: "date", ascending: true)]
@@ -162,10 +167,10 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
         predicate: NSPredicate?,
         mapper: @escaping (NSManagedObject) -> T?
     ) -> Single<T?> {
-        Single.create { [context] single in
-            context.perform {
+        Single.create { [fetchContext] single in
+            fetchContext.perform {
                 do {
-                    let object = try context.fetchObjects(
+                    let object = try fetchContext.fetchObjects(
                         entityName: entityName,
                         predicate: predicate,
                         sortDescriptors: [NSSortDescriptor(key: "updatedAt", ascending: false)],
