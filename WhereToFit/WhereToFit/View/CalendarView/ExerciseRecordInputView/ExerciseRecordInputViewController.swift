@@ -31,6 +31,7 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.rx.customButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ExerciseRecordInputReactor.Action.customButtonTapped }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
@@ -41,6 +42,7 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.rx.exerciseNameFieldTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ExerciseRecordInputReactor.Action.exerciseNameFieldTapped }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
@@ -62,16 +64,19 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.rx.exerciseSelectionApplyButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ExerciseRecordInputReactor.Action.exerciseSelectionApplyButtonTapped }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.rx.exerciseSelectionCloseButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ExerciseRecordInputReactor.Action.exerciseSelectionCloseButtonTapped }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.rx.durationFieldTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ExerciseRecordInputReactor.Action.durationFieldTapped }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
@@ -82,16 +87,19 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.rx.durationPickerSelectButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ExerciseRecordInputReactor.Action.durationPickerSelectButtonTapped }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.rx.durationPickerCloseButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ExerciseRecordInputReactor.Action.durationPickerCloseButtonTapped }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.closeButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.dismiss(animated: true)
             }
@@ -104,6 +112,7 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.saveButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ExerciseRecordInputReactor.Action.saveButtonTapped }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)

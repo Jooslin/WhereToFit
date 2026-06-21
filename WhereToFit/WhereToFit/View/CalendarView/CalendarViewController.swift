@@ -62,6 +62,7 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
             .disposed(by: disposeBag)
 
         calendarView.rx.todayButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { CalendarReactor.Action.moveToToday }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
@@ -72,12 +73,14 @@ final class CalendarViewController: BaseViewController<CalendarReactor> {
             .disposed(by: disposeBag)
 
         calendarView.rx.weightCardTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.calendarWeightInput)
             }
             .disposed(by: disposeBag)
 
         calendarView.rx.conditionCardTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.calendarConditionInput)
             }
@@ -191,6 +194,7 @@ extension CalendarViewController: UICollectionViewDataSource {
         }
 
         footerView.rx.recordButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.calendarExerciseRecordInput)
             }

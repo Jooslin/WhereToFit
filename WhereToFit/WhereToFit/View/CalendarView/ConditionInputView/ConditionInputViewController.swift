@@ -43,6 +43,7 @@ final class ConditionInputViewController: UIViewController {
 private extension ConditionInputViewController {
     func bind() {
         conditionInputView.closeButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.dismiss(animated: true)
             }
@@ -69,6 +70,7 @@ private extension ConditionInputViewController {
         }
 
         conditionInputView.saveButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.reactor.action.onNext(.updateCondition(owner.conditionInputView.selectedCondition))
                 owner.dismiss(animated: true)

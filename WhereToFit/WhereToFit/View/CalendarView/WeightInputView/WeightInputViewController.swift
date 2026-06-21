@@ -45,6 +45,7 @@ final class WeightInputViewController: UIViewController {
 private extension WeightInputViewController {
     func bind() {
         weightInputView.closeButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.dismiss(animated: true)
             }
@@ -57,6 +58,7 @@ private extension WeightInputViewController {
             .disposed(by: disposeBag)
 
         weightInputView.saveButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.reactor.action.onNext(.updateWeight(owner.weightInputView.selectedWeight))
                 owner.dismiss(animated: true)
