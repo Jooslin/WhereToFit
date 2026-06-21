@@ -78,8 +78,8 @@ extension FacilitySearchListCell {
             $0.spacing = 16
             $0.alignment = .center
             
-            labelStack.setContentHuggingPriority(.defaultLow, for: .horizontal)
-            labelStack.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            distanceLabel.setContentHuggingPriority(.required, for: .horizontal)
+            distanceLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         }
         
         contentView.addSubview(stackView)
