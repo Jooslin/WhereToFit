@@ -98,6 +98,7 @@ extension AppFlow {
     private func navigateToOnboarding() -> FlowContributors {
         let userProfileRepository = CoreDataUserProfileRepository()
         let userLocationRepository = CoreDataUserLocationRepository()
+        let calendarRecordRepository = CoreDataCalendarRecordRepository()
         let vc = OnboardingViewController(
             reactor: OnboardingReactor(
                 dateService: dateService,
@@ -109,6 +110,9 @@ extension AppFlow {
                 ),
                 addUserLocationUseCase: AddUserLocationUseCase(
                     repository: userLocationRepository
+                ),
+                saveWeightRecordUseCase: SaveWeightRecordUseCase(
+                    repository: calendarRecordRepository
                 )
             )
         )

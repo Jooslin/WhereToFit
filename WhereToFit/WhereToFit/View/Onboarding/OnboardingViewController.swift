@@ -412,7 +412,8 @@ extension OnboardingViewController {
             dateService: DateService(),
             addressCoordinateUseCase: AddressCoordinateUseCase(repository: NaverMapSearchRepository()),
             upsertUserProfileUseCase: UpsertUserProfileUseCase(repository: CoreDataUserProfileRepository()),
-            addUserLocationUseCase: AddUserLocationUseCase(repository: CoreDataUserLocationRepository())
+            addUserLocationUseCase: AddUserLocationUseCase(repository: CoreDataUserLocationRepository()),
+            saveWeightRecordUseCase: SaveWeightRecordUseCase(repository: CoreDataCalendarRecordRepository())
         )
     )
 }

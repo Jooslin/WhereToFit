@@ -120,17 +120,20 @@ final class OnboardingReactor: BaseReactor {
     private let addressCoordinateUseCase: AddressCoordinateUseCase
     private let upsertUserProfileUseCase: UpsertUserProfileUseCase
     private let addUserLocationUseCase: AddUserLocationUseCase
+    private let saveWeightRecordUseCase: SaveWeightRecordUseCase
 
     init(
         dateService: DateService,
         addressCoordinateUseCase: AddressCoordinateUseCase,
         upsertUserProfileUseCase: UpsertUserProfileUseCase,
-        addUserLocationUseCase: AddUserLocationUseCase
+        addUserLocationUseCase: AddUserLocationUseCase,
+        saveWeightRecordUseCase: SaveWeightRecordUseCase
     ) {
         self.validatePersonalInfoUseCase = ValidateOnboardingPersonalInfoUseCase(dateService: dateService)
         self.addressCoordinateUseCase = addressCoordinateUseCase
         self.upsertUserProfileUseCase = upsertUserProfileUseCase
         self.addUserLocationUseCase = addUserLocationUseCase
+        self.saveWeightRecordUseCase = saveWeightRecordUseCase
     }
 
     func mutate(action: Action) -> Observable<Mutation> {
@@ -360,6 +363,14 @@ extension OnboardingReactor {
         address: String?
     ) -> Single<SaveResult> {
         upsertUserProfileUseCase.execute(profileInput)
+            .flatMap { [saveWeightRecordUseCase] profile -> Single<UserProfile> in
+                guard let initialWeight = profileInput.initialWeight else {
+                    return .just(profile)
+                }
+
+                return saveWeightRecordUseCase.execute(date: Date(), value: initialWeight)
+                    .map { _ in profile }
+            }
             .flatMap { [addressCoordinateUseCase, addUserLocationUseCase, logger] profile -> Single<SaveResult> in
                 guard let address,
                       address.isEmpty == false else {
