@@ -66,9 +66,9 @@ final class HomeFlow: Flow {
         case .locationDetail(let mode):
             let reactor = switch mode {
             case .create:
-                LocationDetailReactor(location: nil)
+                LocationDetailReactor(userStore: userStore, location: nil)
             case .edit(let location):
-                LocationDetailReactor(location: location)
+                LocationDetailReactor(userStore: userStore, location: location)
             }
             let vc = LocationDetailViewController(reactor: reactor)
             navigationController.pushViewController(vc, animated: true)

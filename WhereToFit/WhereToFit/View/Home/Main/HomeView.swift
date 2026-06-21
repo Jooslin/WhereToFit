@@ -12,7 +12,9 @@ import RxSwift
 import Then
 
 final class HomeView: UIView {
-    fileprivate let titleView = HomeTitleView()
+    fileprivate let titleView = HomeTitleView().then {
+        $0.leftButton.isUserInteractionEnabled = false
+    }
     private lazy var collectionView = HomeCollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout())
     private lazy var dataSource = makeCollectionViewDiffableDataSource(collectionView)
     private var programHeaderTitle = "주변 프로그램"

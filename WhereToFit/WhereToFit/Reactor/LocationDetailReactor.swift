@@ -11,6 +11,11 @@ import Foundation
 final class LocationDetailReactor: BaseReactor {
     let initialState: State
     
+    private let userStore: UserStoreProtocol
+    private let addressCoordinateUseCase: AddressCoordinateUseCase
+    private let addUserLocationUseCase: AddUserLocationUseCase
+    private let updateUserLocationUseCase: UpdateUserLocationUseCase
+    
     enum Action {
         case update
         case updateAddress(String)
@@ -46,7 +51,24 @@ final class LocationDetailReactor: BaseReactor {
         @Pulse var updateResult: Bool?
     }
     
-    init(location: UserLocation?) {
+    init(
+        userStore: UserStoreProtocol,
+        location: UserLocation?,
+        addressCoordinateUseCase: AddressCoordinateUseCase = AddressCoordinateUseCase(
+            repository: NaverMapSearchRepository()
+        ),
+        addUserLocationUseCase: AddUserLocationUseCase = AddUserLocationUseCase(
+            repository: CoreDataUserLocationRepository()
+        ),
+        updateUserLocationUseCase: UpdateUserLocationUseCase = UpdateUserLocationUseCase(
+            repository: CoreDataUserLocationRepository()
+        )
+    ) {
+        self.userStore = userStore
+        self.addressCoordinateUseCase = addressCoordinateUseCase
+        self.addUserLocationUseCase = addUserLocationUseCase
+        self.updateUserLocationUseCase = updateUserLocationUseCase
+        
         if let location {
             self.initialState = State(
                 address: location.address,
@@ -105,20 +127,22 @@ final class LocationDetailReactor: BaseReactor {
 }
 
 extension LocationDetailReactor {
-    //TODO: location 저장 로직 구현 필요
     private func updateLocation() -> Observable<Mutation> {
+        let address = currentState.address?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard address.isEmpty == false else {
+            return .just(.setUpdateResult(false))
+        }
         
-        //TODO: latitude, longitude 찾아야함
-        let location = Location(
-            buttonType: currentState.buttonType ?? .additional,
-            name: currentState.name ?? currentState.address ?? "",
-            address: currentState.address ?? "",
-            isSelected: currentState.selectedLocation?.isSelected ?? false,
-            latitude: 37,
-            longitude: 127
-        )
-        
-        return .just(.setUpdateResult(true))
+        return userStore.userProfile
+            .take(1)
+            .flatMap { [weak self] profile -> Observable<Mutation> in
+                guard let self,
+                      let profile else {
+                    return .just(.setUpdateResult(false))
+                }
+                
+                return self.saveLocation(address: address, userProfileID: profile.id)
+            }
     }
     
     private func currentLocation() -> Observable<Mutation> {
@@ -126,6 +150,60 @@ extension LocationDetailReactor {
         
         return .just(.setAddress("현재 주소"))
     }
+}
+
+private extension LocationDetailReactor {
+    func saveLocation(address: String, userProfileID: UUID) -> Observable<Mutation> {
+        addressCoordinateUseCase.execute(address: address)
+            .flatMap { [weak self] coordinate -> Single<UserLocation> in
+                guard let self,
+                      let coordinate else {
+                    return .error(LocationDetailError.coordinateNotFound)
+                }
+                
+                let buttonType = currentState.buttonType ?? currentState.selectedLocation?.kind.buttonType ?? .additional
+                let name = currentState.name ?? currentState.selectedLocation?.name
+                
+                if let selectedLocation = currentState.selectedLocation {
+                    let input = UpdateUserLocationUseCase.Input(
+                        id: selectedLocation.id,
+                        userProfileID: userProfileID,
+                        name: name,
+                        address: address,
+                        latitude: coordinate.latitude,
+                        longitude: coordinate.longitude,
+                        isSelected: selectedLocation.isSelected,
+                        kind: buttonType.userLocationKind,
+                        createdAt: selectedLocation.createdAt
+                    )
+                    
+                    return updateUserLocationUseCase.execute(input)
+                }
+                
+                let input = AddUserLocationUseCase.Input(
+                    userProfileID: userProfileID,
+                    name: name,
+                    address: address,
+                    latitude: coordinate.latitude,
+                    longitude: coordinate.longitude,
+                    isSelected: false,
+                    kind: buttonType.userLocationKind
+                )
+                
+                return addUserLocationUseCase.execute(input)
+            }
+            .asObservable()
+            .do(onNext: { [userStore] location in
+                guard location.isSelected else { return }
+                userStore.setCurrnetLocation(location)
+            })
+            .map { _ in Mutation.setUpdateResult(true) }
+            .catch { _ in .just(.setUpdateResult(false)) }
+    }
+}
+
+private enum LocationDetailError: Error {
+    case coordinateNotFound
 }
 
 private extension UserLocationKind {
@@ -137,6 +215,19 @@ private extension UserLocationKind {
             return .office
         case .custom:
             return .additional
+        }
+    }
+}
+
+private extension Location.LocationButtonType {
+    var userLocationKind: UserLocationKind {
+        switch self {
+        case .myHome:
+            return .home
+        case .office:
+            return .office
+        case .additional:
+            return .custom
         }
     }
 }
