@@ -14,24 +14,37 @@ final class LocationReactor: BaseReactor {
     enum Action {
         case viewWillAppear
         case loadItems
-        case selected(Location)
+        case selected(UserLocation)
         case updateSelection
     }
     
     enum Mutation {
         case setLoading(Bool)
-        case setLocations([Location])
+        case setLocations([UserLocation])
         case setDataSource([LocationView.Item])
-        case setSelectedLocation(Location)
+        case setSelectedLocation(UserLocation?)
         case setUpdateResult(Bool)
     }
     
     struct State {
         var isLoading: Bool = false
         var data: [LocationView.Section: [LocationView.Item]] = [.button:[LocationView.Item.button]]
-        var locations: [Location] = []
-        var selectedLocation: Location = Location(buttonType: .additional, name: "광화문", address: "서울특별시 광화문", isSelected: true, latitude: 37, longitude: 127)
+        var locations: [UserLocation] = []
+        var selectedLocation: UserLocation?
         @Pulse var updateResult: Bool?
+    }
+    
+    private let userStore: UserStoreProtocol
+    private let fetchUserLocationsUseCase: FetchUserLocationsUseCase
+    
+    init(
+        userStore: UserStoreProtocol,
+        fetchUserLocationsUseCase: FetchUserLocationsUseCase = FetchUserLocationsUseCase(
+            repository: CoreDataUserLocationRepository()
+        )
+    ) {
+        self.userStore = userStore
+        self.fetchUserLocationsUseCase = fetchUserLocationsUseCase
     }
     
     func mutate(action: Action) -> Observable<Mutation> {
@@ -83,96 +96,36 @@ final class LocationReactor: BaseReactor {
 }
 
 extension LocationReactor {
-    //TODO: 데이터 가져오기 수정 필요
     private func makeLocationItems() -> Observable<Mutation> {
-        Observable.create { observer in
-            let locations: [Location] = [
-                Location(
-                    buttonType: .myHome,
-                    name: "우리동네체육관",
-                    address: "경상북도 구미시 송정대로 55",
-                    isSelected: true,
-                    latitude: 36.1195,
-                    longitude: 128.3446
-                ),
-                Location(
-                    buttonType: .additional,
-                    name: "구미시민운동장",
-                    address: "경상북도 구미시 박정희로 375",
-                    isSelected: false,
-                    latitude: 36.1107,
-                    longitude: 128.3828
-                ),
-                Location(
-                    buttonType: .additional,
-                    name: "금오산도립공원",
-                    address: "경상북도 구미시 금오산로 400",
-                    isSelected: false,
-                    latitude: 36.1132,
-                    longitude: 128.3087
-                )
-            ]
-            
-            let items = locations.reduce([LocationView.Item]()) {
-                $0 + [LocationView.Item.location($1)]
+        userStore.userProfile
+            .take(1)
+            .flatMap { [fetchUserLocationsUseCase] profile -> Observable<[UserLocation]> in
+                guard let profile else { return .just([]) }
+                
+                return fetchUserLocationsUseCase.execute(userProfileID: profile.id)
+                    .asObservable()
             }
-            
-            let selectedLocation = locations.filter { $0.isSelected }.first ?? Location(buttonType: .additional, name: "광화문", address: "서울특별시 광화문", isSelected: true, latitude: 37, longitude: 127)
-            
-            observer.onNext(.setLocations(locations))
-            observer.onNext(.setDataSource(items))
-            observer.onNext(.setSelectedLocation(selectedLocation))
-            observer.onCompleted()
-            
-            return Disposables.create()
-        }
+            .flatMap { locations -> Observable<Mutation> in
+                let items = locations.map(LocationView.Item.location)
+                
+                return Observable.from([
+                    .setLocations(locations),
+                    .setDataSource(items),
+                    .setSelectedLocation(locations.first { $0.isSelected })
+                ])
+            }
+            .catch { _ in
+                Observable.from([
+                    .setLocations([]),
+                    .setDataSource([]),
+                    .setSelectedLocation(nil)
+                ])
+            }
     }
     
     //TODO: selectedLocation 업데이트 로직 필요
-    private func updateSelectedLocation(_ location: Location) -> Observable<Mutation> {
-        // 여기는 State의 locations만 사용!!
-        // 현재 isSelected = true인 location 찾기
-        // 현재 isSelected location 값을 false로, 파라미터로 받은 location.isSelected = true로 수정
-        // 새로 모든 아이템 받아와서 .setLocations 반환
-            Observable.create { observer in
-                let locations: [Location] = [
-                    Location(
-                        buttonType: .myHome,
-                        name: "우리동네체육관",
-                        address: "경상북도 구미시 송정대로 55",
-                        isSelected: true,
-                        latitude: 36.1195,
-                        longitude: 128.3446
-                    ),
-                    Location(
-                        buttonType: .additional,
-                        name: "구미시민운동장",
-                        address: "경상북도 구미시 박정희로 375",
-                        isSelected: false,
-                        latitude: 36.1107,
-                        longitude: 128.3828
-                    ),
-                    Location(
-                        buttonType: .additional,
-                        name: "금오산도립공원",
-                        address: "경상북도 구미시 금오산로 400",
-                        isSelected: false,
-                        latitude: 36.1132,
-                        longitude: 128.3087
-                    )
-                ]
-                
-                let items = locations.reduce([LocationView.Item]()) {
-                    $0 + [LocationView.Item.location($1)]
-                }
-                
-                observer.onNext(.setLocations(locations))
-                observer.onNext(.setDataSource(items))
-                observer.onNext(.setSelectedLocation(location))
-                observer.onCompleted()
-                
-                return Disposables.create()
-            }
+    private func updateSelectedLocation(_ location: UserLocation) -> Observable<Mutation> {
+        .just(.setSelectedLocation(location))
     }
     
     private func updateSelectedLocationCoreData() -> Observable<Mutation> {

@@ -44,11 +44,33 @@ final class HomeViewController: BaseViewController<HomeReactor> {
             .map { AppStep.programRegistration }
             .bind(to: steps)
             .disposed(by: disposeBag)
+        
+        homeView.rx.surveyButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .map { AppStep.onboarding }
+            .bind(to: steps)
+            .disposed(by: disposeBag)
     }
     
     private func bindState(reactor: HomeReactor) {
         let state = reactor.state
             .asDriver(onErrorJustReturn: .init())
+        
+        state.map(\.locationTitle)
+            .distinctUntilChanged()
+            .drive(with: homeView,
+                   onNext: { homeView, title in
+                homeView.setLocationTitle(title)
+            })
+            .disposed(by: disposeBag)
+        
+        state.map(\.programSectionTitle)
+            .distinctUntilChanged()
+            .drive(with: homeView,
+                   onNext: { homeView, title in
+                homeView.setProgramHeaderTitle(title)
+            })
+            .disposed(by: disposeBag)
         
         state.map(\.data)
             .drive(with: homeView,

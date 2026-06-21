@@ -24,13 +24,18 @@ class ColoredLabel: UILabel {
     enum Style {
         case fill
         case border
+        case onboarding
     }
 
     private let horizontalPadding: CGFloat = 8
     private let verticalPadding: CGFloat = 2
+    private let style: Style
 
     init(text: String, style: Style) {
+        self.style = style
         super.init(frame: .zero)
+        
+        self.text = text
         self.apply(font: .systemFont(ofSize: 12, weight: .regular), color: .primary500, lines: 1)
         self.apply(style: style)
     }
@@ -42,7 +47,13 @@ class ColoredLabel: UILabel {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        layer.cornerRadius = bounds.height / 2
+        
+        switch style {
+        case .fill, .border:
+            layer.cornerRadius = bounds.height / 2
+        case .onboarding:
+            layer.cornerRadius = 4
+        }
         clipsToBounds = true
     }
     
@@ -55,6 +66,9 @@ class ColoredLabel: UILabel {
             backgroundColor = .clear
             layer.borderWidth = 1
             layer.borderColor = UIColor.primary100.cgColor
+        case .onboarding:
+            backgroundColor = .white
+            layer.borderWidth = 0
         }
     }
     
