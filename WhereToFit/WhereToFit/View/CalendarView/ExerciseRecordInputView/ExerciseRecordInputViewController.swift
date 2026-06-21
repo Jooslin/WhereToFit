@@ -76,6 +76,11 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
+        exerciseRecordInputView.rx.durationPickerCloseButtonTap
+            .map { ExerciseRecordInputReactor.Action.durationPickerCloseButtonTapped }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
         exerciseRecordInputView.closeButton.rx.tap
             .bind(with: self) { owner, _ in
                 owner.dismiss(animated: true)

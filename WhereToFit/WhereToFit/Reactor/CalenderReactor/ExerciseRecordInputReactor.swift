@@ -60,6 +60,7 @@ final class ExerciseRecordInputReactor: Reactor {
         case durationFieldTapped
         case durationPickerChanged(DurationValue)
         case durationPickerSelectButtonTapped
+        case durationPickerCloseButtonTapped
         case saveButtonTapped
     }
 
@@ -154,6 +155,9 @@ final class ExerciseRecordInputReactor: Reactor {
                 .just(.setConfirmedDuration(currentState.selectedDuration)),
                 .just(.setDurationPickerVisible(false))
             ])
+
+        case .durationPickerCloseButtonTapped:
+            return .just(.setDurationPickerVisible(false))
 
         case .saveButtonTapped:
             guard let exerciseName = currentState.appliedExerciseName,

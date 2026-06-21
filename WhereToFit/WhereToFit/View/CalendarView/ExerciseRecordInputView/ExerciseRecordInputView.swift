@@ -65,6 +65,7 @@ final class ExerciseRecordInputView: UIView {
         setLayout()
         setExerciseNameSelectionSheet()
         setDurationPicker()
+        setDateField()
         setCustomInputVisible(false)
     }
 
@@ -228,6 +229,11 @@ private extension ExerciseRecordInputView {
         durationField.setReadOnly()
     }
 
+    func setDateField() {
+        dateField.setReadOnly()
+        dateField.isUserInteractionEnabled = false
+    }
+
     func showExerciseNameSelection() {
         endEditing(true)
         guard exerciseNameSelectionSheetView.superview == nil else { return }
@@ -320,6 +326,10 @@ extension Reactive where Base == ExerciseRecordInputView {
 
     var durationPickerSelectButtonTap: ControlEvent<Void> {
         base.durationPickerSheetView.selectButton.rx.tap
+    }
+
+    var durationPickerCloseButtonTap: ControlEvent<Void> {
+        base.durationPickerSheetView.closeButton.rx.tap
     }
 
     var durationPickerChanged: ControlEvent<ExerciseRecordInputReactor.DurationValue> {
