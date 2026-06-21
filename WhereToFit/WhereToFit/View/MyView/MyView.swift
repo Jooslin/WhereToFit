@@ -59,6 +59,7 @@ final class MyView: UIView {
     private let termsOfServiceRow = MyPageMenuRow(title: "이용약관")
     private let locationTermsRow = MyPageMenuRow(title: "위치기반 서비스 이용약관")
     private let openSourceLicenseRow = MyPageMenuRow(title: "오픈소스 라이선스")
+    private let iCloudSyncInfoRow = ICloudSyncInfoRow()
 
     var registeredProgramsAccessoryButton: UIButton {
         registeredProgramsRow.accessoryButton
@@ -100,6 +101,14 @@ final class MyView: UIView {
         openSourceLicenseRow.accessoryButton
     }
 
+    var iCloudSyncInfoButton: UIButton {
+        iCloudSyncInfoRow.accessoryButton
+    }
+
+    func updateICloudStatus(isAvailable: Bool) {
+        iCloudSyncInfoRow.updateStatus(isAvailable: isAvailable)
+    }
+
     private lazy var activityGroup = MenuGroupView(rows: [
         registeredProgramsRow,
         favoriteProgramsRow,
@@ -117,8 +126,8 @@ final class MyView: UIView {
     ])
 
     private lazy var accountGroup = MenuGroupView(rows: [
-        MyPageMenuRow(title: "iCloud 동기화", accessory: .toggle),
-        MyPageMenuRow(title: "Apple 건강 연동", accessory: .toggle)
+        MyPageMenuRow(title: "Apple 건강 연동", accessory: .toggle),
+        iCloudSyncInfoRow
     ])
 
     override init(frame: CGRect) {
@@ -131,6 +140,97 @@ final class MyView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+}
+
+private final class ICloudSyncInfoRow: UIView {
+    private let statusDotView = UIView().then {
+        $0.backgroundColor = .systemRed
+        $0.layer.cornerRadius = 4
+    }
+    private let titleLabel = UILabel(text: "iCloud 동기화", config: .body14Regular)
+    private let statusLabel = UILabel(text: "iCloud 확인 필요", config: .body12Medium, color: .gray500)
+    private let descriptionLabel = UILabel(
+        text: "iCloud 사용 가능 상태이면 기기의 iCloud 로그인 상태에 따라 자동으로 동기화돼요. iCloud 설정은 iPhone 설정 > Apple ID > iCloud에서 확인할 수 있어요.",
+        config: .body12Regular,
+        color: .gray500,
+        lines: 0
+    )
+    private let accessoryView = UIImageView(image: UIImage(resource: .arrowRight)).then {
+        $0.tintColor = .gray200
+        $0.contentMode = .scaleAspectFit
+    }
+    let accessoryButton = UIButton(type: .custom).then {
+        $0.backgroundColor = .clear
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        setLayout()
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+extension ICloudSyncInfoRow {
+    func updateStatus(isAvailable: Bool) {
+        statusDotView.backgroundColor = isAvailable ? .systemGreen : .systemRed
+        statusLabel.text = isAvailable ? "iCloud 사용 가능" : "iCloud 확인 필요"
+    }
+}
+
+private extension ICloudSyncInfoRow {
+    func setLayout() {
+        [
+            statusDotView,
+            titleLabel,
+            statusLabel,
+            descriptionLabel,
+            accessoryView,
+            accessoryButton
+        ].forEach(addSubview)
+
+        snp.makeConstraints {
+            $0.height.equalTo(104)
+        }
+
+        statusDotView.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(12)
+            $0.centerY.equalTo(titleLabel)
+            $0.size.equalTo(8)
+        }
+
+        titleLabel.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(12)
+            $0.leading.equalTo(statusDotView.snp.trailing).offset(6)
+        }
+
+        statusLabel.snp.makeConstraints {
+            $0.leading.equalTo(titleLabel.snp.trailing).offset(8)
+            $0.centerY.equalTo(titleLabel)
+            $0.trailing.lessThanOrEqualTo(accessoryView.snp.leading).offset(-10)
+        }
+
+        descriptionLabel.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(12)
+            $0.top.equalTo(titleLabel.snp.bottom).offset(6)
+            $0.trailing.equalTo(accessoryView.snp.leading).offset(-10)
+        }
+
+        accessoryView.snp.makeConstraints {
+            $0.trailing.equalToSuperview().inset(12)
+            $0.centerY.equalToSuperview()
+            $0.size.equalTo(24)
+        }
+
+        accessoryButton.snp.makeConstraints {
+            $0.verticalEdges.trailing.equalToSuperview()
+            $0.width.equalTo(75)
+        }
     }
 }
 

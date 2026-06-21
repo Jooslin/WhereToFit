@@ -11,7 +11,11 @@ import ReactorKit
 
 final class MyFlow: Flow {
     private let navigationController = UINavigationController()
-    private let myReactor = MyReactor()
+    private let myReactor = MyReactor(
+        fetchICloudSyncStatusUseCase: FetchICloudSyncStatusUseCase(
+            service: ICloudStatusService()
+        )
+    )
     private lazy var myViewController = MyViewController(reactor: myReactor)
     var root: any RxFlow.Presentable { navigationController }
 
