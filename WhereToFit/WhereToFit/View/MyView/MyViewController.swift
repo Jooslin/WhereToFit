@@ -7,6 +7,7 @@
 
 import ReactorKit
 import RxCocoa
+import RxSwift
 import UIKit
 
 final class MyViewController: BaseViewController<MyReactor> {
@@ -24,36 +25,42 @@ final class MyViewController: BaseViewController<MyReactor> {
 
     override func bind(reactor: MyReactor) {
         myView.profileButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.profileManagement)
             }
             .disposed(by: disposeBag)
 
         myView.registeredProgramsAccessoryButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.registeredPrograms)
             }
             .disposed(by: disposeBag)
 
         myView.notificationSettingAccessoryButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.notificationSetting)
             }
             .disposed(by: disposeBag)
 
         myView.favoriteProgramsAccessoryButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.favoritePrograms)
             }
             .disposed(by: disposeBag)
 
         myView.exerciseResultAccessoryButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.exerciseResult)
             }
             .disposed(by: disposeBag)
 
         myView.iCloudSyncInfoButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.openAppSettings()
             }

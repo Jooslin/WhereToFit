@@ -7,6 +7,7 @@
 
 import ReactorKit
 import RxCocoa
+import RxSwift
 import UIKit
 
 final class ExerciseResultViewController: BaseViewController<ExerciseResultReactor> {
@@ -28,12 +29,14 @@ final class ExerciseResultViewController: BaseViewController<ExerciseResultReact
             .disposed(by: disposeBag)
 
         exerciseResultView.titleView.rx.leftButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.pageBack)
             }
             .disposed(by: disposeBag)
 
         exerciseResultView.retryButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.exerciseResultRetry)
             }

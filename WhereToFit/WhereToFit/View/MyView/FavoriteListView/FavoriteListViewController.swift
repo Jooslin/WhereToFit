@@ -7,6 +7,7 @@
 
 import ReactorKit
 import RxCocoa
+import RxSwift
 import UIKit
 
 final class FavoriteListViewController: BaseViewController<FavoriteListReactor> {
@@ -24,6 +25,7 @@ final class FavoriteListViewController: BaseViewController<FavoriteListReactor> 
 
     override func bind(reactor: FavoriteListReactor) {
         favoriteProgramsView.titleView.rx.leftButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.pageBack)
             }
@@ -63,6 +65,8 @@ final class FavoriteListViewController: BaseViewController<FavoriteListReactor> 
 
 private extension FavoriteListViewController {
     func presentRemoveFavoriteAlert(_ item: FavoriteListReactor.FavoriteItem) {
+        guard presentedViewController == nil else { return }
+
         let alert = UIAlertController(
             title: "찜 목록에서 삭제할까요?",
             message: "\(item.name)을(를) 찜 목록에서 삭제합니다.",

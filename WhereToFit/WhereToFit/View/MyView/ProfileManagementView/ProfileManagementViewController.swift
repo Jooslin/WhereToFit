@@ -23,6 +23,7 @@ final class ProfileManagementViewController: BaseViewController<ProfileManagemen
             .disposed(by: disposeBag)
 
         profileManagementView.titleView.rx.leftButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.pageBack)
             }
@@ -63,6 +64,7 @@ final class ProfileManagementViewController: BaseViewController<ProfileManagemen
             .disposed(by: disposeBag)
 
         profileManagementView.saveButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ProfileManagementReactor.Action.save }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
