@@ -143,19 +143,35 @@ private extension ConditionInputView {
         firstRowStackView.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(22)
             $0.leading.equalToSuperview().offset(16)
-            $0.trailing.lessThanOrEqualToSuperview().inset(116)
+            $0.trailing.lessThanOrEqualToSuperview().inset(16)
             $0.height.equalTo(48)
         }
 
         secondRowStackView.snp.makeConstraints {
             $0.top.equalTo(firstRowStackView.snp.bottom).offset(18)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().offset(16)
+            $0.trailing.lessThanOrEqualToSuperview().inset(16)
             $0.height.equalTo(48)
         }
+
+        [
+            veryGoodButton,
+            goodButton,
+            normalButton,
+            badButton,
+            worstButton
+        ].forEach(setConditionButtonSize)
 
         saveButton.snp.makeConstraints {
             $0.horizontalEdges.equalToSuperview().inset(16)
             $0.bottom.equalTo(safeAreaLayoutGuide)
+            $0.height.equalTo(48)
+        }
+    }
+
+    func setConditionButtonSize(_ button: ConditionOptionButton) {
+        button.snp.makeConstraints {
+            $0.width.equalTo(button.intrinsicContentSize.width)
             $0.height.equalTo(48)
         }
     }
