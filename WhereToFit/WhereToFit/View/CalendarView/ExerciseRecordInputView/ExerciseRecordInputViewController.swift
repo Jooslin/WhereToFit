@@ -12,6 +12,7 @@ import UIKit
 
 final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecordInputReactor> {
     private let exerciseRecordInputView = ExerciseRecordInputView()
+    var onSave: (() -> Void)?
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
@@ -82,9 +83,8 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.saveButton.rx.tap
-            .bind(with: self) { owner, _ in
-                owner.dismiss(animated: true)
-            }
+            .map { ExerciseRecordInputReactor.Action.saveButtonTapped }
+            .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
         reactor.state
@@ -161,6 +161,16 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .observe(on: MainScheduler.instance)
             .bind(with: self) { owner, duration in
                 owner.exerciseRecordInputView.updateConfirmedDuration(duration)
+            }
+            .disposed(by: disposeBag)
+
+        reactor.pulse(\.$didSave)
+            .compactMap { $0 }
+            .filter { $0 }
+            .observe(on: MainScheduler.instance)
+            .bind(with: self) { owner, _ in
+                owner.onSave?()
+                owner.dismiss(animated: true)
             }
             .disposed(by: disposeBag)
     }
