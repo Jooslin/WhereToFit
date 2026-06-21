@@ -68,6 +68,10 @@ final class ProgramRegisterViewController: BaseViewController<ProgramRegisterRea
     }
     
     private func bindState(reactor: ProgramRegisterReactor) {
-        
+        reactor.state
+            .map(\.facilityName)
+            .distinctUntilChanged()
+            .bind(to: registerView.facilityTextField.rx.text)
+            .disposed(by: disposeBag)
     }
 }

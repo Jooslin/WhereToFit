@@ -83,9 +83,16 @@ final class HomeFlow: Flow {
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
             
         case .facilitySearch:
-            let vc = FacilitySearchViewController(reactor: FacilitySearchReactor())
-            vc.onSelectFacility = { [weak self] id in
-                self?.sendToProgramRegister(.selectFacility(id: id))
+            let vc = FacilitySearchViewController(
+                reactor: FacilitySearchReactor(
+                    userStore: userStore,
+                    fetchNearbyFacilitiesUseCase: FetchNearbyFacilitiesUseCase(
+                        repository: SportsFacilityRepository()
+                    )
+                )
+            )
+            vc.onSelectFacility = { [weak self] id, name in
+                self?.sendToProgramRegister(.selectFacility(id: id, name: name))
             }
             
             navigationController.pushViewController(vc, animated: true)

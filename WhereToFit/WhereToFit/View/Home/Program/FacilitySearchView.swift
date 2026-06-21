@@ -20,7 +20,7 @@ final class FacilitySearchView: UIView {
     private(set) lazy var dataSource = makeDiffableDataSource(collectionView)
     
     let emptyLabel = UILabel(text: "검색 결과가 없어요", config: .body16Medium, color: .gray600)
-    let emptyButton = IconButton(config: .iconAdditional, iconSize: .tiny).then {
+    let emptyButton = IconButton(config: .iconAdditional, style: .leftImage, iconSize: .tiny).then {
         $0.normalImage = .plus
     }
     private(set) lazy var emptyStack = UIStackView(arrangedSubviews: [emptyLabel, emptyButton]).then {
@@ -98,6 +98,12 @@ extension FacilitySearchView {
         snapshot.appendItems(data, toSection: 0)
         
         dataSource.apply(snapshot, animatingDifferences: false)
+        collectionView.isHidden = data.isEmpty
+    }
+    
+    func setEmptyState(isHidden: Bool, searchText: String) {
+        emptyStack.isHidden = isHidden
+        emptyButton.title = "'\(searchText)'(으)로 등록하기"
     }
 }
 
@@ -140,10 +146,10 @@ extension FacilitySearchView {
 extension FacilitySearchView {
     nonisolated
     struct Item: Hashable {
-        let id: UUID
+        let id: String
         let name: String
         let address: String
-        let distance: Double
+        let distanceText: String
     }
 }
 
@@ -159,5 +165,13 @@ extension Reactive where Base: FacilitySearchView {
                 base.dataSource.itemIdentifier(for: indexPath)
             }
             .asObservable()
+    }
+    
+    var searchText: ControlProperty<String?> {
+        base.searchBar.rx.text
+    }
+    
+    var emptyButtonTap: ControlEvent<Void> {
+        base.emptyButton.rx.tap
     }
 }
