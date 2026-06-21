@@ -114,6 +114,33 @@ final class MyFlow: Flow {
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
 
+        case .exerciseResultRetry:
+            let userProfileRepository = CoreDataUserProfileRepository()
+            let vc = OnboardingViewController(
+                reactor: OnboardingReactor(
+                    mode: .exerciseResultRetry,
+                    dateService: DateService(),
+                    addressCoordinateUseCase: AddressCoordinateUseCase(
+                        repository: NaverMapSearchRepository()
+                    ),
+                    fetchUserProfileUseCase: FetchUserProfileUseCase(
+                        repository: userProfileRepository
+                    ),
+                    upsertUserProfileUseCase: UpsertUserProfileUseCase(
+                        repository: userProfileRepository
+                    ),
+                    addUserLocationUseCase: AddUserLocationUseCase(
+                        repository: CoreDataUserLocationRepository()
+                    ),
+                    saveWeightRecordUseCase: SaveWeightRecordUseCase(
+                        repository: CoreDataCalendarRecordRepository()
+                    )
+                )
+            )
+            vc.hidesBottomBarWhenPushed = true
+            navigationController.pushViewController(vc, animated: true)
+            return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
+
         case .pageBack:
             navigationController.popViewController(animated: true)
             return .none

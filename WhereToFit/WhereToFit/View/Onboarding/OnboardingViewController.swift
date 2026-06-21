@@ -27,6 +27,10 @@ final class OnboardingViewController: BaseViewController<OnboardingReactor> {
     }
 
     override func bind(reactor: OnboardingReactor) {
+        Observable.just(OnboardingReactor.Action.viewDidLoad)
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
         reactor.state
             .map(\.currentStep)
             .distinctUntilChanged()
@@ -44,6 +48,11 @@ final class OnboardingViewController: BaseViewController<OnboardingReactor> {
         reactor.pulse(\.$saveResult)
             .compactMap { $0 }
             .bind(with: self) { owner, result in
+                if reactor.currentState.isRetryMode {
+                    owner.steps.accept(AppStep.pageBack)
+                    return
+                }
+
                 owner.steps.accept(AppStep.main)
 
                 guard case .successWithLocationWarning = result else { return }
@@ -160,7 +169,11 @@ private extension OnboardingViewController {
 
         baseView.nextButton.rx.tap
             .map {
-                baseView.step == .facility
+                guard let step = baseView.step else {
+                    return OnboardingReactor.Action.nextButtonTapped
+                }
+
+                return reactor.currentState.shouldSave(for: step)
                     ? OnboardingReactor.Action.save
                     : OnboardingReactor.Action.nextButtonTapped
             }
@@ -168,8 +181,13 @@ private extension OnboardingViewController {
             .disposed(by: stepViewDisposeBag)
 
         baseView.titleView.rx.leftButtonTap
-            .map { OnboardingReactor.Action.backButtonTapped }
-            .bind(to: reactor.action)
+            .bind(with: self) { owner, _ in
+                if reactor.currentState.isRetryMode, baseView.step == .experience {
+                    owner.steps.accept(AppStep.pageBack)
+                } else {
+                    reactor.action.onNext(.backButtonTapped)
+                }
+            }
             .disposed(by: stepViewDisposeBag)
 
         reactor.state
@@ -411,6 +429,7 @@ extension OnboardingViewController {
         reactor: OnboardingReactor(
             dateService: DateService(),
             addressCoordinateUseCase: AddressCoordinateUseCase(repository: NaverMapSearchRepository()),
+            fetchUserProfileUseCase: FetchUserProfileUseCase(repository: CoreDataUserProfileRepository()),
             upsertUserProfileUseCase: UpsertUserProfileUseCase(repository: CoreDataUserProfileRepository()),
             addUserLocationUseCase: AddUserLocationUseCase(repository: CoreDataUserLocationRepository()),
             saveWeightRecordUseCase: SaveWeightRecordUseCase(repository: CoreDataCalendarRecordRepository())

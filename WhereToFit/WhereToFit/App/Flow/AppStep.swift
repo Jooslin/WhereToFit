@@ -37,6 +37,7 @@ enum AppStep: Step {
     case favoritePrograms
     case registeredPrograms
     case exerciseResult
+    case exerciseResultRetry
     case pageBack
     
     // Home

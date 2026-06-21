@@ -105,6 +105,9 @@ extension AppFlow {
                 addressCoordinateUseCase: AddressCoordinateUseCase(
                     repository: NaverMapSearchRepository()
                 ),
+                fetchUserProfileUseCase: FetchUserProfileUseCase(
+                    repository: userProfileRepository
+                ),
                 upsertUserProfileUseCase: UpsertUserProfileUseCase(
                     repository: userProfileRepository
                 ),
