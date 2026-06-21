@@ -26,6 +26,7 @@ extension HomeCollectionView {
     enum Section: Int {
         case weather = 0
         case recommend
+        case recommendReason
         case onboarding
         case program
 //        case notice
@@ -34,7 +35,8 @@ extension HomeCollectionView {
     nonisolated
     enum Item: Hashable {
         case weather(WeatherSectionItem)
-        case recommend(SportsCategory)
+        case recommend(RecommendedSport)
+        case recommendReason(String)
         case onboarding
         case program(ProgramSectionItem)
 //        case notice
@@ -57,10 +59,19 @@ extension HomeCollectionView {
     }
     
     struct ProgramSectionItem: Hashable {
-        let image: UIImage
-        let matchRate: Double
+        let id: Int
+        let imageName: String
+        let matchRate: Double?
         let place: String
         let name: String
         let facility: Facility
+        
+        static func == (lhs: ProgramSectionItem, rhs: ProgramSectionItem) -> Bool {
+            lhs.id == rhs.id
+        }
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(id)
+        }
     }
 }

@@ -62,6 +62,14 @@ protocol SportsRepositoryProtocol {
         includesTotalCount: Bool
     ) -> Single<SupabasePage<Facility>>
     
+    func fetchFacilities(
+        latitudeRange: ClosedRange<Double>,
+        longitudeRange: ClosedRange<Double>,
+        limit: Int,
+        offset: Int,
+        order: SearchOrder
+    ) -> Single<SupabasePage<Facility>>
+    
     func searchFacilities(
         keyword: String,
         limit: Int,
@@ -88,6 +96,14 @@ protocol SportsRepositoryProtocol {
         limit: Int,
         offset: Int,
         order: SearchOrder
+    ) -> Single<SupabasePage<Program>>
+    
+    func searchPrograms(
+        keyword: String,
+        limit: Int,
+        offset: Int,
+        order: SearchOrder,
+        searchType: NetworkService.SearchType
     ) -> Single<SupabasePage<Program>>
 }
 
@@ -124,6 +140,28 @@ final class SportsRepository: SportsRepositoryProtocol {
                 offset: offset,
                 order: order,
                 includesTotalCount: includesTotalCount
+            )
+            
+            return page.map(Facility.init)
+        }
+    }
+    
+    func fetchFacilities(
+        latitudeRange: ClosedRange<Double>,
+        longitudeRange: ClosedRange<Double>,
+        limit: Int = 50,
+        offset: Int = 0,
+        order: SearchOrder = .ascending
+    ) -> Single<SupabasePage<Facility>> {
+        Single.async { [networkService] in
+            let page: SupabasePage<PublicFacilityDTO> = try await networkService.fetchSupabaseData(
+                api: .facility,
+                filters: [
+                    "and": "(latitude.gte.\(latitudeRange.lowerBound),latitude.lte.\(latitudeRange.upperBound),longitude.gte.\(longitudeRange.lowerBound),longitude.lte.\(longitudeRange.upperBound))"
+                ],
+                limit: limit,
+                offset: offset,
+                order: order
             )
             
             return page.map(Facility.init)
@@ -200,11 +238,27 @@ final class SportsRepository: SportsRepositoryProtocol {
         offset: Int = 0,
         order: SearchOrder = .ascending
     ) -> Single<SupabasePage<Program>> {
+        searchPrograms(
+            keyword: keyword,
+            limit: limit,
+            offset: offset,
+            order: order,
+            searchType: .className
+        )
+    }
+    
+    func searchPrograms(
+        keyword: String,
+        limit: Int = 50,
+        offset: Int = 0,
+        order: SearchOrder = .ascending,
+        searchType: NetworkService.SearchType
+    ) -> Single<SupabasePage<Program>> {
         Single.async { [networkService] in
             let page: SupabasePage<ClassInformationDTO> = try await networkService.fetchFilteredSupabaseData(
                 api: .classInfo,
                 keyword: keyword,
-                searchType: .className,
+                searchType: searchType,
                 order: order,
                 limit: limit,
                 offset: offset

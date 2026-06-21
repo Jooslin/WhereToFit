@@ -12,9 +12,12 @@ import RxSwift
 import Then
 
 final class HomeView: UIView {
-    fileprivate let titleView = HomeTitleView()
+    fileprivate let titleView = HomeTitleView().then {
+        $0.leftButton.isUserInteractionEnabled = false
+    }
     private lazy var collectionView = HomeCollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout())
     private lazy var dataSource = makeCollectionViewDiffableDataSource(collectionView)
+    private var programHeaderTitle = "주변 프로그램"
     
     // Reactive
     fileprivate let registerButtonTap = PublishRelay<Void>()
@@ -88,8 +91,7 @@ extension HomeView {
             case .recommend:
                 supplementaryView.titleLabel.text = "오늘의 맞춤 운동 AI 추천"
             case .program:
-                //TODO: (유저정보) 부분 변경 필요
-                supplementaryView.titleLabel.text = "(유저정보) 추천 프로그램"
+                supplementaryView.titleLabel.text = self?.programHeaderTitle
             default:
                 break
             }
@@ -119,6 +121,15 @@ extension HomeView {
             switch item {
             case .recommend(let item):
                 cell.configure(item)
+            default:
+                break
+            }
+        }
+        
+        let recommendReasonCellRegistration = UICollectionView.CellRegistration<HomeOnboardingReasonCell, HomeCollectionView.Item> { cell, indexPath, item in
+            switch item {
+            case .recommendReason(let text):
+                cell.configure(text)
             default:
                 break
             }
@@ -159,6 +170,8 @@ extension HomeView {
                 collectionView.dequeueConfiguredReusableCell(using: weatherCellRegistration, for: indexPath, item: item)
             case .recommend:
                 collectionView.dequeueConfiguredReusableCell(using: recommendCellRegistration, for: indexPath, item: item)
+            case .recommendReason:
+                collectionView.dequeueConfiguredReusableCell(using: recommendReasonCellRegistration, for: indexPath, item: item)
             case .onboarding:
                 collectionView.dequeueConfiguredReusableCell(using: onboardingCellRegistration, for: indexPath, item: item)
             case .program:
@@ -189,6 +202,15 @@ extension HomeView {
         }
         
         dataSource.apply(snapshot, animatingDifferences: true)
+    }
+    
+    func setLocationTitle(_ title: String) {
+        titleView.setLocationTitle(title)
+    }
+    
+    func setProgramHeaderTitle(_ title: String) {
+        programHeaderTitle = title
+        collectionView.reloadData()
     }
 }
 
@@ -226,6 +248,10 @@ extension HomeView {
                 section?.contentInsets = .init(top: 12, leading: 0, bottom: 0, trailing: 0)
                 return section
                 
+            case .recommendReason:
+                let section = self?.singleEstimatedItemSectionLayout(height: 128)
+                return section
+                
             case .onboarding:
                 let section = self?.singleItemSectionLayout(height: 68)
                 return section
@@ -255,6 +281,24 @@ extension HomeView {
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
                 heightDimension: .absolute(height)),
+            subitems: [item]
+        )
+        
+        let section = NSCollectionLayoutSection(group: group)
+        return section
+    }
+    
+    private func singleEstimatedItemSectionLayout(height: CGFloat) -> NSCollectionLayoutSection {
+        let item = NSCollectionLayoutItem(
+            layoutSize: NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1),
+                heightDimension: .estimated(height)
+            ))
+        
+        let group = NSCollectionLayoutGroup.vertical(
+            layoutSize: NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1),
+                heightDimension: .estimated(height)),
             subitems: [item]
         )
         

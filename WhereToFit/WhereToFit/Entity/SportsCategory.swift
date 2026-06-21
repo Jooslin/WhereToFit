@@ -5,7 +5,6 @@
 //  Created by 변예린 on 6/11/26.
 //
 import Foundation
-import UIKit
 
 enum SportsCategory: String, CaseIterable, Hashable, Sendable {
     case health = "헬스"
@@ -42,39 +41,39 @@ enum SportsCategory: String, CaseIterable, Hashable, Sendable {
         Self.sportsByCategory[self] ?? []
     }
 
-    var icon: UIImage {
-        switch self { 
-        case .health: .weightTraining
-        case .fitness: .fitness
-        case .yogaPilates: .yogaPilates
-        case .gymnastics: .gymnastics
-        case .dance: .dance
-        case .aquaticSports: .aquaticSports
-        case .ballSports: .ballSports
-        case .iceSports: .iceSports
-        case .martialArts: .martialArts
-        case .runningCycle: .runningCycle
-        case .recreationalSports: .recreationalSports
-        case .adaptivePhysicalEducation: .adaptivePhysicalEducation
-        case .other: .other
+    var iconName: String {
+        switch self {
+        case .health: "weightTraining"
+        case .fitness: "fitness"
+        case .yogaPilates: "yogaPilates"
+        case .gymnastics: "gymnastics"
+        case .dance: "dance"
+        case .aquaticSports: "aquaticSports"
+        case .ballSports: "ballSports"
+        case .iceSports: "iceSports"
+        case .martialArts: "martialArts"
+        case .runningCycle: "runningCycle"
+        case .recreationalSports: "recreationalSports"
+        case .adaptivePhysicalEducation: "adaptivePhysicalEducation"
+        case .other: "other"
         }
     }
     
-    var image: UIImage {
+    var imageName: String {
         switch self {
-        case .health: .sportsHealth
-        case .fitness: .sportsFitness
-        case .yogaPilates: .sportsYoga
-        case .gymnastics: .sportsGymnastic
-        case .dance: .sportsDance
-        case .aquaticSports: .sportsAqua
-        case .ballSports: .sportsBall
-        case .iceSports: .sportsIce
-        case .martialArts: .sportsMartial
-        case .runningCycle: .sportsRunning
-        case .recreationalSports: .sportsRecreational
-        case .adaptivePhysicalEducation: .sportsAdaptive
-        case .other: .sportsOthers
+        case .health: "sportsHealth"
+        case .fitness: "sportsFitness"
+        case .yogaPilates: "sportsYoga"
+        case .gymnastics: "sportsGymnastic"
+        case .dance: "sportsDance"
+        case .aquaticSports: "sportsAqua"
+        case .ballSports: "sportsBall"
+        case .iceSports: "sportsIce"
+        case .martialArts: "sportsMartial"
+        case .runningCycle: "sportsRunning"
+        case .recreationalSports: "sportsRecreational"
+        case .adaptivePhysicalEducation: "sportsAdaptive"
+        case .other: "sportsOthers"
         }
     }
     

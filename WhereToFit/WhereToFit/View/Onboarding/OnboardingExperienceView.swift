@@ -8,37 +8,31 @@
 import UIKit
 import SnapKit
 import Then
+import RxCocoa
+import RxSwift
 
 final class OnboardingExperienceView: OnboardingBaseView {
-    let starterButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .subTitle).then {
-        $0.title = "초급"
-        $0.subTitle = "이제 시작하는 단계예요"
-    }
-    
-    let beginnerButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .subTitle).then {
-        $0.title = "입문"
-        $0.subTitle = "가볍게 경험해봤어요"
-    }
-    
-    let intermediateButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .subTitle).then {
-        $0.title = "중급"
-        $0.subTitle = "꾸준히 운동하고 있어요"
-    }
-    
-    let advancedButton = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .subTitle).then {
-        $0.title = "숙련"
-        $0.subTitle = "어느 운동이든 잘 해내요"
-    }
+    private(set) var buttons: [OnboardingButton] = []
     
     override init(frame: CGRect = .zero, step: OnboardingStep = .experience) {
-        super.init(frame: frame, step: step)        
+        let source = ExerciseExperience.allCases
+        buttons = source.reduce([OnboardingButton]()) { arr, experience in
+            let button = OnboardingButton(config: .onboarding, selectedConfig: .selectedOnboarding, type: .subTitle).then {
+                $0.title = experience.rawValue
+                $0.subTitle = experience.subTitle
+            }
+            
+            return arr + [button]
+        }
+        
+        super.init(frame: frame, step: step)
         setLayout()
     }
 }
 
 extension OnboardingExperienceView {
     private func setLayout() {
-        let stackView = UIStackView(arrangedSubviews: [starterButton, beginnerButton, intermediateButton, advancedButton]).then {
+        let stackView = UIStackView(arrangedSubviews: buttons).then {
             $0.axis = .vertical
             $0.spacing = 16
             $0.alignment = .center
@@ -50,5 +44,16 @@ extension OnboardingExperienceView {
             $0.top.equalTo(subTitleLabel.snp.bottom).offset(32)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
+    }
+}
+
+//MARK: Reactive
+extension Reactive where Base: OnboardingExperienceView {
+    var buttonSelected: ControlEvent<String> {
+        let events = base.buttons.map { button in
+            button.rx.tap.map { button.title ?? "" }
+        }
+        
+        return ControlEvent(events: Observable.merge(events))
     }
 }

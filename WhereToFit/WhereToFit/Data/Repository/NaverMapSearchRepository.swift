@@ -6,10 +6,11 @@
 //
 
 import Foundation
+import RxSwift
 
 /// 네이버 Geocode API와 Local Search API를 묶어 지도 검색용 위치 결과를 제공합니다.
 /// UseCase가 외부 API 응답 구조를 몰라도 되도록 여기서 앱 내부 모델로 변환합니다.
-final class NaverMapSearchRepository: MapSearchRepositoryProtocol {
+final class NaverMapSearchRepository: MapSearchRepositoryProtocol, AddressCoordinateRepositoryProtocol {
     private let networkService: NetworkService
 
     init(networkService: NetworkService = NetworkService()) {
@@ -43,6 +44,25 @@ final class NaverMapSearchRepository: MapSearchRepositoryProtocol {
         }
 
         return locations
+    }
+
+    func coordinate(for address: String) -> Single<GeoCoordinate?> {
+        Single.create { [networkService] single in
+            let task = Task {
+                do {
+                    let coordinate = try await networkService.fetchNaverGeocode(query: address)
+                    guard Task.isCancelled == false else { return }
+                    single(.success(coordinate))
+                } catch {
+                    guard Task.isCancelled == false else { return }
+                    single(.failure(error))
+                }
+            }
+
+            return Disposables.create {
+                task.cancel()
+            }
+        }
     }
 
     private func fetchLocations(

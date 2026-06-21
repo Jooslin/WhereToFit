@@ -22,7 +22,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let appFlow = AppFlow(windowScene: windowScene)
         window = appFlow.window
         
-        coordinator.coordinate(flow: appFlow, with: OneStepper(withSingleStep: AppStep.main))
+        coordinator.coordinate(flow: appFlow, with: OneStepper(withSingleStep: AppStep.splash))
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
@@ -58,4 +58,3 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 
 }
-

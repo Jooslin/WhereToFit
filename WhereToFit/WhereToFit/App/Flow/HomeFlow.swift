@@ -16,10 +16,16 @@ final class HomeFlow: Flow {
     private let dateService: DateService
     private let weatherRepository: WeatherRepositoryProtocol
     private let sportsRepository: SportsRepositoryProtocol
+    private let userStore: UserStoreProtocol
     
-    private let locationReactor = LocationReactor()
+    private lazy var locationReactor = LocationReactor(userStore: userStore)
     
-    init(dateService: DateService, weatherRepository: WeatherRepositoryProtocol, sportsRepository: SportsRepositoryProtocol) {
+    init(userStore: UserStoreProtocol,
+         dateService: DateService,
+         weatherRepository: WeatherRepositoryProtocol,
+         sportsRepository: SportsRepositoryProtocol
+    ) {
+        self.userStore = userStore
         self.dateService = dateService
         self.weatherRepository = weatherRepository
         self.sportsRepository = sportsRepository
@@ -35,6 +41,7 @@ final class HomeFlow: Flow {
         case .homeTab:
             let vc = HomeViewController(
                 reactor: HomeReactor(
+                    userStore: userStore,
                     dateService: dateService,
                     weatherRepository: weatherRepository,
                     sportsRepository: sportsRepository
@@ -59,9 +66,9 @@ final class HomeFlow: Flow {
         case .locationDetail(let mode):
             let reactor = switch mode {
             case .create:
-                LocationDetailReactor(location: nil)
+                LocationDetailReactor(userStore: userStore, location: nil)
             case .edit(let location):
-                LocationDetailReactor(location: location)
+                LocationDetailReactor(userStore: userStore, location: location)
             }
             let vc = LocationDetailViewController(reactor: reactor)
             navigationController.pushViewController(vc, animated: true)

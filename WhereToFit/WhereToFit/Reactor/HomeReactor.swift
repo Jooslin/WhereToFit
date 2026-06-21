@@ -6,7 +6,7 @@
 //
 
 import ReactorKit
-import Foundation
+import UIKit
 
 final class HomeReactor: BaseReactor {
     let initialState: State = State()
@@ -17,44 +17,94 @@ final class HomeReactor: BaseReactor {
     
     enum Mutation {
         case setLoading(Bool)
+        case setUserProfile(UserProfile?)
+        case setCurrentLocation(UserLocation?)
+        case setLocationTitle(String)
+        case setProgramSectionTitle(String)
+        
         case setWeatherSectionItem([HomeCollectionView.Item])
         case setRecommendSectionItem([HomeCollectionView.Item])
+        case setRecommendReasonSectionItem([HomeCollectionView.Item])
         case setOnboardingSectionItem([HomeCollectionView.Item])
         case setProgramSectionItem([HomeCollectionView.Item])
     }
     
     struct State {
         var isLoading: Bool = false
+        var userProfile: UserProfile?
+        var currentLocation: UserLocation?
+        var locationTitle: String = HomeReactor.defaultLocationTitle
+        var programSectionTitle: String = HomeReactor.defaultProgramSectionTitle
         var data: [HomeCollectionView.Section: [HomeCollectionView.Item]] = [:]
     }
     
     //MARK: Properties & Initialize
+    private let userStore: UserStoreProtocol
     private let dateService: DateService
     private let weatherRepository: WeatherRepositoryProtocol
     private let sportsRepository: SportsRepositoryProtocol
+    private let fetchUserProfileUseCase: FetchUserProfileUseCase
+    private let fetchSelectedUserLocationUseCase: FetchSelectedUserLocationUseCase
+    private let recommendSportsUseCase: RecommendSportsUseCase
+    private let fetchHomeProgramRecommendationsUseCase: FetchHomeProgramRecommendationsUseCase
+    private let generateHomeRecommendationCopyUseCase: GenerateHomeRecommendationCopyUseCase
     
     init(
+        userStore: UserStoreProtocol,
         dateService: DateService,
         weatherRepository: WeatherRepositoryProtocol,
-        sportsRepository: SportsRepositoryProtocol
+        sportsRepository: SportsRepositoryProtocol,
+        fetchUserProfileUseCase: FetchUserProfileUseCase = FetchUserProfileUseCase(
+            repository: CoreDataUserProfileRepository()
+        ),
+        fetchSelectedUserLocationUseCase: FetchSelectedUserLocationUseCase = FetchSelectedUserLocationUseCase(
+            repository: CoreDataUserLocationRepository()
+        ),
+        recommendSportsUseCase: RecommendSportsUseCase = RecommendSportsUseCase(
+            repository: SportRecommendationRuleRepository()
+        ),
+        fetchHomeProgramRecommendationsUseCase: FetchHomeProgramRecommendationsUseCase? = nil,
+        generateHomeRecommendationCopyUseCase: GenerateHomeRecommendationCopyUseCase = GenerateHomeRecommendationCopyUseCase(
+            repository: HomeRecommendationCopyRepository()
+        )
     ) {
+        self.userStore = userStore
         self.dateService = dateService
         self.weatherRepository = weatherRepository
         self.sportsRepository = sportsRepository
+        self.fetchUserProfileUseCase = fetchUserProfileUseCase
+        self.fetchSelectedUserLocationUseCase = fetchSelectedUserLocationUseCase
+        self.recommendSportsUseCase = recommendSportsUseCase
+        self.fetchHomeProgramRecommendationsUseCase = fetchHomeProgramRecommendationsUseCase ?? FetchHomeProgramRecommendationsUseCase(
+            sportsRepository: sportsRepository,
+            recommendSportsUseCase: recommendSportsUseCase
+        )
+        self.generateHomeRecommendationCopyUseCase = generateHomeRecommendationCopyUseCase
     }
     
+    //MARK: Reactor func
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
         case .viewWillAppear:
             return Observable.concat([
                 .just(.setLoading(true)),
-                makeWeatherSection(),
-                makeRecommendSection(),
-                makeOnboardingSection(),
-                makeProgramSection(),
+                makeHomeContent(),
                 .just(.setLoading(false))
             ])
         }
+    }
+    
+    func transform(mutation: Observable<Mutation>) -> Observable<Mutation> {
+        let profileMutation = userStore.userProfile
+            .map { profile -> Mutation in
+                Mutation.setUserProfile(profile)
+            }
+        let locationMutation = userStore.currentLocation
+            .map { location -> Mutation in
+                .setCurrentLocation(location)
+            }
+        
+        return Observable.merge(mutation, profileMutation, locationMutation)
     }
     
     func reduce(state: State, mutation: Mutation) -> State {
@@ -63,10 +113,20 @@ final class HomeReactor: BaseReactor {
         switch mutation {
         case .setLoading(let isLoading):
             newState.isLoading = isLoading
+        case .setUserProfile(let profile):
+            newState.userProfile = profile
+        case .setCurrentLocation(let location):
+            newState.currentLocation = location
+        case .setLocationTitle(let title):
+            newState.locationTitle = title
+        case .setProgramSectionTitle(let title):
+            newState.programSectionTitle = title
         case .setWeatherSectionItem(let item):
             newState.data[.weather] = item
         case .setRecommendSectionItem(let item):
             newState.data[.recommend] = item
+        case .setRecommendReasonSectionItem(let item):
+            newState.data[.recommendReason] = item
         case .setOnboardingSectionItem(let item):
             newState.data[.onboarding] = item
         case .setProgramSectionItem(let item):
@@ -78,13 +138,89 @@ final class HomeReactor: BaseReactor {
 }
 
 extension HomeReactor {
+    private struct HomeContext {
+        let profile: UserProfile?
+        let location: UserLocation?
+        
+        var didCompleteOnboarding: Bool {
+            profile != nil
+        }
+    }
+    
+    static let defaultLocationTitle = "종로구"
+    static let defaultProgramSectionTitle = "주변 프로그램"
+    private static let pendingCategoryRecommendationTitle = "추천 프로그램"
+    private static let defaultLocationAddress = "서울 종로구 효자로 12 국립고궁박물관"
+    private static let defaultLocationLatitude = 37.57665
+    private static let defaultLocationLongitude = 126.97498
+    
+    private func makeHomeContent() -> Observable<Mutation> {
+        fetchHomeContext()
+            .asObservable()
+            .flatMap { [weak self] context -> Observable<Mutation> in
+                guard let self else { return .empty() }
+                
+                self.userStore.setProfile(context.profile)
+                if let location = context.location {
+                    self.userStore.setCurrnetLocation(location)
+                }
+                
+                let address = context.location?.address ?? Self.defaultLocationAddress
+                let locationTitle = Self.locationTitle(from: address)
+                let programSectionTitle = context.didCompleteOnboarding ? Self.pendingCategoryRecommendationTitle : Self.defaultProgramSectionTitle
+                
+                return Observable.concat([
+                    .just(.setUserProfile(context.profile)),
+                    .just(.setCurrentLocation(context.location)),
+                    .just(.setLocationTitle(locationTitle)),
+                    .just(.setProgramSectionTitle(programSectionTitle)),
+                    self.makeWeatherSection(location: context.location),
+                    self.makeRecommendationContent(context: context),
+                    self.makeOnboardingSection(context: context),
+                    self.makeProgramSection(context: context)
+                ])
+            }
+            .catch { [weak self] _ in
+                guard let self else { return .just(.setLoading(false)) }
+                
+                self.userStore.setProfile(nil)
+                
+                return Observable.concat([
+                    .just(.setUserProfile(nil)),
+                    .just(.setCurrentLocation(nil)),
+                    .just(.setLocationTitle(Self.defaultLocationTitle)),
+                    .just(.setProgramSectionTitle(Self.defaultProgramSectionTitle)),
+                    self.makeWeatherSection(location: nil),
+                    self.makeRecommendationContent(context: HomeContext(profile: nil, location: nil)),
+                    self.makeOnboardingSection(context: HomeContext(profile: nil, location: nil)),
+                    self.makeProgramSection(context: HomeContext(profile: nil, location: nil))
+                ])
+            }
+    }
+    
+    private func fetchHomeContext() -> Single<HomeContext> {
+        fetchUserProfileUseCase.execute()
+            .flatMap { [fetchSelectedUserLocationUseCase] profile -> Single<HomeContext> in
+                guard let profile else {
+                    return .just(HomeContext(profile: nil, location: nil))
+                }
+                
+                return fetchSelectedUserLocationUseCase.execute(userProfileID: profile.id)
+                    .map { location in
+                        HomeContext(profile: profile, location: location)
+                    }
+            }
+    }
+    
     //TODO: schedule 정보
-    private func makeWeatherSection() -> Observable<Mutation> {
+    private func makeWeatherSection(location: UserLocation?) -> Observable<Mutation> {
         let weeklyDate = dateService.weeklyDate()
         let isNight = dateService.isNight()
+        let latitude = location?.latitude ?? Self.defaultLocationLatitude
+        let longitude = location?.longitude ?? Self.defaultLocationLongitude
         
         return weatherRepository
-            .fetchWeather(latitude: 37.57, longitude: 127)
+            .fetchWeather(latitude: latitude, longitude: longitude)
             .map { weather in
                 let item = HomeCollectionView.WeatherSectionItem(
                     weeklyDate: weeklyDate,
@@ -98,81 +234,87 @@ extension HomeReactor {
             .catch { _ in .just(.setWeatherSectionItem([])) }
     }
     
-    //TODO: 온보딩 추천 결과로 수정 필요
-    private func makeRecommendSection() -> Observable<Mutation> {
-        return sportsRepository.fetchPrograms(limit: 5, offset: 0, order: .ascending)
-            .map { page in
-                let programs = page.items
-//                let categories = programs.map { $0.sportsCategory }
-                let categories = [SportsCategory.ballSports, SportsCategory.dance, SportsCategory.aquaticSports]
-                let items = categories.reduce([HomeCollectionView.Item]()) {
-                    $0 + [HomeCollectionView.Item.recommend($1)]
-                }
-                return Mutation.setRecommendSectionItem(items)
-            }
-            .asObservable()
-            .catch { _ in .just(.setRecommendSectionItem([])) }
-    }
-    
-    private func makeOnboardingSection() -> Observable<Mutation> {
-        Observable.create { observer in
-            let didOnboarding: Bool = false //TODO: 수정 필요
-            
-            let item = didOnboarding ? [] :
-            [HomeCollectionView.Item.onboarding]
-            
-            observer.onNext(.setOnboardingSectionItem(item))
-            observer.onCompleted()
-            
-            return Disposables.create()
+    private func makeRecommendationContent(context: HomeContext) -> Observable<Mutation> {
+        guard let profile = context.profile else {
+            return Observable.concat([
+                .just(.setRecommendSectionItem([])),
+                .just(.setRecommendReasonSectionItem([]))
+            ])
         }
+        
+        return recommendSportsUseCase.execute(profile: profile)
+            .asObservable()
+            .flatMap { [generateHomeRecommendationCopyUseCase] sports -> Observable<Mutation> in
+                let recommendMutation = Mutation.setRecommendSectionItem(
+                    sports.map(HomeCollectionView.Item.recommend)
+                )
+                
+                guard sports.isEmpty == false else {
+                    return Observable.concat([
+                        .just(recommendMutation),
+                        .just(.setRecommendReasonSectionItem([]))
+                    ])
+                }
+                
+                let copyMutation = generateHomeRecommendationCopyUseCase
+                    .execute(profile: profile, recommendedSports: sports)
+                    .asObservable()
+                    .flatMap { copy -> Observable<Mutation> in
+                        Observable.from([
+                            .setProgramSectionTitle(copy.categoryTitle),
+                            .setRecommendReasonSectionItem([
+                                .recommendReason(copy.personalizedReason)
+                            ])
+                        ])
+                    }
+                    .catch { _ in .just(.setRecommendReasonSectionItem([])) }
+                
+                return Observable.concat([
+                    .just(recommendMutation),
+                    copyMutation
+                ])
+            }
+            .catch { _ in
+                Observable.concat([
+                    .just(.setRecommendSectionItem([])),
+                    .just(.setRecommendReasonSectionItem([]))
+                ])
+            }
     }
     
-    private func makeProgramSection() -> Observable<Mutation> {
-        sportsRepository.fetchPrograms(limit: 5, offset: 0, order: .ascending)
+    private func makeOnboardingSection(context: HomeContext) -> Observable<Mutation> {
+        let item: [HomeCollectionView.Item] = context.didCompleteOnboarding ? [] : [.onboarding]
+        return .just(.setOnboardingSectionItem(item))
+    }
+    
+    private func makeProgramSection(context: HomeContext) -> Observable<Mutation> {
+        fetchHomeProgramRecommendationsUseCase.execute(
+            profile: context.profile,
+            location: context.location
+        )
             .asObservable()
-            .flatMap { [sportsRepository] page -> Observable<Mutation> in
-                let itemObservables: [Observable<HomeCollectionView.Item?>] = page.items
-                    .map { program -> Observable<HomeCollectionView.Item?> in
-                    guard let publicFacilityID = program.publicFacilityID?.trimmingCharacters(in: .whitespacesAndNewlines),
-                          !publicFacilityID.isEmpty else {
-                        return .just(nil)
+            .map { programs in
+                var seenProgramIDs = Set<Int>()
+                let items = programs.enumerated().compactMap { index, recommendedProgram -> HomeCollectionView.Item? in
+                    let programID = recommendedProgram.program.id ?? -(index + 1)
+                    
+                    guard seenProgramIDs.insert(programID).inserted else {
+                        return nil
                     }
                     
-                    return sportsRepository.searchFacilities(
-                        keyword: publicFacilityID,
-                        limit: 1,
-                        offset: 0,
-                        order: .ascending,
-                        searchType: .facilityID
+                    return HomeCollectionView.Item.program(
+                        HomeCollectionView.ProgramSectionItem(
+                            id: programID,
+                            imageName: recommendedProgram.program.sportsCategory.imageName,
+                            matchRate: recommendedProgram.matchRate.map(Double.init),
+                            place: Self.place(for: recommendedProgram.facility),
+                            name: recommendedProgram.program.className ?? recommendedProgram.program.sport ?? "",
+                            facility: recommendedProgram.facility
+                        )
                     )
-                        .map { page -> HomeCollectionView.Item? in
-                            guard let facility = page.items.first else {
-                                return nil
-                            }
-                            
-                            let item = HomeCollectionView.ProgramSectionItem(
-                                image: program.sportsCategory.image,
-                                matchRate: 0,
-                                place: Self.place(for: facility),
-                                name: program.className ?? program.sport ?? "",
-                                facility: facility
-                            )
-                            
-                            return .program(item)
-                        }
-                        .asObservable()
-                        .catch { _ in .just(nil) }
                 }
                 
-                guard !itemObservables.isEmpty else {
-                    return .just(.setProgramSectionItem([]))
-                }
-                
-                return Observable.zip(itemObservables) // Observable<[HomeCollectionView.Item?]>
-                    .map { items in
-                        Mutation.setProgramSectionItem(items.compactMap { $0 })
-                    }
+                return .setProgramSectionItem(items)
             }
             .catch { _ in .just(.setProgramSectionItem([])) }
     }
@@ -190,6 +332,15 @@ extension HomeReactor {
         let outdoorKeywords = ["축구장", "풋살장", "야구장", "테니스장", "게이트볼장", "파크골프", "국궁장"]
         
         return outdoorKeywords.contains { text.contains($0) } ? "야외" : "실내"
+    }
+    
+    static func locationTitle(from address: String) -> String {
+        let parts = address
+            .split(separator: " ")
+            .map(String.init)
+            .filter { !$0.isEmpty }
+        
+        return parts.dropFirst().first ?? defaultLocationTitle
     }
 }
 
@@ -365,6 +516,25 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
         )
     }
     
+    func fetchFacilities(
+        latitudeRange: ClosedRange<Double>,
+        longitudeRange: ClosedRange<Double>,
+        limit: Int,
+        offset: Int,
+        order: SearchOrder
+    ) -> RxSwift.Single<SupabasePage<Facility>> {
+        let filteredFacilities = sampleFacilities.filter { facility in
+            guard let latitude = facility.latitude,
+                  let longitude = facility.longitude else {
+                return false
+            }
+            
+            return latitudeRange.contains(latitude) && longitudeRange.contains(longitude)
+        }
+        
+        return Single.just(page(from: filteredFacilities, limit: limit, offset: offset, order: order))
+    }
+    
     func searchFacilities(
         keyword: String,
         limit: Int,
@@ -379,6 +549,10 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
                 return facility.id == trimmedKeyword
             case .facilityName:
                 return facility.facilityName?.localizedCaseInsensitiveContains(trimmedKeyword) == true
+            case .roadAddress:
+                return facility.roadAddress?.localizedCaseInsensitiveContains(trimmedKeyword) == true
+            case .facilityLocation:
+                return false
             case .className:
                 return false
             }
@@ -407,11 +581,34 @@ final class SportsRepositoryExample: SportsRepositoryProtocol {
     }
     
     func searchPrograms(keyword: String, limit: Int, offset: Int, order: SearchOrder) -> RxSwift.Single<SupabasePage<Program>> {
+        searchPrograms(
+            keyword: keyword,
+            limit: limit,
+            offset: offset,
+            order: order,
+            searchType: .className
+        )
+    }
+    
+    func searchPrograms(
+        keyword: String,
+        limit: Int,
+        offset: Int,
+        order: SearchOrder,
+        searchType: NetworkService.SearchType
+    ) -> RxSwift.Single<SupabasePage<Program>> {
         let trimmedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
         let filteredPrograms = trimmedKeyword.isEmpty ? samplePrograms : samplePrograms.filter { program in
-            program.className?.localizedCaseInsensitiveContains(trimmedKeyword) == true ||
-            program.sport?.localizedCaseInsensitiveContains(trimmedKeyword) == true ||
-            program.facilityName?.localizedCaseInsensitiveContains(trimmedKeyword) == true
+            switch searchType {
+            case .className:
+                return program.className?.localizedCaseInsensitiveContains(trimmedKeyword) == true ||
+                program.sport?.localizedCaseInsensitiveContains(trimmedKeyword) == true ||
+                program.facilityName?.localizedCaseInsensitiveContains(trimmedKeyword) == true
+            case .facilityLocation:
+                return program.facilityLocation?.localizedCaseInsensitiveContains(trimmedKeyword) == true
+            case .facilityID, .facilityName, .roadAddress:
+                return false
+            }
         }
         
         return Single.just(page(from: filteredPrograms, limit: limit, offset: offset, order: order))

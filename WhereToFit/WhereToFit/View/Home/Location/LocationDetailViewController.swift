@@ -54,6 +54,7 @@ final class LocationDetailViewController: BaseViewController<LocationDetailReact
             .disposed(by: disposeBag)
         
         selectedAddressRelay
+            .observe(on: MainScheduler.asyncInstance)
             .map { LocationDetailReactor.Action.updateAddress($0) }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)

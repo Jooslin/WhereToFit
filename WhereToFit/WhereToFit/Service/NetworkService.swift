@@ -216,6 +216,37 @@ extension NetworkService {
 
         return Int(totalText)
     }
+    
+    func invokeSupabaseFunction<Response: Decodable & Sendable, Body: Encodable & Sendable>(
+        name: String,
+        body: Body
+    ) async throws -> Response {
+        guard !supabaseBaseURL.isEmpty,
+              !supabaseBaseURL.contains("$("),
+              !supabasePublishableKey.isEmpty,
+              !supabasePublishableKey.contains("$(") else {
+            throw NetworkServiceError.missingSupabaseConfiguration
+        }
+        
+        let baseURL = supabaseBaseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let url = "\(baseURL)/functions/v1/\(name)"
+        let headers: HTTPHeaders = [
+            "apikey": supabasePublishableKey,
+            "Authorization": "Bearer \(supabasePublishableKey)",
+            "Accept": "application/json"
+        ]
+        
+        return try await AF.request(
+            url,
+            method: .post,
+            parameters: body,
+            encoder: JSONParameterEncoder.default,
+            headers: headers
+        )
+        .validate()
+        .serializingDecodable(Response.self)
+        .value
+    }
 }
 
 //MARK: API Networking
@@ -417,16 +448,17 @@ extension NetworkService {
         case naverLocalSearch
         case facility
         case classInfo
+        case sportRecommendationRules
         
         var baseUrl: String? {
             switch self {
             case .weather:
                 return "https://api.openweathermap.org/data/2.5/weather"
             case .naverGeocode:
-                return "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode"
+                return "https://maps.apigw.ntruss.com/map-geocode/v2/geocode"
             case .naverLocalSearch:
                 return "https://openapi.naver.com/v1/search/local.json"
-            case .facility, .classInfo:
+            case .facility, .classInfo, .sportRecommendationRules:
                 return nil
             }
         }
@@ -439,6 +471,8 @@ extension NetworkService {
                 return "public_facilities"
             case .classInfo:
                 return "class_information"
+            case .sportRecommendationRules:
+                return "sport_recommendation_rules"
             }
         }
     }
@@ -446,6 +480,8 @@ extension NetworkService {
     enum SearchType: String {
         case facilityID = "id"
         case facilityName = "facility_name"
+        case roadAddress = "road_address"
+        case facilityLocation = "facility_location"
         case className = "class_name"
     }
 }
