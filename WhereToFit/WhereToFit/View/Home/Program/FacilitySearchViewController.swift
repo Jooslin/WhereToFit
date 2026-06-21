@@ -36,6 +36,7 @@ final class FacilitySearchViewController: BaseViewController<FacilitySearchReact
         
         searchView.rx.searchText
             .orEmpty
+            .debounce(.milliseconds(300), scheduler: MainScheduler.instance)
             .distinctUntilChanged()
             .map(FacilitySearchReactor.Action.searchTextChanged)
             .bind(to: reactor.action)
