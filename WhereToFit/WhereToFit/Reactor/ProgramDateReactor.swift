@@ -14,11 +14,13 @@ final class ProgramDateReactor: BaseReactor {
     enum Action {
         case selectDate(DateComponents)
         case deselectDate(DateComponents)
+        case resetDates
     }
     
     enum Mutation {
         case setDate(Date)
         case deleteDate(Date)
+        case resetDates
     }
     
     struct State {
@@ -41,6 +43,8 @@ final class ProgramDateReactor: BaseReactor {
         case .deselectDate(let dateComp):
             let date = dateService.startOfDay(dateComp)
             return .just(.deleteDate(date))
+        case .resetDates:
+            return .just(.resetDates)
         }
     }
     
@@ -52,6 +56,8 @@ final class ProgramDateReactor: BaseReactor {
             newState.dates.insert(date)
         case .deleteDate(let date):
             newState.dates.remove(date)
+        case .resetDates:
+            newState.dates.removeAll()
         }
         
         return newState

@@ -221,8 +221,18 @@ extension ProgramRegisterView {
     }
 }
 
+//MARK: Reactive
 extension Reactive where Base: ProgramRegisterView {
     var backButtonTap: ControlEvent<Void> {
         base.titleView.leftButton.rx.tap
+    }
+
+    var weekdayButtonSelected: ControlEvent<Int> {
+        let events = base.weekdayButtons.arrangedSubviews.map { view -> Observable<Int> in
+            guard let button  = view as? DesignButton else { return .empty() }
+            return button.rx.tap.map { button.tag }
+        }
+        
+        return ControlEvent(events: Observable.merge(events))
     }
 }

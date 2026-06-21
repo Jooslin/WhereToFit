@@ -23,7 +23,12 @@ final class ProgramRegisterReactor: BaseReactor {
         case selectDirectProgramInput
         case updateProgramName(String)
         case finishProgramDirectInput
+        case toggleRecurring
+        case toggleReservationDates
+        case toggleWeekday(Weekday)
         case selectDates([Date])
+        case selectStartTime(Int?)
+        case selectEndTime(Int?)
     }
     
     enum Mutation {
@@ -33,7 +38,12 @@ final class ProgramRegisterReactor: BaseReactor {
         case setProgramOptions([ProgramOption])
         case setProgram(id: Int?, name: String?)
         case setProgramDirectInputEnabled(Bool)
+        case setRecurring(Bool)
+        case setReservationDatesEnabled(Bool)
+        case setWeekdays(Set<Weekday>)
         case setDates([Date])
+        case setStartTime(Int?)
+        case setEndTime(Int?)
     }
     
     nonisolated struct ProgramOption: Equatable {
@@ -51,7 +61,12 @@ final class ProgramRegisterReactor: BaseReactor {
         var programID: Int?
         var programName: String?
         var isProgramDirectInputEnabled: Bool = false
+        var isRecurring: Bool = false
+        var selectedWeekdays: Set<Weekday> = []
+        var hasReservationDates: Bool = false
         var dates: [Date] = []
+        var startMinuteOfDay: Int?
+        var endMinuteOfDay: Int?
     }
     
     func mutate(action: Action) -> Observable<Mutation> {
@@ -86,8 +101,37 @@ final class ProgramRegisterReactor: BaseReactor {
             return .just(.setProgram(id: nil, name: name))
         case .finishProgramDirectInput:
             return .just(.setProgramDirectInputEnabled(false))
+        case .toggleRecurring:
+            return .just(.setRecurring(currentState.isRecurring == false))
+        case .toggleReservationDates:
+            return .just(.setReservationDatesEnabled(currentState.hasReservationDates == false))
+        case let .toggleWeekday(weekday):
+            var weekdays = currentState.selectedWeekdays
+            if weekdays.contains(weekday) {
+                weekdays.remove(weekday)
+            } else {
+                weekdays.insert(weekday)
+            }
+            return .just(.setWeekdays(weekdays))
         case .selectDates(let dates):
             return .just(.setDates(dates))
+        case .selectStartTime(let minuteOfDay):
+            var mutations: [Observable<Mutation>] = [.just(.setStartTime(minuteOfDay))]
+            if let minuteOfDay,
+               let endMinuteOfDay = currentState.endMinuteOfDay,
+               endMinuteOfDay < minuteOfDay {
+                mutations.append(.just(.setEndTime(nil)))
+            }
+
+            return .concat(mutations)
+        case .selectEndTime(let minuteOfDay):
+            if let minuteOfDay,
+               let startMinuteOfDay = currentState.startMinuteOfDay,
+               minuteOfDay < startMinuteOfDay {
+                return .just(.setEndTime(startMinuteOfDay))
+            }
+
+            return .just(.setEndTime(minuteOfDay))
         }
     }
     
@@ -110,8 +154,18 @@ final class ProgramRegisterReactor: BaseReactor {
             newState.programName = name
         case .setProgramDirectInputEnabled(let isEnabled):
             newState.isProgramDirectInputEnabled = isEnabled
+        case .setRecurring(let isRecurring):
+            newState.isRecurring = isRecurring
+        case .setReservationDatesEnabled(let hasReservationDates):
+            newState.hasReservationDates = hasReservationDates
+        case .setWeekdays(let weekdays):
+            newState.selectedWeekdays = weekdays
         case .setDates(let dates):
             newState.dates = dates
+        case .setStartTime(let minuteOfDay):
+            newState.startMinuteOfDay = minuteOfDay
+        case .setEndTime(let minuteOfDay):
+            newState.endMinuteOfDay = minuteOfDay
         }
         
         return newState
