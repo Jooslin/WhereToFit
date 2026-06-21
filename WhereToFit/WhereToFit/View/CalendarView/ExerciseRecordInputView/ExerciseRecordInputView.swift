@@ -138,8 +138,6 @@ private extension ExerciseRecordInputView {
     func setLayout() {
         addSubview(dimmedView)
         addSubview(sheetView)
-        addSubview(exerciseNameSelectionSheetView)
-        addSubview(durationPickerSheetView)
 
         [
             handleView,
@@ -156,14 +154,6 @@ private extension ExerciseRecordInputView {
 
         sheetView.snp.makeConstraints {
             $0.horizontalEdges.bottom.equalToSuperview()
-        }
-
-        durationPickerSheetView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
-        }
-
-        exerciseNameSelectionSheetView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
         }
 
         handleView.snp.makeConstraints {
@@ -232,9 +222,15 @@ private extension ExerciseRecordInputView {
 
     func showExerciseNameSelection() {
         endEditing(true)
-        guard exerciseNameSelectionSheetView.isHidden else { return }
+        guard exerciseNameSelectionSheetView.superview == nil else { return }
 
+        addSubview(exerciseNameSelectionSheetView)
+        exerciseNameSelectionSheetView.alpha = 0
         exerciseNameSelectionSheetView.isHidden = false
+        exerciseNameSelectionSheetView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        layoutIfNeeded()
 
         UIView.animate(withDuration: 0.25) {
             self.exerciseNameSelectionSheetView.alpha = 1
@@ -242,20 +238,27 @@ private extension ExerciseRecordInputView {
     }
 
     func hideExerciseNameSelection() {
-        guard !exerciseNameSelectionSheetView.isHidden else { return }
+        guard exerciseNameSelectionSheetView.superview != nil else { return }
 
         UIView.animate(withDuration: 0.25) {
             self.exerciseNameSelectionSheetView.alpha = 0
         } completion: { _ in
             self.exerciseNameSelectionSheetView.isHidden = true
+            self.exerciseNameSelectionSheetView.removeFromSuperview()
         }
     }
 
     func showDurationPicker() {
         endEditing(true)
-        guard durationPickerSheetView.isHidden else { return }
+        guard durationPickerSheetView.superview == nil else { return }
 
+        addSubview(durationPickerSheetView)
+        durationPickerSheetView.alpha = 0
         durationPickerSheetView.isHidden = false
+        durationPickerSheetView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        layoutIfNeeded()
 
         UIView.animate(withDuration: 0.25) {
             self.durationPickerSheetView.alpha = 1
@@ -263,12 +266,13 @@ private extension ExerciseRecordInputView {
     }
 
     func hideDurationPicker() {
-        guard !durationPickerSheetView.isHidden else { return }
+        guard durationPickerSheetView.superview != nil else { return }
 
         UIView.animate(withDuration: 0.25) {
             self.durationPickerSheetView.alpha = 0
         } completion: { _ in
             self.durationPickerSheetView.isHidden = true
+            self.durationPickerSheetView.removeFromSuperview()
         }
     }
 }
