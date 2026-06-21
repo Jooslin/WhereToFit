@@ -54,9 +54,6 @@ final class MyFlow: Flow {
                     upsertUserProfileUseCase: UpsertUserProfileUseCase(
                         repository: CoreDataUserProfileRepository()
                     ),
-                    fetchUserLocationsUseCase: FetchUserLocationsUseCase(
-                        repository: CoreDataUserLocationRepository()
-                    ),
                     validatePersonalInfoUseCase: ValidateOnboardingPersonalInfoUseCase(
                         dateService: DateService()
                     )

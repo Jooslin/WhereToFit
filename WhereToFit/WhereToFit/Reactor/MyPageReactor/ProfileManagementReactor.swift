@@ -13,7 +13,6 @@ final class ProfileManagementReactor: BaseReactor {
     let initialState = State()
     private let fetchUserProfileUseCase: FetchUserProfileUseCase
     private let upsertUserProfileUseCase: UpsertUserProfileUseCase
-    private let fetchUserLocationsUseCase: FetchUserLocationsUseCase
     private let validatePersonalInfoUseCase: ValidateOnboardingPersonalInfoUseCase
     private let birthdayFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -26,12 +25,10 @@ final class ProfileManagementReactor: BaseReactor {
     init(
         fetchUserProfileUseCase: FetchUserProfileUseCase,
         upsertUserProfileUseCase: UpsertUserProfileUseCase,
-        fetchUserLocationsUseCase: FetchUserLocationsUseCase,
         validatePersonalInfoUseCase: ValidateOnboardingPersonalInfoUseCase
     ) {
         self.fetchUserProfileUseCase = fetchUserProfileUseCase
         self.upsertUserProfileUseCase = upsertUserProfileUseCase
-        self.fetchUserLocationsUseCase = fetchUserLocationsUseCase
         self.validatePersonalInfoUseCase = validatePersonalInfoUseCase
     }
 
@@ -55,7 +52,6 @@ final class ProfileManagementReactor: BaseReactor {
         case setHeight(Double?)
         case setWeightText(String)
         case setWeight(Double?)
-        case setHomeAddress(String?)
         case setIsSaving(Bool)
         case setSaveCompleted
         case setError(String, String)
@@ -71,7 +67,6 @@ final class ProfileManagementReactor: BaseReactor {
         var height: Double?
         var weightText = ""
         var weight: Double?
-        var homeAddress: String?
         var isSaving = false
         @Pulse var saveCompleted = false
         @Pulse var error: (String, String)?
@@ -105,15 +100,7 @@ final class ProfileManagementReactor: BaseReactor {
             return fetchUserProfileUseCase.execute()
                 .asObservable()
                 .compactMap { $0 }
-                .flatMap { [fetchUserLocationsUseCase] profile -> Observable<Mutation> in
-                    fetchUserLocationsUseCase.execute(userProfileID: profile.id)
-                        .asObservable()
-                        .map { locations -> Mutation in
-                            let homeAddress = locations.first { $0.kind == .home }?.address
-                            return .setHomeAddress(homeAddress)
-                        }
-                        .startWith(.setProfile(profile))
-                }
+                .map { .setProfile($0) }
                 .catch { _ in .just(.setError("프로필 조회 실패", "저장된 프로필 정보를 불러오지 못했어요.")) }
 
         case .updateNickname(let nickname):
@@ -205,8 +192,6 @@ final class ProfileManagementReactor: BaseReactor {
             newState.weightText = weightText
         case .setWeight(let weight):
             newState.weight = weight
-        case .setHomeAddress(let homeAddress):
-            newState.homeAddress = homeAddress
         case .setIsSaving(let isSaving):
             newState.isSaving = isSaving
         case .setSaveCompleted:

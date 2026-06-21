@@ -12,6 +12,7 @@ import UIKit
 
 final class ProfileManagementViewController: BaseViewController<ProfileManagementReactor> {
     let profileManagementView = ProfileManagementView()
+    private weak var activeInputField: ProfileInputField?
 
     override func loadView() {
         view = profileManagementView
@@ -30,6 +31,7 @@ final class ProfileManagementViewController: BaseViewController<ProfileManagemen
             .disposed(by: disposeBag)
 
         bindInputSanitizers()
+        bindKeyboardAvoidance()
 
         profileManagementView.nicknameField.textField.rx.text.orEmpty
             .distinctUntilChanged()
@@ -75,7 +77,6 @@ final class ProfileManagementViewController: BaseViewController<ProfileManagemen
                     nickname: state.nickname,
                     birthday: state.birthdayText,
                     gender: state.gender,
-                    address: state.homeAddress,
                     height: state.heightText,
                     weight: state.weightText
                 )
@@ -87,7 +88,6 @@ final class ProfileManagementViewController: BaseViewController<ProfileManagemen
                     nickname: state.nickname,
                     birthday: state.birthday,
                     gender: state.gender,
-                    address: state.address,
                     height: state.height,
                     weight: state.weight
                 )
@@ -121,7 +121,6 @@ private struct ProfileManagementViewState: Equatable {
     let nickname: String
     let birthday: String
     let gender: UserGender
-    let address: String?
     let height: String
     let weight: String
 }
@@ -154,5 +153,53 @@ private extension ProfileManagementViewController {
                 owner.profileManagementView.weightField.textField.text = sanitizedText
             }
             .disposed(by: disposeBag)
+    }
+
+    func bindKeyboardAvoidance() {
+        Observable.merge([
+            profileManagementView.heightField.textField.rx.controlEvent(.editingDidBegin)
+                .map { [profileManagementView] in profileManagementView.heightField },
+            profileManagementView.weightField.textField.rx.controlEvent(.editingDidBegin)
+                .map { [profileManagementView] in profileManagementView.weightField }
+        ])
+        .bind(with: self) { owner, field in
+            owner.activeInputField = field
+            owner.profileManagementView.scrollToVisible(field)
+        }
+        .disposed(by: disposeBag)
+
+        Observable.merge([
+            profileManagementView.heightField.textField.rx.controlEvent(.editingDidEnd).map { ProfileInputField?.none },
+            profileManagementView.weightField.textField.rx.controlEvent(.editingDidEnd).map { ProfileInputField?.none }
+        ])
+        .bind(with: self) { owner, _ in
+            owner.activeInputField = nil
+        }
+        .disposed(by: disposeBag)
+
+        NotificationCenter.default.rx.notification(UIResponder.keyboardWillShowNotification)
+            .bind(with: self) { owner, notification in
+                owner.updateKeyboardInset(notification: notification)
+            }
+            .disposed(by: disposeBag)
+
+        NotificationCenter.default.rx.notification(UIResponder.keyboardWillHideNotification)
+            .bind(with: self) { owner, _ in
+                owner.profileManagementView.updateKeyboardBottomInset(0)
+            }
+            .disposed(by: disposeBag)
+    }
+
+    func updateKeyboardInset(notification: Notification) {
+        guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else {
+            return
+        }
+
+        let keyboardFrameInView = view.convert(keyboardFrame, from: nil)
+        let keyboardOverlap = max(0, view.bounds.maxY - keyboardFrameInView.minY)
+        profileManagementView.updateKeyboardBottomInset(keyboardOverlap)
+
+        guard let activeInputField else { return }
+        profileManagementView.scrollToVisible(activeInputField)
     }
 }

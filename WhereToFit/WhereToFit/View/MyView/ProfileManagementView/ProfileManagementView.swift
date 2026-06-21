@@ -12,15 +12,16 @@ import UIKit
 final class ProfileManagementView: UIView {
     let titleView = TitleView(text: "프로필 관리", leftButtonImage: UIImage(systemName: "chevron.left"))
 
+    private let scrollView = UIScrollView().then {
+        $0.showsVerticalScrollIndicator = false
+        $0.keyboardDismissMode = .interactive
+    }
+    private let contentView = UIView()
     let nicknameField = ProfileInputField(title: "닉네임")
     let birthDateField = ProfileInputField(title: "생년월일", placeholder: "ex)19991208").then {
         $0.textField.keyboardType = .numberPad
     }
     let genderField = ProfileGenderField()
-    let addressField = ProfileInputField(title: "거주 지역 (선택)", placeholder: "주소 찾기").then {
-        $0.textField.isEnabled = false
-    }
-
     let heightField = ProfileInputField(title: "키 (선택)", placeholder: "키를 입력해주세요").then {
         $0.textField.keyboardType = .decimalPad
     }
@@ -57,20 +58,28 @@ extension ProfileManagementView {
         nickname: String,
         birthday: String,
         gender: UserGender,
-        address: String?,
         height: String,
         weight: String
     ) {
         nicknameField.textField.text = nickname
         birthDateField.textField.text = birthday
         genderField.update(gender: gender)
-        addressField.textField.text = address
         heightField.textField.text = height
         weightField.textField.text = weight
     }
 
     func updateSaveButton(isEnabled: Bool) {
         saveButton.isEnabled = isEnabled
+    }
+
+    func updateKeyboardBottomInset(_ bottomInset: CGFloat) {
+        scrollView.contentInset.bottom = bottomInset
+        scrollView.verticalScrollIndicatorInsets.bottom = bottomInset
+    }
+
+    func scrollToVisible(_ field: ProfileInputField) {
+        let fieldFrame = field.convert(field.bounds, to: scrollView)
+        scrollView.scrollRectToVisible(fieldFrame.insetBy(dx: 0, dy: -12), animated: true)
     }
 }
 
@@ -82,13 +91,18 @@ private extension ProfileManagementView {
     func setLayout() {
         [
             titleView,
+            scrollView,
+            saveButton
+        ].forEach(addSubview)
+
+        scrollView.addSubview(contentView)
+
+        [
             nicknameField,
             birthDateField,
             genderField,
-            addressField,
-            bodyInfoStackView,
-            saveButton
-        ].forEach(addSubview)
+            bodyInfoStackView
+        ].forEach(contentView.addSubview)
 
         bodyInfoStackView.addArrangedSubview(heightField)
         bodyInfoStackView.addArrangedSubview(weightField)
@@ -98,8 +112,19 @@ private extension ProfileManagementView {
             $0.horizontalEdges.equalToSuperview()
         }
 
+        scrollView.snp.makeConstraints {
+            $0.top.equalTo(titleView.snp.bottom)
+            $0.horizontalEdges.equalToSuperview()
+            $0.bottom.equalTo(saveButton.snp.top).offset(-16)
+        }
+
+        contentView.snp.makeConstraints {
+            $0.edges.equalTo(scrollView.contentLayoutGuide)
+            $0.width.equalTo(scrollView.frameLayoutGuide)
+        }
+
         nicknameField.snp.makeConstraints {
-            $0.top.equalTo(titleView.snp.bottom).offset(42)
+            $0.top.equalToSuperview().offset(42)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
 
@@ -113,14 +138,10 @@ private extension ProfileManagementView {
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
 
-        addressField.snp.makeConstraints {
+        bodyInfoStackView.snp.makeConstraints {
             $0.top.equalTo(genderField.snp.bottom).offset(26)
             $0.horizontalEdges.equalToSuperview().inset(16)
-        }
-
-        bodyInfoStackView.snp.makeConstraints {
-            $0.top.equalTo(addressField.snp.bottom).offset(26)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.bottom.equalToSuperview()
         }
 
         saveButton.snp.makeConstraints {
