@@ -23,7 +23,7 @@ final class CalendarView: UIView {
     private let contentView = UIView()
     private let contentContainerView = UIView()
     private let calendarContentView = UIView()
-    private let reportContentView = ReportContentView()
+    private let reportContentContainerView = UIView()
     private var currentContentView: UIView?
 
     fileprivate let segmentedControl = UISegmentedControl(items: ["캘린더", "리포트"]).then {
@@ -168,7 +168,19 @@ extension CalendarView {
         case .calendar:
             replaceContentView(with: calendarContentView)
         case .report:
-            replaceContentView(with: reportContentView)
+            replaceContentView(with: reportContentContainerView)
+        }
+    }
+
+    func isReportContentSelected() -> Bool {
+        segmentedControl.selectedSegmentIndex == 1
+    }
+
+    func installReportContentView(_ view: UIView) {
+        reportContentContainerView.subviews.forEach { $0.removeFromSuperview() }
+        reportContentContainerView.addSubview(view)
+        view.snp.makeConstraints {
+            $0.edges.equalToSuperview()
         }
     }
 }
