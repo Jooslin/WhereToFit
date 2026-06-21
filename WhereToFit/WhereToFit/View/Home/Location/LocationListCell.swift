@@ -85,11 +85,11 @@ class LocationListCell: UICollectionViewListCell {
         }
     }
     
-    func configure(_ location: Location) {
-        imageView.image = switch location.buttonType {
-        case .myHome, .office:
+    func configure(_ location: UserLocation) {
+        imageView.image = switch location.kind {
+        case .home, .office:
             location.isSelected ? .homeFilled : .home
-        case .additional:
+        case .custom:
             location.isSelected ? .locationPinFilled : .locationPin
         }
         nameLabel.text = location.name

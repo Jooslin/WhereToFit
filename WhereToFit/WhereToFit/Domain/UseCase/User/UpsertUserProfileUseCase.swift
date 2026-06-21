@@ -27,7 +27,7 @@ final class UpsertUserProfileUseCase {
         let initialWeight: Double?
         let exerciseExperience: ExerciseExperience?
         let exerciseGoal: ExerciseGoal?
-        let preferredSportsCategoryRawValues: [String]
+        let preferredSportsCategories: [SportsCategory]
         let discomfortBodyParts: [DiscomfortBodyPart]
         let usesPublicFacility: Bool
     }
@@ -63,7 +63,7 @@ final class UpsertUserProfileUseCase {
                     initialWeight: input.initialWeight,
                     exerciseExperience: input.exerciseExperience,
                     exerciseGoal: input.exerciseGoal,
-                    preferredSportsCategoryRawValues: input.preferredSportsCategoryRawValues,
+                    preferredSportsCategories: input.preferredSportsCategories,
                     discomfortBodyParts: input.discomfortBodyParts,
                     usesPublicFacility: input.usesPublicFacility,
                     createdAt: existingProfile?.createdAt ?? now,

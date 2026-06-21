@@ -46,16 +46,22 @@ extension HomeProgramCell {
     func configure(_ item: HomeCollectionView.ProgramSectionItem) {
         if let imageURL = item.facility.facilityImage?.trimmingCharacters(in: .whitespacesAndNewlines),
            let url = URL(string: imageURL) {
-            imageView.kf.setImage(with: url, placeholder: item.image) { [weak imageView] result in
+            imageView.kf.setImage(with: url, placeholder: UIImage(named: item.imageName)) { [weak imageView] result in
                 if case .failure = result {
-                    imageView?.image = item.image
+                    imageView?.image = UIImage(named: item.imageName)
                 }
             }
         } else {
-            imageView.image = item.image
+            imageView.image = UIImage(named: item.imageName)
         }
         
-        matchLabel.text = "\(Int(item.matchRate))% 일치"
+        if let matchRate = item.matchRate {
+            matchLabel.isHidden = false
+            matchLabel.text = "\(Int(matchRate))% 일치"
+        } else {
+            matchLabel.isHidden = true
+            matchLabel.text = nil
+        }
         placeLabel.text = item.place
         nameLabel.text = item.name
         facilityLabel.text = item.facility.facilityName

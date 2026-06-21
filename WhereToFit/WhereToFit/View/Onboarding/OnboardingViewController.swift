@@ -17,19 +17,44 @@ final class OnboardingViewController: BaseViewController<OnboardingReactor> {
     private let containerView = UIView()
     private var currentStepView: UIView?
     private var stepViewDisposeBag = DisposeBag()
-    
+
+    private let selectedAddressRelay = PublishRelay<String>()
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
         setLayout()
     }
-    
+
     override func bind(reactor: OnboardingReactor) {
         reactor.state
             .map(\.currentStep)
             .distinctUntilChanged()
             .bind(with: self) { owner, step in
                 owner.render(step: step)
+            }
+            .disposed(by: disposeBag)
+
+        reactor.pulse(\.$error)
+            .compactMap { $0 }
+            .map { AppStep.alert(title: $0.0, message: $0.1) }
+            .bind(to: steps)
+            .disposed(by: disposeBag)
+
+        reactor.pulse(\.$saveResult)
+            .compactMap { $0 }
+            .bind(with: self) { owner, result in
+                owner.steps.accept(AppStep.main)
+
+                guard case .successWithLocationWarning = result else { return }
+                DispatchQueue.main.async {
+                    owner.steps.accept(
+                        AppStep.alert(
+                            title: "주소 저장 실패",
+                            message: "현재 위치의 좌표를 찾지 못했어요."
+                        )
+                    )
+                }
             }
             .disposed(by: disposeBag)
     }
@@ -39,27 +64,27 @@ private extension OnboardingViewController {
     func setLayout() {
         view.backgroundColor = .white
         view.addSubview(containerView)
-        
+
         containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
     }
-    
+
     func render(step: OnboardingStep) {
         stepViewDisposeBag = DisposeBag()
         currentStepView?.removeFromSuperview()
-        
+
         let nextView = makeStepView(for: step)
         containerView.addSubview(nextView)
-        
+
         nextView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
-        
+
         bindStepView(nextView)
         currentStepView = nextView
     }
-    
+
     func makeStepView(for step: OnboardingStep) -> UIView {
         switch step {
         case .start:
@@ -80,53 +105,314 @@ private extension OnboardingViewController {
             return OnboardingEndView()
         }
     }
-    
+
     func bindStepView(_ stepView: UIView) {
         guard let reactor else {
             return
         }
-        
-        if let startView = stepView as? OnboardingStartView {
-            startView.startButton.rx.tap
-                .map { OnboardingReactor.Action.nextButtonTapped }
-                .bind(to: reactor.action)
-                .disposed(by: stepViewDisposeBag)
-            
-            startView.skipButton.rx.tap
-                .bind(with: self) { owner, _ in
-                    owner.steps.accept(AppStep.main)
-                }
-                .disposed(by: stepViewDisposeBag)
-        }
-        
+
         if let baseView = stepView as? OnboardingBaseView {
-            baseView.nextButton.rx.tap
-                .map { OnboardingReactor.Action.nextButtonTapped }
-                .bind(to: reactor.action)
-                .disposed(by: stepViewDisposeBag)
-            
-            baseView.titleView.rx.leftButtonTap
-                .map { OnboardingReactor.Action.backButtonTapped }
-                .bind(to: reactor.action)
-                .disposed(by: stepViewDisposeBag)
+            bindBaseView(baseView, reactor: reactor)
         }
+
+        switch stepView {
+        case let startView as OnboardingStartView:
+            bindStartView(startView, reactor: reactor)
+
+        case let personalInfoView as OnboardingPersonalInfoView:
+            bindPersonalInfoView(personalInfoView, reactor: reactor)
+
+        case let experienceView as OnboardingExperienceView:
+            bindExperienceView(experienceView, reactor: reactor)
+
+        case let goalView as OnboardingGoalView:
+            bindGoalView(goalView, reactor: reactor)
+
+        case let cardButtonsView as OnboardingCardButtonsView:
+            bindCardButtonsView(cardButtonsView, reactor: reactor)
+
+        case let facilityView as OnboardingFacilityView:
+            bindFacilityView(facilityView, reactor: reactor)
+
+        case let endView as OnboardingEndView:
+            bindEndView(endView, reactor: reactor)
+
+        default:
+            break
+        }
+    }
+
+    func bindStartView(_ startView: OnboardingStartView, reactor: OnboardingReactor) {
+        startView.startButton.rx.tap
+            .map { OnboardingReactor.Action.nextButtonTapped }
+            .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
+
+        startView.skipButton.rx.tap
+            .bind(with: self) { owner, _ in
+                owner.steps.accept(AppStep.main)
+            }
+            .disposed(by: stepViewDisposeBag)
+    }
+
+    func bindBaseView(_ baseView: OnboardingBaseView, reactor: OnboardingReactor) {
+        baseView.nextButton.isEnabled = reactor.currentState.isNextButtonEnabled
+
+        baseView.nextButton.rx.tap
+            .map {
+                baseView.step == .facility
+                    ? OnboardingReactor.Action.save
+                    : OnboardingReactor.Action.nextButtonTapped
+            }
+            .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
+
+        baseView.titleView.rx.leftButtonTap
+            .map { OnboardingReactor.Action.backButtonTapped }
+            .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
+
+        reactor.state
+            .map(\.isNextButtonEnabled)
+            .distinctUntilChanged()
+            .bind(to: baseView.nextButton.rx.isEnabled)
+            .disposed(by: stepViewDisposeBag)
+    }
+
+    func bindPersonalInfoView(_ personalInfoView: OnboardingPersonalInfoView, reactor: OnboardingReactor) {
+        bindPersonalInfoInputSanitizers(personalInfoView)
+
+        personalInfoView.nicknameTextField.rx.text.orEmpty
+            .distinctUntilChanged()
+            .map {
+                OnboardingReactor.Action.updateNickname($0)
+            }
+            .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
+
+        personalInfoView.rx.birthdayTextFieldEditingDidEnd
+            .map { OnboardingReactor.Action.updateBirthday($0) }
+            .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
+
+        personalInfoView.rx.genderButtonTap
+            .map {
+                OnboardingReactor.Action.updateGender($0)
+            }
+            .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
+
+        personalInfoView.residenceTextField.rx.tap
+            .withUnretained(self)
+            .subscribe(onNext: { `self`, _ in
+                self.presentPostCodeSelection()
+            })
+            .disposed(by: stepViewDisposeBag)
+
+        selectedAddressRelay
+            .observe(on: MainScheduler.asyncInstance)
+            .do(onNext: { [weak personalInfoView] address in
+                personalInfoView?.residenceTextField.text = address
+            })
+            .map {
+                OnboardingReactor.Action.updateAddress($0)
+            }
+            .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
+
+        reactor.state
+            .map(\.address)
+            .distinctUntilChanged()
+            .bind(to: personalInfoView.residenceTextField.rx.text)
+            .disposed(by: stepViewDisposeBag)
+
+        personalInfoView.rx.weightTextFieldEditingDidEnd
+            .map {
+                OnboardingReactor.Action.updateWeight($0)
+            }
+            .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
+
+        personalInfoView.rx.heightTextFieldEditingDidEnd
+            .map {
+                OnboardingReactor.Action.updateHeight($0)
+            }
+            .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
         
-        if let endView = stepView as? OnboardingEndView {
-            endView.homeButton.rx.tap
-                .bind(with: self) { owner, _ in
-                    owner.steps.accept(AppStep.main)
+        reactor.state
+            .map { $0.gender == .male }
+            .distinctUntilChanged()
+            .bind(to: personalInfoView.maleButton.rx.isSelected)
+            .disposed(by: stepViewDisposeBag)
+
+        reactor.state
+            .map { $0.gender == .female }
+            .distinctUntilChanged()
+            .bind(to: personalInfoView.femaleButton.rx.isSelected)
+            .disposed(by: stepViewDisposeBag)
+    }
+
+    func bindPersonalInfoInputSanitizers(_ personalInfoView: OnboardingPersonalInfoView) {
+        personalInfoView.birthdayTextField.rx.controlEvent(.editingChanged)
+            .withLatestFrom(personalInfoView.birthdayTextField.rx.text.orEmpty)
+            .bind(with: personalInfoView) { view, text in
+                let sanitizedText = ValidateOnboardingPersonalInfoUseCase.sanitizeBirthdayInput(text)
+                guard text != sanitizedText else { return }
+                view.birthdayTextField.text = sanitizedText
+            }
+            .disposed(by: stepViewDisposeBag)
+
+        personalInfoView.heightTextField.rx.controlEvent(.editingChanged)
+            .withLatestFrom(personalInfoView.heightTextField.rx.text.orEmpty)
+            .bind(with: personalInfoView) { view, text in
+                let sanitizedText = ValidateOnboardingPersonalInfoUseCase.sanitizeDecimalInput(text)
+                guard text != sanitizedText else { return }
+                view.heightTextField.text = sanitizedText
+            }
+            .disposed(by: stepViewDisposeBag)
+
+        personalInfoView.weightTextField.rx.controlEvent(.editingChanged)
+            .withLatestFrom(personalInfoView.weightTextField.rx.text.orEmpty)
+            .bind(with: personalInfoView) { view, text in
+                let sanitizedText = ValidateOnboardingPersonalInfoUseCase.sanitizeDecimalInput(text)
+                guard text != sanitizedText else { return }
+                view.weightTextField.text = sanitizedText
+            }
+            .disposed(by: stepViewDisposeBag)
+    }
+
+    func bindExperienceView(_ experienceView: OnboardingExperienceView, reactor: OnboardingReactor) {
+        experienceView.rx.buttonSelected
+            .map { OnboardingReactor.Action.updateExerciseExperience($0) }
+            .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
+
+        reactor.state
+            .map(\.exerciseExperience)
+            .distinctUntilChanged()
+            .bind(with: experienceView) { view, experience in
+                view.buttons.forEach {
+                    $0.isSelected = $0.title == experience?.rawValue
+                }
+            }
+            .disposed(by: stepViewDisposeBag)
+    }
+
+    func bindGoalView(_ goalView: OnboardingGoalView, reactor: OnboardingReactor) {
+        goalView.rx.buttonSelected
+            .map { OnboardingReactor.Action.updateExerciseGoal($0) }
+            .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
+
+        reactor.state
+            .map(\.exerciseGoal)
+            .distinctUntilChanged()
+            .bind(with: goalView) { view, goal in
+                view.buttons.forEach {
+                    $0.isSelected = $0.title == goal?.rawValue
+                }
+            }
+            .disposed(by: stepViewDisposeBag)
+    }
+
+    func bindCardButtonsView(_ cardButtonsView: OnboardingCardButtonsView, reactor: OnboardingReactor) {
+        switch cardButtonsView.step {
+        case .preference?:
+            cardButtonsView.rx.buttonSelected
+                .map { OnboardingReactor.Action.togglePreferredSportsCategory($0) }
+                .bind(to: reactor.action)
+                .disposed(by: stepViewDisposeBag)
+
+            reactor.state
+                .map(\.preferredSportsCategories)
+                .distinctUntilChanged()
+                .bind(with: cardButtonsView) { view, selectedCategories in
+                    view.buttons.forEach {
+                        $0.isSelected = selectedCategories.map(\.rawValue).contains($0.title ?? "")
+                    }
                 }
                 .disposed(by: stepViewDisposeBag)
-            
-            endView.retryButton.rx.tap
-                .map { OnboardingReactor.Action.retryButtonTapped }
+
+        case .disabled?:
+            cardButtonsView.rx.buttonSelected
+                .map { OnboardingReactor.Action.toggleDiscomfortBodyPart($0) }
                 .bind(to: reactor.action)
                 .disposed(by: stepViewDisposeBag)
+
+            reactor.state
+                .map(\.discomfortBodyParts)
+                .distinctUntilChanged()
+                .bind(with: cardButtonsView) { view, bodyParts in
+                    let selectedValues = bodyParts.map(\.rawValue)
+                    view.buttons.forEach {
+                        $0.isSelected = selectedValues.contains($0.title ?? "")
+                    }
+                }
+                .disposed(by: stepViewDisposeBag)
+
+        default:
+            break
         }
+    }
+
+    func bindFacilityView(_ facilityView: OnboardingFacilityView, reactor: OnboardingReactor) {
+        facilityView.rx.negativeButtonTap
+            .map { OnboardingReactor.Action.updateUsesPublicFacility(false) }
+            .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
+
+        facilityView.rx.positiveButtonTap
+            .map { OnboardingReactor.Action.updateUsesPublicFacility(true) }
+            .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
+
+        reactor.state
+            .map(\.usesPublicFacility)
+            .distinctUntilChanged()
+            .bind(with: facilityView) { view, usesPublicFacility in
+                view.negativeButton.isSelected = usesPublicFacility == false
+                view.positiveButton.isSelected = usesPublicFacility
+            }
+            .disposed(by: stepViewDisposeBag)
+    }
+
+    func bindEndView(_ endView: OnboardingEndView, reactor: OnboardingReactor) {
+        endView.homeButton.rx.tap
+            .bind(with: self) { owner, _ in
+                owner.steps.accept(AppStep.main)
+            }
+            .disposed(by: stepViewDisposeBag)
+
+        endView.retryButton.rx.tap
+            .map { OnboardingReactor.Action.retryButtonTapped }
+            .bind(to: reactor.action)
+            .disposed(by: stepViewDisposeBag)
     }
 }
 
+extension OnboardingViewController {
+    private func presentPostCodeSelection() {
+        let vc = KakaoPostCodeViewController()
+        vc.onSelectAddress = { [weak self] address in
+            self?.selectedAddressRelay.accept(address)
+        }
+        vc.modalPresentationStyle = .overFullScreen
+        present(vc, animated: false)
+    }
+
+    @objc private func didTapBackground() {
+        currentStepView?.endEditing(true)
+    }
+}
 
 #Preview {
-    OnboardingViewController(reactor: OnboardingReactor())
+    OnboardingViewController(
+        reactor: OnboardingReactor(
+            dateService: DateService(),
+            addressCoordinateUseCase: AddressCoordinateUseCase(repository: NaverMapSearchRepository()),
+            upsertUserProfileUseCase: UpsertUserProfileUseCase(repository: CoreDataUserProfileRepository()),
+            addUserLocationUseCase: AddUserLocationUseCase(repository: CoreDataUserLocationRepository())
+        )
+    )
 }

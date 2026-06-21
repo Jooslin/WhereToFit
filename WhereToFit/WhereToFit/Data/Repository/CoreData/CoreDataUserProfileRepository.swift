@@ -94,9 +94,9 @@ private extension CoreDataUserProfileRepository {
             initialWeight: object.doubleValue(for: "initialWeight"),
             exerciseExperience: exerciseExperience,
             exerciseGoal: exerciseGoal,
-            preferredSportsCategoryRawValues: CoreDataStringArrayCoder.decode(
+            preferredSportsCategories: CoreDataStringArrayCoder.decode(
                 object.stringValue(for: "preferredSportsCategoryRawValues")
-            ),
+            ).compactMap(SportsCategory.init(rawValue:)),
             discomfortBodyParts: discomfortBodyParts,
             usesPublicFacility: object.boolValue(for: "usesPublicFacility") ?? false,
             createdAt: createdAt,
@@ -114,7 +114,7 @@ private extension CoreDataUserProfileRepository {
         object.setValue(profile.exerciseExperience?.rawValue, forKey: "exerciseExperienceRawValue")
         object.setValue(profile.exerciseGoal?.rawValue, forKey: "exerciseGoalRawValue")
         object.setValue(
-            CoreDataStringArrayCoder.encode(profile.preferredSportsCategoryRawValues),
+            CoreDataStringArrayCoder.encode(profile.preferredSportsCategories.map(\.rawValue)),
             forKey: "preferredSportsCategoryRawValues"
         )
         object.setValue(

@@ -10,6 +10,8 @@ import SnapKit
 import Then
 
 final class HomeTitleView: TitleView {
+    private let homeLeftButton: IconButton
+    
     init() {
         let leftButton = IconButton(config: .icon, style: .bothImage).then {
             $0.normalImage = .locationPinFilled
@@ -17,6 +19,7 @@ final class HomeTitleView: TitleView {
             $0.normalRightImage = .arrowDown
             $0.titleLabel.apply(font: .systemFont(ofSize: 20, weight: .semibold))
         }
+        self.homeLeftButton = leftButton
         
         super.init(
             leftButtonImage: .locationPinFilled,
@@ -36,5 +39,9 @@ final class HomeTitleView: TitleView {
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    func setLocationTitle(_ title: String) {
+        homeLeftButton.title = title
     }
 }

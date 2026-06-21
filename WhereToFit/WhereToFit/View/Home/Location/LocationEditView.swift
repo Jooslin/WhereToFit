@@ -19,8 +19,8 @@ final class LocationEditView: UIView {
     private(set) lazy var dataSource = makeDiffableDataSource(collectionView)
     
     // Reactive
-    fileprivate let editButtonTap = PublishRelay<Location>()
-    fileprivate let deleteButtonTap = PublishRelay<Location>()
+    fileprivate let editButtonTap = PublishRelay<UserLocation>()
+    fileprivate let deleteButtonTap = PublishRelay<UserLocation>()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -53,8 +53,8 @@ extension LocationEditView {
 
 //MARK: CollectionView DataSource
 extension LocationEditView {
-    private func makeDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, Location> {
-        let listCellRegistration = UICollectionView.CellRegistration<LocationEditListCell, Location> { [weak self] cell, indexPath, item in
+    private func makeDiffableDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, UserLocation> {
+        let listCellRegistration = UICollectionView.CellRegistration<LocationEditListCell, UserLocation> { [weak self] cell, indexPath, item in
             guard let self else { return }
             cell.configure(item)
             
@@ -73,15 +73,15 @@ extension LocationEditView {
                 .disposed(by: cell.disposeBag)
         }
 
-        let dataSource = UICollectionViewDiffableDataSource<Int, Location>(collectionView: collectionView) { collectionView, indexPath, item in
+        let dataSource = UICollectionViewDiffableDataSource<Int, UserLocation>(collectionView: collectionView) { collectionView, indexPath, item in
             collectionView.dequeueConfiguredReusableCell(using: listCellRegistration, for: indexPath, item: item)
         }
         
         return dataSource
     }
     
-    func setSnapshot(with data: [Location]) {
-        var snapshot = NSDiffableDataSourceSnapshot<Int, Location>()
+    func setSnapshot(with data: [UserLocation]) {
+        var snapshot = NSDiffableDataSourceSnapshot<Int, UserLocation>()
         snapshot.appendSections([0])
         snapshot.appendItems(data, toSection: 0)
         
@@ -130,7 +130,7 @@ extension Reactive where Base: LocationEditView {
         base.titleView.rx.leftButtonTap
     }
     
-    var listCellSelected: Observable<Location> {
+    var listCellSelected: Observable<UserLocation> {
         base.collectionView.rx.itemSelected
             .compactMap { indexPath in
                 base.dataSource.itemIdentifier(for: indexPath)
@@ -138,11 +138,11 @@ extension Reactive where Base: LocationEditView {
             .asObservable()
     }
     
-    var editButtonTap: PublishRelay<Location> {
+    var editButtonTap: PublishRelay<UserLocation> {
         base.editButtonTap
     }
     
-    var deleteButtonTap: PublishRelay<Location> {
+    var deleteButtonTap: PublishRelay<UserLocation> {
         base.deleteButtonTap
     }
 }
