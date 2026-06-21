@@ -46,8 +46,24 @@ final class ProgramRegisterViewController: BaseViewController<ProgramRegisterRea
         
         registerView.dateTextField.rx.tap
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
-            .map { AppStep.selectDate}
+            .map { AppStep.selectDate }
             .bind(to: steps)
+            .disposed(by: disposeBag)
+        
+        registerView.regularButton.rx.tap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .subscribe(onNext: { [registerView] in
+                registerView.regularButton.isSelected.toggle()
+                registerView.updateScheduleInputVisibility()
+            })
+            .disposed(by: disposeBag)
+        
+        registerView.reservationButton.rx.tap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .subscribe(onNext: { [registerView] in
+                registerView.reservationButton.isSelected.toggle()
+                registerView.updateScheduleInputVisibility()
+            })
             .disposed(by: disposeBag)
     }
     
