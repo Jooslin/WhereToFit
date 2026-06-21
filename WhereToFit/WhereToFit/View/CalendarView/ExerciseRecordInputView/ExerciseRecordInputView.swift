@@ -41,8 +41,7 @@ final class ExerciseRecordInputView: UIView {
 
     private let titleLabel = UILabel(text: "운동 기록", config: .body14Medium)
 
-    fileprivate let customButton = ExerciseTypeButton(title: "기타 입력")
-
+    fileprivate let exerciseTypeButtonGroupView = ExerciseTypeButtonGroupView()
     fileprivate let exerciseNameField = ExerciseRecordField(title: "운동 종목", placeholder: "운동 종목을 선택해주세요")
     private let dateField = ExerciseRecordField(title: "날짜")
     fileprivate let durationField = ExerciseRecordField(title: "운동한 시간", text: "0분")
@@ -82,6 +81,17 @@ extension ExerciseRecordInputView {
 
     func updateCustomInputVisible(_ isVisible: Bool) {
         setCustomInputVisible(isVisible, animated: true)
+    }
+
+    func updateRegisteredSportsCategories(
+        _ categories: [SportsCategory],
+        selectedCategory: SportsCategory?
+    ) {
+        exerciseTypeButtonGroupView.updateCategories(categories, selectedCategory: selectedCategory)
+    }
+
+    func updateSelectedRegisteredSportsCategory(_ selectedCategory: SportsCategory?) {
+        exerciseTypeButtonGroupView.updateSelectedCategory(selectedCategory)
     }
 
     func updateExerciseNameSelectionVisible(_ isVisible: Bool) {
@@ -138,8 +148,6 @@ private extension ExerciseRecordInputView {
         swipeDismissHandler?.onDismiss = { [weak self] in
             self?.swipeDismissRelay.accept(())
         }
-        customButton.setContentHuggingPriority(.required, for: .horizontal)
-        customButton.setContentCompressionResistancePriority(.required, for: .horizontal)
     }
 
     func setLayout() {
@@ -150,7 +158,7 @@ private extension ExerciseRecordInputView {
             handleView,
             titleLabel,
             closeButton,
-            customButton,
+            exerciseTypeButtonGroupView,
             fieldStackView,
             saveButton
         ].forEach(sheetView.addSubview)
@@ -181,15 +189,15 @@ private extension ExerciseRecordInputView {
             $0.size.equalTo(32)
         }
 
-        customButton.snp.makeConstraints {
+        exerciseTypeButtonGroupView.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(6)
             $0.leading.equalToSuperview().offset(16)
-            $0.width.equalTo(customButton.intrinsicContentSize.width)
+            $0.trailing.equalToSuperview().inset(16).priority(999)
             $0.height.equalTo(32)
         }
 
         fieldStackView.snp.makeConstraints {
-            $0.top.equalTo(customButton.snp.bottom).offset(12)
+            $0.top.equalTo(exerciseTypeButtonGroupView.snp.bottom).offset(12)
             $0.leading.equalToSuperview().inset(16)
             $0.trailing.equalToSuperview().inset(16).priority(999)
         }
@@ -204,7 +212,7 @@ private extension ExerciseRecordInputView {
     }
 
     func setCustomInputVisible(_ isVisible: Bool, animated: Bool = false) {
-        customButton.isSelected = isVisible
+        exerciseTypeButtonGroupView.updateCustomButtonSelected(isVisible)
         exerciseNameField.isHidden = !isVisible
 
         guard animated else {
@@ -293,7 +301,11 @@ private extension ExerciseRecordInputView {
 
 extension Reactive where Base == ExerciseRecordInputView {
     var customButtonTap: ControlEvent<Void> {
-        base.customButton.rx.controlEvent(.touchUpInside)
+        base.exerciseTypeButtonGroupView.rx.customButtonTap
+    }
+
+    var registeredProgramCategorySelected: ControlEvent<SportsCategory> {
+        base.exerciseTypeButtonGroupView.rx.registeredCategorySelected
     }
 
     var exerciseNameFieldTap: ControlEvent<Void> {
@@ -338,121 +350,5 @@ extension Reactive where Base == ExerciseRecordInputView {
 
     var swipeDownToDismiss: ControlEvent<Void> {
         ControlEvent(events: base.swipeDismissRelay)
-    }
-}
-
-private final class ExerciseTypeButton: UIControl {
-    private let titleLabel = UILabel(config: .body13Medium)
-
-    override var intrinsicContentSize: CGSize {
-        CGSize(width: titleLabel.intrinsicContentSize.width + 28, height: 32)
-    }
-
-    override var isSelected: Bool {
-        didSet {
-            layer.borderColor = isSelected ? UIColor.primary400.cgColor : UIColor.gray200.cgColor
-            titleLabel.textColor = isSelected ? .primary400 : .gray700
-        }
-    }
-
-    init(title: String) {
-        super.init(frame: .zero)
-
-        titleLabel.text = title
-        setStyle()
-        setLayout()
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
-
-private extension ExerciseTypeButton {
-    func setStyle() {
-        backgroundColor = .white
-        layer.cornerRadius = 16
-        layer.borderWidth = 1
-        layer.borderColor = UIColor.gray200.cgColor
-        setContentHuggingPriority(.required, for: .horizontal)
-        setContentCompressionResistancePriority(.required, for: .horizontal)
-        titleLabel.textColor = .gray700
-    }
-
-    func setLayout() {
-        addSubview(titleLabel)
-
-        titleLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().inset(14)
-            $0.trailing.equalToSuperview().inset(14).priority(999)
-            $0.centerY.equalToSuperview()
-        }
-    }
-}
-
-fileprivate final class ExerciseRecordField: UIView {
-    private let titleLabel: UILabel
-    fileprivate let textField = DesignTextField().then {
-        $0.font = LabelConfiguration.body14Medium.font
-    }
-
-    var text: String? {
-        get {
-            textField.text
-        }
-        set {
-            textField.text = newValue
-        }
-    }
-
-    init(title: String, text: String? = nil, placeholder: String? = nil) {
-        titleLabel = UILabel(text: title, config: .body14Medium, color: .gray700)
-
-        super.init(frame: .zero)
-
-        textField.text = text
-        if let placeholder {
-            textField.setPlaceholder(text: placeholder)
-        }
-
-        setLayout()
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
-
-fileprivate extension ExerciseRecordField {
-    func setReadOnly() {
-        textField.inputView = UIView()
-        textField.tintColor = .clear
-    }
-
-    func setLayout() {
-        [
-            titleLabel,
-            textField
-        ].forEach(addSubview)
-
-        titleLabel.snp.makeConstraints {
-            $0.top.leading.equalToSuperview()
-            $0.trailing.equalToSuperview().priority(999)
-        }
-
-        textField.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(10)
-            $0.leading.bottom.equalToSuperview()
-            $0.trailing.equalToSuperview().priority(999)
-            $0.height.equalTo(48)
-        }
-    }
-}
-
-extension Reactive where Base == ExerciseRecordField {
-    var editingDidBegin: ControlEvent<Void> {
-        base.textField.rx.controlEvent(.editingDidBegin)
     }
 }

@@ -12,12 +12,15 @@ import RxSwift
 final class ExerciseRecordInputReactor: Reactor {
     let initialState: State
     private let saveExerciseRecordUseCase: SaveExerciseRecordUseCase
+    private let fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase
 
     init(
         selectedDate: Date,
-        saveExerciseRecordUseCase: SaveExerciseRecordUseCase
+        saveExerciseRecordUseCase: SaveExerciseRecordUseCase,
+        fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase
     ) {
         self.saveExerciseRecordUseCase = saveExerciseRecordUseCase
+        self.fetchRegisteredProgramsUseCase = fetchRegisteredProgramsUseCase
         initialState = State(selectedDate: selectedDate)
     }
 
@@ -50,7 +53,9 @@ final class ExerciseRecordInputReactor: Reactor {
     }
 
     enum Action {
+        case viewDidLoad
         case customButtonTapped
+        case registeredProgramCategorySelected(SportsCategory)
         case exerciseNameFieldTapped
         case exerciseCategorySelected(SportsCategory)
         case exerciseSportSelected(String)
@@ -65,6 +70,8 @@ final class ExerciseRecordInputReactor: Reactor {
     }
 
     enum Mutation {
+        case setRegisteredSportsCategories([SportsCategory])
+        case setSelectedRegisteredSportsCategory(SportsCategory?)
         case setCustomInputVisible(Bool)
         case setExerciseSelectionVisible(Bool)
         case setSelectedExerciseCategory(SportsCategory?)
@@ -80,6 +87,8 @@ final class ExerciseRecordInputReactor: Reactor {
     struct State {
         var selectedDate: Date
         var isCustomInputVisible = false
+        var registeredSportsCategories: [SportsCategory] = []
+        var selectedRegisteredSportsCategory: SportsCategory?
         var isExerciseSelectionVisible = false
         var exerciseCategories = SportsCategory.allCases
         var selectedExerciseCategory: SportsCategory?
@@ -103,8 +112,33 @@ final class ExerciseRecordInputReactor: Reactor {
 
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
+        case .viewDidLoad:
+            return fetchRegisteredProgramsUseCase.execute()
+                .asObservable()
+                .map { programs in
+                    Self.uniqueSportsCategories(from: programs)
+                }
+                .map(Mutation.setRegisteredSportsCategories)
+
         case .customButtonTapped:
-            return .just(.setCustomInputVisible(!currentState.isCustomInputVisible))
+            return .concat([
+                .just(.setSelectedRegisteredSportsCategory(nil)),
+                .just(.setSelectedExerciseCategory(nil)),
+                .just(.setSelectedExerciseSport(nil)),
+                .just(.setAppliedExerciseName(nil)),
+                .just(.setCustomInputVisible(!currentState.isCustomInputVisible))
+            ])
+
+        case .registeredProgramCategorySelected(let category):
+            return .concat([
+                .just(.setSelectedRegisteredSportsCategory(category)),
+                .just(.setSelectedExerciseCategory(category)),
+                .just(.setSelectedExerciseSport(nil)),
+                .just(.setAppliedExerciseName(category.rawValue)),
+                .just(.setExerciseSearchText("")),
+                .just(.setExerciseSelectionVisible(false)),
+                .just(.setCustomInputVisible(false))
+            ])
 
         case .exerciseNameFieldTapped:
             return .just(.setExerciseSelectionVisible(true))
@@ -183,6 +217,12 @@ final class ExerciseRecordInputReactor: Reactor {
         var newState = state
 
         switch mutation {
+        case .setRegisteredSportsCategories(let categories):
+            newState.registeredSportsCategories = categories
+
+        case .setSelectedRegisteredSportsCategory(let category):
+            newState.selectedRegisteredSportsCategory = category
+
         case .setCustomInputVisible(let isVisible):
             newState.isCustomInputVisible = isVisible
 
@@ -215,5 +255,15 @@ final class ExerciseRecordInputReactor: Reactor {
         }
 
         return newState
+    }
+}
+
+private extension ExerciseRecordInputReactor {
+    static func uniqueSportsCategories(from programs: [RegisteredProgram]) -> [SportsCategory] {
+        var seen = Set<SportsCategory>()
+
+        return programs.compactMap(\.sportsCategory).filter { category in
+            seen.insert(category).inserted
+        }
     }
 }

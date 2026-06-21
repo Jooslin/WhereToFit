@@ -12,6 +12,7 @@ import ReactorKit
 final class CalendarFlow: Flow {
     private let navigationController = UINavigationController()
     private let calendarRecordRepository = CoreDataCalendarRecordRepository()
+    private let registeredProgramRepository = CoreDataRegisteredProgramRepository()
     private lazy var calendarReactor = CalendarReactor(
         saveWeightRecordUseCase: SaveWeightRecordUseCase(repository: calendarRecordRepository),
         saveConditionRecordUseCase: SaveConditionRecordUseCase(repository: calendarRecordRepository),
@@ -91,7 +92,10 @@ private extension CalendarFlow {
         let viewController = ExerciseRecordInputViewController(
             reactor: ExerciseRecordInputReactor(
                 selectedDate: calendarReactor.currentState.selectedDate,
-                saveExerciseRecordUseCase: SaveExerciseRecordUseCase(repository: calendarRecordRepository)
+                saveExerciseRecordUseCase: SaveExerciseRecordUseCase(repository: calendarRecordRepository),
+                fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase(
+                    repository: registeredProgramRepository
+                )
             )
         )
         viewController.onSave = { [weak self] in

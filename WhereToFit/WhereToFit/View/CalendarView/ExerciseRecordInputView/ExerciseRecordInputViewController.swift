@@ -25,8 +25,18 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
     }
     
     override func bind(reactor: ExerciseRecordInputReactor) {
+        Observable.just(())
+            .map { ExerciseRecordInputReactor.Action.viewDidLoad }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
         exerciseRecordInputView.rx.customButtonTap
             .map { ExerciseRecordInputReactor.Action.customButtonTapped }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        exerciseRecordInputView.rx.registeredProgramCategorySelected
+            .map { ExerciseRecordInputReactor.Action.registeredProgramCategorySelected($0) }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
@@ -113,6 +123,27 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .observe(on: MainScheduler.instance)
             .bind(with: self) { owner, isVisible in
                 owner.exerciseRecordInputView.updateCustomInputVisible(isVisible)
+            }
+            .disposed(by: disposeBag)
+
+        reactor.state
+            .map(\.registeredSportsCategories)
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind(with: self) { owner, categories in
+                owner.exerciseRecordInputView.updateRegisteredSportsCategories(
+                    categories,
+                    selectedCategory: reactor.currentState.selectedRegisteredSportsCategory
+                )
+            }
+            .disposed(by: disposeBag)
+
+        reactor.state
+            .map(\.selectedRegisteredSportsCategory)
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind(with: self) { owner, selectedCategory in
+                owner.exerciseRecordInputView.updateSelectedRegisteredSportsCategory(selectedCategory)
             }
             .disposed(by: disposeBag)
 
