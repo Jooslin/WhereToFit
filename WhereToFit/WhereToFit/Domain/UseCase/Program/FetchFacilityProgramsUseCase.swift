@@ -22,7 +22,7 @@ final class FetchFacilityProgramsUseCase {
             return .just([])
         }
 
-        let normalizedSportName = normalize(sportName)
+        let normalizedSportName = Self.normalize(sportName)
 
         return repository.fetchPrograms(
             facilityIDs: [facilityID],
@@ -34,7 +34,7 @@ final class FetchFacilityProgramsUseCase {
             var seenNames = Set<String>()
 
             return page.items.filter { program in
-                self.normalize(program.sport) == normalizedSportName
+                Self.normalize(program.sport) == normalizedSportName
             }
             .filter { program in
                 guard let className = program.className?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -47,7 +47,7 @@ final class FetchFacilityProgramsUseCase {
         }
     }
 
-    private func normalize(_ value: String?) -> String {
+    private static func normalize(_ value: String?) -> String {
         value?
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: " ", with: "")
