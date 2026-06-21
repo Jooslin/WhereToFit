@@ -13,12 +13,14 @@ final class ProgramRegisterReactor: BaseReactor {
     
     enum Action {
         case selectFacility(id: String?, name: String)
+        case selectSportsCategory(displayName: String, category: SportsCategory)
         case selectDates([Date])
     }
     
     enum Mutation {
         case setLoading(Bool)
         case setFacility(id: String?, name: String)
+        case setSportsCategory(displayName: String, category: SportsCategory)
         case setDates([Date])
     }
     
@@ -26,6 +28,8 @@ final class ProgramRegisterReactor: BaseReactor {
         var isLoading: Bool = false
         var facilityID: String?
         var facilityName: String?
+        var sportsCategoryDisplayName: String?
+        var sportsCategory: SportsCategory?
         var dates: [Date] = []
     }
     
@@ -33,6 +37,8 @@ final class ProgramRegisterReactor: BaseReactor {
         switch action {
         case let .selectFacility(id, name):
                 .just(.setFacility(id: id, name: name))
+        case let .selectSportsCategory(displayName, category):
+                .just(.setSportsCategory(displayName: displayName, category: category))
         case .selectDates(let dates):
                 .just(.setDates(dates))
         }
@@ -47,6 +53,9 @@ final class ProgramRegisterReactor: BaseReactor {
         case let .setFacility(id, name):
             newState.facilityID = id
             newState.facilityName = name
+        case let .setSportsCategory(displayName, category):
+            newState.sportsCategoryDisplayName = displayName
+            newState.sportsCategory = category
         case .setDates(let dates):
             newState.dates = dates
         }

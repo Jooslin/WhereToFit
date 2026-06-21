@@ -40,7 +40,7 @@ final class FacilitySearchReactor: BaseReactor {
         var searchText: String = ""
         var searchResults: [FacilitySearchResult] = []
         var errorMessage: String?
-        var shouldShowEmptyState: Bool {
+        nonisolated var shouldShowEmptyState: Bool {
             searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
                 && searchResults.isEmpty
                 && isLoading == false

@@ -44,6 +44,12 @@ final class ProgramRegisterViewController: BaseViewController<ProgramRegisterRea
             .bind(to: steps)
             .disposed(by: disposeBag)
         
+        registerView.sportsTextField.rx.tap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .map { AppStep.sportsCategorySelection }
+            .bind(to: steps)
+            .disposed(by: disposeBag)
+        
         registerView.dateTextField.rx.tap
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { AppStep.selectDate }
@@ -72,6 +78,12 @@ final class ProgramRegisterViewController: BaseViewController<ProgramRegisterRea
             .map(\.facilityName)
             .distinctUntilChanged()
             .bind(to: registerView.facilityTextField.rx.text)
+            .disposed(by: disposeBag)
+        
+        reactor.state
+            .map(\.sportsCategoryDisplayName)
+            .distinctUntilChanged()
+            .bind(to: registerView.sportsTextField.rx.text)
             .disposed(by: disposeBag)
     }
 }

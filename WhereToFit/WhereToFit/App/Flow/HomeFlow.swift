@@ -98,6 +98,22 @@ final class HomeFlow: Flow {
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
             
+        case .sportsCategorySelection:
+            let vc = MapFilterViewController(
+                filter: .empty,
+                mode: .category,
+                categorySelectionBehavior: .single
+            )
+            vc.singleCategorySelected = { [weak self] category in
+                self?.sendToProgramRegister(.selectSportsCategory(
+                    displayName: category.title,
+                    category: SportsCategory(sport: category.title)
+                ))
+            }
+            
+            navigationController.present(vc, animated: true)
+            return .none
+            
         case .selectDate:
             let vc = ProgramDateViewController(reactor: ProgramDateReactor(dateService: dateService))
             vc.onSelectDate = { [weak self] dates in

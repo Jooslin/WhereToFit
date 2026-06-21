@@ -172,7 +172,7 @@ extension ProgramRegisterView {
             $0.edges.equalToSuperview()
         }
         
-        programTextField.addSubview(arrowImageView)
+        sportsTextField.addSubview(arrowImageView)
         
         arrowImageView.snp.makeConstraints {
             $0.width.height.equalTo(24)
