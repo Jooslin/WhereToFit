@@ -136,6 +136,7 @@ private struct ReportWeightCardSwiftUIView: View {
 
 private struct ReportExerciseCardSwiftUIView: View {
     let state: CalendarReactor.ExerciseReportState
+    @State private var selectedMetric: ExerciseReportMetric = .duration
 
     var body: some View {
         ReportCardContainer {
@@ -149,9 +150,9 @@ private struct ReportExerciseCardSwiftUIView: View {
                         HStack(alignment: .lastTextBaseline, spacing: 4) {
                             Text("⏱️")
                                 .font(.system(size: 24, weight: .bold))
-                            Text(state.totalMinutesText)
+                            Text(selectedMetric.totalText(from: state))
                                 .font(.system(size: 24, weight: .bold))
-                            Text("분")
+                            Text(selectedMetric.unitText)
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundStyle(Color(.gray600))
                         }
@@ -159,7 +160,7 @@ private struct ReportExerciseCardSwiftUIView: View {
 
                     Spacer()
 
-                    ReportSmallSegmentedSwiftUIView()
+                    ReportSmallSegmentedSwiftUIView(selectedMetric: $selectedMetric)
                         .frame(width: 142, height: 42)
                         .padding(.top, 2)
                 }
@@ -168,13 +169,49 @@ private struct ReportExerciseCardSwiftUIView: View {
                     ReportEmptyMessageView(text: emptyMessage)
                         .frame(maxHeight: .infinity)
                 } else {
-                    ReportBarChartSwiftUIView(values: state.dailyMinutes)
+                    ReportBarChartSwiftUIView(
+                        values: selectedMetric.values(from: state),
+                        yLabels: selectedMetric.yLabels
+                    )
                         .padding(.top, 20)
                 }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 20)
             .frame(height: 294)
+        }
+    }
+}
+
+private enum ExerciseReportMetric {
+    case duration
+    case calories
+
+    var unitText: String {
+        switch self {
+        case .duration: "분"
+        case .calories: "kcal"
+        }
+    }
+
+    var yLabels: [String] {
+        switch self {
+        case .duration: ["90", "60", "30", "0"]
+        case .calories: ["600", "400", "200", "0"]
+        }
+    }
+
+    func totalText(from state: CalendarReactor.ExerciseReportState) -> String {
+        switch self {
+        case .duration: state.totalMinutesText
+        case .calories: state.totalCaloriesText
+        }
+    }
+
+    func values(from state: CalendarReactor.ExerciseReportState) -> [Double] {
+        switch self {
+        case .duration: state.dailyMinutes
+        case .calories: state.dailyCalories
         }
     }
 }
@@ -263,6 +300,8 @@ private struct ReportEmptyMessageView: View {
 }
 
 private struct ReportSmallSegmentedSwiftUIView: View {
+    @Binding var selectedMetric: ExerciseReportMetric
+
     var body: some View {
         ZStack(alignment: .leading) {
             Capsule()
@@ -273,17 +312,26 @@ private struct ReportSmallSegmentedSwiftUIView: View {
                 .padding(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .frame(width: 71)
+                .offset(x: selectedMetric == .duration ? 0 : 71)
 
             HStack(spacing: 0) {
-                Text("운동시간")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Color(.primary400))
-                    .frame(maxWidth: .infinity)
+                Button {
+                    selectedMetric = .duration
+                } label: {
+                    Text("운동시간")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(selectedMetric == .duration ? Color(.primary400) : Color(.gray500))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
 
-                Text("칼로리")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Color(.gray500))
-                    .frame(maxWidth: .infinity)
+                Button {
+                    selectedMetric = .calories
+                } label: {
+                    Text("칼로리")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(selectedMetric == .calories ? Color(.primary400) : Color(.gray500))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
         }
     }
@@ -351,8 +399,8 @@ private struct ReportLineChartSwiftUIView: View {
 
 private struct ReportBarChartSwiftUIView: View {
     let values: [Double]
+    let yLabels: [String]
     private let xLabels = ["월", "화", "수", "목", "금", "토", "일"]
-    private let yLabels = ["90", "60", "30", "0"]
 
     var body: some View {
         GeometryReader { proxy in

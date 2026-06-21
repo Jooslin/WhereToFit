@@ -130,11 +130,15 @@ final class CalendarReactor: BaseReactor {
     struct ExerciseReportState: Equatable {
         let totalMinutesText: String
         let dailyMinutes: [Double]
+        let totalCaloriesText: String
+        let dailyCalories: [Double]
         let emptyMessage: String?
 
         static let empty = ExerciseReportState(
             totalMinutesText: "0",
             dailyMinutes: Array(repeating: 0, count: 7),
+            totalCaloriesText: "0",
+            dailyCalories: Array(repeating: 0, count: 7),
             emptyMessage: "운동 기록을 입력하면 주간 운동 현황을 볼 수 있어요"
         )
     }
@@ -391,14 +395,32 @@ private extension CalendarReactor {
             .mapValues { records in
                 records.reduce(0.0) { $0 + $1.duration / 60 }
             }
+        let caloriesByDate = Dictionary(grouping: records, by: { calendar.startOfDay(for: $0.date) })
+            .mapValues { records in
+                records.reduce(0.0) { $0 + Self.calories(from: $1) }
+            }
         let dailyMinutes = dates.map { minutesByDate[$0] ?? 0 }
+        let dailyCalories = dates.map { caloriesByDate[$0] ?? 0 }
         let totalMinutes = Int(dailyMinutes.reduce(0, +).rounded())
+        let totalCalories = Int(dailyCalories.reduce(0, +).rounded())
 
         return ExerciseReportState(
             totalMinutesText: "\(totalMinutes)",
             dailyMinutes: dailyMinutes,
+            totalCaloriesText: "\(totalCalories)",
+            dailyCalories: dailyCalories,
             emptyMessage: records.isEmpty ? ExerciseReportState.empty.emptyMessage : nil
         )
+    }
+
+    static func calories(from record: ExerciseRecord) -> Double {
+        if let calories = record.calories {
+            return calories
+        }
+
+        let category = record.sportsCategoryRawValue
+            .flatMap(SportsCategory.init(rawValue:)) ?? .other
+        return record.duration / 60 * category.estimatedCaloriesPerMinute
     }
 
     static func makeConditionReportState(from records: [ConditionRecord]) -> ConditionReportState {
