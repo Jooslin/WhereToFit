@@ -29,6 +29,10 @@ final class ProgramRegisterView: UIView {
     let programTextField = DesignTextField().then {
         $0.placeholder = "프로그램명을 입력해주세요"
     }
+    let programMenuButton = UIButton(type: .custom).then {
+        $0.backgroundColor = .clear
+        $0.showsMenuAsPrimaryAction = true
+    }
     
     let sportsTextField = TouchableDesignTextField().then {
         $0.placeholder = "운동 종목을 선택해주세요"
@@ -172,11 +176,16 @@ extension ProgramRegisterView {
             $0.edges.equalToSuperview()
         }
         
-        sportsTextField.addSubview(arrowImageView)
+        programTextField.addSubview(arrowImageView)
+        programTextField.addSubview(programMenuButton)
         
         arrowImageView.snp.makeConstraints {
             $0.width.height.equalTo(24)
             $0.verticalEdges.trailing.equalToSuperview().inset(12)
+        }
+
+        programMenuButton.snp.makeConstraints {
+            $0.edges.equalToSuperview()
         }
     }
     

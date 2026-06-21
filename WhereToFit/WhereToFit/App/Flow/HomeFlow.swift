@@ -77,7 +77,13 @@ final class HomeFlow: Flow {
                     .contribute(withNextPresentable: vc, withNextStepper: vc))
             
         case .programRegistration:
-            let vc = ProgramRegisterViewController(reactor: ProgramRegisterReactor())
+            let vc = ProgramRegisterViewController(
+                reactor: ProgramRegisterReactor(
+                    fetchFacilityProgramsUseCase: FetchFacilityProgramsUseCase(
+                        repository: sportsRepository
+                    )
+                )
+            )
             navigationController.pushViewController(vc, animated: true)
             
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
