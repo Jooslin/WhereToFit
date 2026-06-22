@@ -235,7 +235,7 @@ extension FavoriteListCell {
 
     private func placeholderImage(for item: FavoriteListReactor.FavoriteItem) -> UIImage {
         let imageName = placeholderImageName(for: item)
-        return UIImage(named: imageName) ?? UIImage(resource: .emptyNotification)
+        return UIImage(named: imageName) ?? UIImage(resource: .noImages)
     }
 
     private func placeholderImageName(for item: FavoriteListReactor.FavoriteItem) -> String {

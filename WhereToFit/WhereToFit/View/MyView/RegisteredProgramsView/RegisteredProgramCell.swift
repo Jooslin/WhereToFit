@@ -89,7 +89,7 @@ extension RegisteredProgramCell {
         rightDownLabel.isHidden = item.reservationMethodText == nil
         deleteButton.isHidden = isEditing == false
         programImageView.image = item.sportsCategory
-            .flatMap { UIImage(named: $0.imageName) } ?? UIImage(resource: .emptyNotification)
+            .flatMap { UIImage(named: $0.imageName) } ?? UIImage(resource: .noImages)
     }
 
     @objc func didTapDeleteButton() {
