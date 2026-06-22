@@ -12,6 +12,12 @@ import RxSwift
 
 final class MyFlow: Flow {
     private let navigationController = UINavigationController()
+    private let favoriteRepository = CoreDataFavoriteRepository()
+    private let disposeBag = DisposeBag()
+    private lazy var favoriteDetailResolver = FavoriteDetailResolver(
+        favoriteRepository: favoriteRepository
+    )
+    private lazy var favoriteToggleService = FavoriteToggleService(repository: favoriteRepository)
     private let myReactor = MyReactor(
         fetchICloudSyncStatusUseCase: FetchICloudSyncStatusUseCase(
             service: ICloudStatusService()
