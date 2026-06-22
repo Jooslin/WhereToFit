@@ -131,7 +131,6 @@ final class MyView: UIView {
     ])
 
     private lazy var accountGroup = MenuGroupView(rows: [
-        MyPageMenuRow(title: "Apple 건강 연동", accessory: .toggle),
         iCloudSyncInfoRow
     ])
 
