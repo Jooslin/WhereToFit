@@ -19,6 +19,10 @@ final class FetchNearbyFacilitiesUseCase {
     func fetch() -> Single<FitnessFacilityDataSet> {
         repository.fetchFacilities()
     }
+    
+    func searchFacilities(keyword: String) -> Single<[FitnessFacility]> {
+        repository.searchFacilities(keyword: keyword)
+    }
 
     func fetchPrograms(for facilities: [FitnessFacility]) -> Single<[FitnessFacility]> {
         repository.fetchPrograms(for: facilities)
@@ -56,11 +60,13 @@ final class FetchNearbyFacilitiesUseCase {
         // AI 추천이 켜져있으면 높은 매칭률 순으로 정렬
         if filter.isAIRecommendationEnabled {
             return filtered.sorted {
-                if $0.matchingRate == $1.matchingRate {
+                let lhsMatchingRate = $0.matchingRate ?? -1
+                let rhsMatchingRate = $1.matchingRate ?? -1
+                if lhsMatchingRate == rhsMatchingRate {
                     // 거리가 가까운 순으로 정렬
                     return $0.distanceInMeters < $1.distanceInMeters
                 }
-                return $0.matchingRate > $1.matchingRate
+                return lhsMatchingRate > rhsMatchingRate
             }
         }
 

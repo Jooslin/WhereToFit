@@ -12,15 +12,25 @@ import RxSwift
 /// 지도 마커는 시설 기준, 하단 모달은 프로그램 기준으로 보여주기 위해 두 종류의 데이터를 같은 도메인 모델로 맞춥니다.
 final class SportsFacilityRepository: FacilityRepositoryProtocol {
     private let sportsRepository: SportsRepositoryProtocol
+    private let fetchUserProfileUseCase: FetchUserProfileUseCase
+    private let recommendSportsUseCase: RecommendSportsUseCase
     private let pageSize: Int
     private let maximumConcurrentFacilityPageRequests = 4
     private var cachedFacilityDataSet: FitnessFacilityDataSet?
 
     init(
         sportsRepository: SportsRepositoryProtocol = SportsRepository(),
+        fetchUserProfileUseCase: FetchUserProfileUseCase = FetchUserProfileUseCase(
+            repository: CoreDataUserProfileRepository()
+        ),
+        recommendSportsUseCase: RecommendSportsUseCase = RecommendSportsUseCase(
+            repository: SportRecommendationRuleRepository()
+        ),
         pageSize: Int = 1_000
     ) {
         self.sportsRepository = sportsRepository
+        self.fetchUserProfileUseCase = fetchUserProfileUseCase
+        self.recommendSportsUseCase = recommendSportsUseCase
         self.pageSize = pageSize
     }
 
@@ -31,17 +41,53 @@ final class SportsFacilityRepository: FacilityRepositoryProtocol {
         }
 
         return fetchAllFacilityPages()
-        .map { facilities in
-            let markerFacilities = facilities.compactMap(Self.makeFitnessFacility)
+        .flatMap { [self] facilities in
+            makeMatchRateContext()
+                .map { context in
+                    let markerFacilities = facilities.compactMap { facility -> FitnessFacility? in
+                        let category = Self.parseCategory(from: [
+                            facility.facilityName,
+                            facility.locationName,
+                            facility.facilityType,
+                            facility.extraFacilityInfo
+                        ])
+                        let matchingRate = context.flatMap {
+                            ProgramMatchRateCalculator.facilityMatchRate(
+                                category: category,
+                                context: $0
+                            )
+                        }
 
-            return FitnessFacilityDataSet(
-                markerFacilities: markerFacilities,
-                programFacilities: []
-            )
+                        return Self.makeFitnessFacility(
+                            from: facility,
+                            matchingRate: matchingRate
+                        )
+                    }
+
+                    return FitnessFacilityDataSet(
+                        markerFacilities: markerFacilities,
+                        programFacilities: []
+                    )
+                }
         }
         .do(onSuccess: { [weak self] dataSet in
             self?.cachedFacilityDataSet = dataSet
         })
+    }
+    
+    func searchFacilities(keyword: String) -> Single<[FitnessFacility]> {
+        sportsRepository.searchFacilities(
+            keyword: keyword,
+            limit: 50,
+            offset: 0,
+            order: .ascending,
+            searchType: .facilityName
+        )
+        .map { page in
+            page.items.compactMap {
+                Self.makeFitnessFacility(from: $0, matchingRate: nil)
+            }
+        }
     }
 
     func fetchPrograms(for facilities: [FitnessFacility]) -> Single<[FitnessFacility]> {
@@ -67,18 +113,58 @@ final class SportsFacilityRepository: FacilityRepositoryProtocol {
         }
 
         return Single.zip(programPageSingles)
-            .map { programGroups in
-                programGroups
+            .flatMap { [self] programGroups -> Single<[FitnessFacility]> in
+                let programTargets = programGroups
                     .flatMap { $0 }
-                    .compactMap { program in
+                    .compactMap { program -> (program: Program, facility: FitnessFacility)? in
                         guard let facilityID = program.publicFacilityID,
                               let facility = facilitiesByID[facilityID] else {
                             return nil
                         }
 
-                        return Self.makeFitnessFacility(from: program, facility: facility)
+                        return (program, facility)
+                    }
+
+                return makeMatchRateContext()
+                    .map { context in
+                        programTargets.map { target in
+                            let program = target.program
+                            let facility = target.facility
+                            let matchingRate = context.flatMap {
+                                ProgramMatchRateCalculator.programScore(
+                                    for: program,
+                                    context: $0
+                                )?.matchRate
+                            }
+
+                            return Self.makeFitnessFacility(
+                                from: program,
+                                facility: facility,
+                                matchingRate: matchingRate
+                            )
+                        }
                     }
             }
+    }
+
+    private func makeMatchRateContext() -> Single<ProgramMatchRateCalculator.Context?> {
+        fetchUserProfileUseCase.execute()
+            .flatMap { [recommendSportsUseCase] profile -> Single<ProgramMatchRateCalculator.Context?> in
+                guard let profile else { return .just(nil) }
+
+                return Single.zip(
+                    recommendSportsUseCase.executeCategory(profile: profile),
+                    recommendSportsUseCase.executePersonalizedScores(profile: profile)
+                )
+                .map { categorySports, personalizedSports in
+                    ProgramMatchRateCalculator.Context(
+                        profile: profile,
+                        categorySports: categorySports,
+                        personalizedSports: personalizedSports
+                    )
+                }
+            }
+            .catch { _ in .just(nil) }
     }
 
     private func fetchAllFacilityPages() -> Single<[Facility]> {
@@ -188,10 +274,11 @@ final class SportsFacilityRepository: FacilityRepositoryProtocol {
     }
 }
 
-fileprivate extension SportsFacilityRepository {
+extension SportsFacilityRepository {
     nonisolated static func makeFitnessFacility(
         from program: Program,
-        facility: FitnessFacility
+        facility: FitnessFacility,
+        matchingRate: Int? = nil
     ) -> FitnessFacility {
         // 프로그램 셀도 시설 상세로 이동할 수 있어야 하므로 시설의 좌표/주소/편의시설 정보를 함께 보존합니다.
         let programID = program.id.map(String.init) ?? normalizedMatchText([
@@ -235,7 +322,7 @@ fileprivate extension SportsFacilityRepository {
             id: "program-\(programID)-facility-\(facility.sourceFacilityID ?? facility.id)",
             name: name,
             address: facility.address,
-            phoneNumber: program.phoneNumber ?? facility.phoneNumber,
+            phoneNumber: nonEmptyTrimmed(program.phoneNumber) ?? facility.phoneNumber,
             category: category,
             coordinate: facility.coordinate,
             distanceInMeters: facility.distanceInMeters,
@@ -246,7 +333,7 @@ fileprivate extension SportsFacilityRepository {
             imageURL: facility.imageURL,
             isFavorite: false,
             requiresReservation: reservationMethods.isEmpty == false || facility.requiresReservation,
-            matchingRate: makeMatchingRate(price: price, category: category),
+            matchingRate: matchingRate,
             reservationURL: reservationURL,
             homepageURL: homepageURL,
             description: description.isEmpty ? facility.description : description,
@@ -263,7 +350,10 @@ fileprivate extension SportsFacilityRepository {
         )
     }
 
-    nonisolated static func makeFitnessFacility(from facility: Facility) -> FitnessFacility? {
+    nonisolated static func makeFitnessFacility(
+        from facility: Facility,
+        matchingRate: Int? = nil
+    ) -> FitnessFacility? {
         // 좌표가 없는 시설은 지도 마커로 표시할 수 없으므로 제외합니다.
         guard let latitude = facility.latitude,
               let longitude = facility.longitude else {
@@ -292,7 +382,7 @@ fileprivate extension SportsFacilityRepository {
             id: id,
             name: name,
             address: address,
-            phoneNumber: facility.phoneNumber ?? "전화번호 정보 없음",
+            phoneNumber: nonEmptyTrimmed(facility.phoneNumber) ?? "전화번호 정보 없음",
             category: category,
             coordinate: GeoCoordinate(latitude: latitude, longitude: longitude),
             distanceInMeters: distanceFromDefaultLocation(latitude: latitude, longitude: longitude),
@@ -304,7 +394,7 @@ fileprivate extension SportsFacilityRepository {
             imageURL: URL(string: facility.facilityImage ?? ""),
             isFavorite: false,
             requiresReservation: facility.reservationMethods.isEmpty == false,
-            matchingRate: makeMatchingRate(price: price, category: category),
+            matchingRate: matchingRate,
             reservationURL: reservationURL,
             homepageURL: homepageURL,
             description: makeDescription(from: facility),
@@ -550,12 +640,6 @@ fileprivate extension SportsFacilityRepository {
         let haversine = sin(latitudeDelta / 2) * sin(latitudeDelta / 2)
             + cos(startLatitude) * cos(endLatitude) * sin(longitudeDelta / 2) * sin(longitudeDelta / 2)
         return Int(earthRadius * 2 * atan2(sqrt(haversine), sqrt(1 - haversine)))
-    }
-
-    nonisolated static func makeMatchingRate(price: Int, category: FacilityCategory) -> Int {
-        let baseScore = 74 + (FacilityCategory.allCases.firstIndex(of: category) ?? 0) * 3
-        let priceBonus = price == 0 ? 12 : max(0, 10 - price / 10_000)
-        return min(98, baseScore + priceBonus)
     }
 
     nonisolated static func makeReservationURL(homepageURL: String?, fallbackKeyword: String) -> URL {

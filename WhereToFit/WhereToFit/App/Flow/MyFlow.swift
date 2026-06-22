@@ -8,6 +8,7 @@
 import UIKit
 import RxFlow
 import ReactorKit
+import RxSwift
 
 final class MyFlow: Flow {
     private let navigationController = UINavigationController()
@@ -73,13 +74,16 @@ final class MyFlow: Flow {
             let vc = FavoriteListViewController(
                 reactor: FavoriteListReactor(
                     fetchFavoritesUseCase: FetchFavoritesUseCase(
-                        repository: CoreDataFavoriteRepository()
+                        repository: favoriteRepository
                     ),
                     removeFavoriteUseCase: RemoveFavoriteUseCase(
-                        repository: CoreDataFavoriteRepository()
+                        repository: favoriteRepository
                     )
                 )
             )
+            vc.favoriteItemSelected = { [weak self] item in
+                self?.navigateToFavoriteDetail(item)
+            }
             vc.hidesBottomBarWhenPushed = true
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
@@ -145,5 +149,67 @@ final class MyFlow: Flow {
         default:
             return .one(flowContributor: .forwardToParentFlow(withStep: step))
         }
+    }
+}
+
+private extension MyFlow {
+    func navigateToFavoriteDetail(_ item: FavoriteListReactor.FavoriteItem) {
+        favoriteDetailResolver.resolve(input: FavoriteDetailResolveInput(item: item))
+            .observe(on: MainScheduler.instance)
+            .subscribe(onSuccess: { [weak self] target in
+                self?.pushFavoriteDetail(target)
+            })
+            .disposed(by: disposeBag)
+    }
+
+    func pushFavoriteDetail(_ target: FavoriteDetailTarget) {
+        let viewController = FacilityDetailViewController(
+            facility: target.facility,
+            relatedPrograms: target.relatedPrograms
+        )
+        viewController.hidesBottomBarWhenPushed = true
+        viewController.favoriteButtonTapped = { [weak self] request in
+            self?.handleFavoriteToggle(request)
+        }
+        viewController.reservationButtonTapped = { selectedFacility in
+            UIApplication.shared.open(selectedFacility.reservationURL)
+        }
+        navigationController.pushViewController(viewController, animated: true)
+    }
+
+    func handleFavoriteToggle(_ request: FacilityDetailFavoriteRequest) {
+        favoriteToggleService
+            .setFavorite(
+                targetKey: request.targetKey,
+                facility: request.facility,
+                isSelected: request.isSelected
+            )
+            .observe(on: MainScheduler.instance)
+            .subscribe(
+                onNext: {
+                    request.completion(true)
+                },
+                onError: { _ in
+                    request.completion(false)
+                }
+            )
+            .disposed(by: disposeBag)
+    }
+}
+
+private extension FavoriteDetailResolveInput {
+    init(item: FavoriteListReactor.FavoriteItem) {
+        self.init(
+            targetType: item.targetType,
+            targetID: item.targetID,
+            name: item.name,
+            facilityLabelText: item.facilityLabelText,
+            time: item.time,
+            distance: item.distance,
+            price: item.price,
+            reservationMethodText: item.reservationMethodText,
+            imageURLString: item.imageURLString,
+            sportsCategoryRawValue: item.sportsCategoryRawValue
+        )
     }
 }

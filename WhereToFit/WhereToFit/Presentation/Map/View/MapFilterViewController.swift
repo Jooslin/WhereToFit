@@ -18,6 +18,11 @@ enum MapFilterMode {
     case price
 }
 
+enum MapFilterCategorySelectionBehavior {
+    case multiple
+    case single
+}
+
 private struct CategoryGroup {
     let title: String
     let categories: [FacilityCategory]
@@ -224,10 +229,12 @@ private final class CategoryOptionRow: UIControl {
 
 final class MapFilterViewController: UIViewController {
     var applyButtonTapped: ((FacilityFilter) -> Void)?
+    var singleCategorySelected: ((FacilityCategory) -> Void)?
 
     private var draftFilter: FacilityFilter // 임시 필터 값
     private let priceSamples: [Int]
     private let mode: MapFilterMode
+    private let categorySelectionBehavior: MapFilterCategorySelectionBehavior
     private let filterView = MapFilterView()
     private var sectionStackView: UIStackView { filterView.sectionStackView }
     private var closeButton: UIButton { filterView.closeButton }
@@ -291,10 +298,16 @@ final class MapFilterViewController: UIViewController {
         color: .gray900
     )
 
-    init(filter: FacilityFilter, priceSamples: [Int] = [], mode: MapFilterMode = .all) {
+    init(
+        filter: FacilityFilter,
+        priceSamples: [Int] = [],
+        mode: MapFilterMode = .all,
+        categorySelectionBehavior: MapFilterCategorySelectionBehavior = .multiple
+    ) {
         self.draftFilter = filter
         self.priceSamples = priceSamples
         self.mode = mode
+        self.categorySelectionBehavior = categorySelectionBehavior
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .pageSheet
 
@@ -629,6 +642,12 @@ final class MapFilterViewController: UIViewController {
         guard categories.isEmpty == false else {
             return []
         }
+        
+        if categorySelectionBehavior == .single {
+            return group.categories.map {
+                CategorySelectionOption(title: $0.title, categories: [$0])
+            }
+        }
 
         return [
             CategorySelectionOption(
@@ -661,6 +680,13 @@ final class MapFilterViewController: UIViewController {
 
     private func toggleCategoryOption(_ option: CategorySelectionOption) {
         guard option.categories.isEmpty == false else { return }
+        
+        if categorySelectionBehavior == .single,
+           let category = option.categories.first {
+            draftFilter.categories = [category]
+            updateSelectionStates()
+            return
+        }
 
         if isCategoryOptionSelected(option) {
             draftFilter.categories.subtract(option.categories)
@@ -1074,6 +1100,12 @@ final class MapFilterViewController: UIViewController {
             updateSelectionStates()
             return
         }
+        
+        if categorySelectionBehavior == .single {
+            draftFilter.categories = [category]
+            updateSelectionStates()
+            return
+        }
 
         draftFilter.categories.toggle(category)
         if draftFilter.categories.count == FacilityCategory.allCases.count {
@@ -1140,6 +1172,12 @@ final class MapFilterViewController: UIViewController {
     private func selectedCategorySummaryItems() -> [(title: String, categories: Set<FacilityCategory>)] {
         var remainingCategories = draftFilter.categories
         var items: [(title: String, categories: Set<FacilityCategory>)] = []
+        
+        if categorySelectionBehavior == .single {
+            return FacilityCategory.allCases
+                .filter { draftFilter.categories.contains($0) }
+                .map { ($0.title, [$0]) }
+        }
 
         makeCategoryGroups().forEach { group in
             let groupCategories = Set(group.categories)
@@ -1259,6 +1297,14 @@ final class MapFilterViewController: UIViewController {
         if mode.usesPriceFilter {
             didChangePriceTextField()
         }
+        
+        if categorySelectionBehavior == .single,
+           let category = draftFilter.categories.first {
+            singleCategorySelected?(category)
+            dismiss(animated: true)
+            return
+        }
+        
         applyButtonTapped?(draftFilter)
         dismiss(animated: true)
     }

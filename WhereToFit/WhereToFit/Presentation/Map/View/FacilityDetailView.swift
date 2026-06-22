@@ -37,15 +37,6 @@ final class FacilityDetailView: UIView {
         $0.backgroundColor = .gray100
     }
 
-    let pageIndicator = UIPageControl().then {
-        $0.numberOfPages = 6
-        $0.currentPage = 0
-        $0.currentPageIndicatorTintColor = .white
-        $0.pageIndicatorTintColor = UIColor.white.withAlphaComponent(0.45)
-        $0.isUserInteractionEnabled = false
-        $0.transform = CGAffineTransform(scaleX: 0.78, y: 0.78)
-    }
-
     let backButton = UIButton(type: .system)
     let favoriteButton = UIButton(type: .system)
 
@@ -97,7 +88,6 @@ final class FacilityDetailView: UIView {
         addSubview(scrollView)
         scrollView.addSubview(contentView)
         contentView.addSubview(heroImageView)
-        contentView.addSubview(pageIndicator)
         contentView.addSubview(contentStackView)
         addSubview(backButton)
         addSubview(favoriteButton)
@@ -125,12 +115,6 @@ final class FacilityDetailView: UIView {
         heroImageView.snp.makeConstraints {
             $0.top.leading.trailing.equalToSuperview()
             $0.height.equalTo(snp.width).multipliedBy(kind.heroHeightRatio)
-        }
-
-        pageIndicator.snp.makeConstraints {
-            $0.centerX.equalToSuperview()
-            $0.bottom.equalTo(heroImageView.snp.bottom).inset(10)
-            $0.height.equalTo(16)
         }
 
         contentStackView.snp.makeConstraints {
