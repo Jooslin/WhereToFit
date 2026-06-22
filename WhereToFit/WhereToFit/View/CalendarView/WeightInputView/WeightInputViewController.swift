@@ -17,7 +17,9 @@ final class WeightInputViewController: UIViewController {
 
     init(reactor: CalendarReactor) {
         self.reactor = reactor
-        weightInputView = WeightInputView(currentWeight: reactor.currentState.weight)
+        weightInputView = WeightInputView(
+            currentWeight: reactor.currentState.weight ?? CalendarReactor.WeightValue(integer: 54, decimal: 2)
+        )
 
         super.init(nibName: nil, bundle: nil)
 
@@ -43,12 +45,20 @@ final class WeightInputViewController: UIViewController {
 private extension WeightInputViewController {
     func bind() {
         weightInputView.closeButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
+            .bind(with: self) { owner, _ in
+                owner.dismiss(animated: true)
+            }
+            .disposed(by: disposeBag)
+
+        weightInputView.rx.swipeDownToDismiss
             .bind(with: self) { owner, _ in
                 owner.dismiss(animated: true)
             }
             .disposed(by: disposeBag)
 
         weightInputView.saveButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.reactor.action.onNext(.updateWeight(owner.weightInputView.selectedWeight))
                 owner.dismiss(animated: true)

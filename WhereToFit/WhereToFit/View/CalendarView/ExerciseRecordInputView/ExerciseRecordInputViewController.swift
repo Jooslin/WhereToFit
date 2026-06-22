@@ -12,6 +12,7 @@ import UIKit
 
 final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecordInputReactor> {
     private let exerciseRecordInputView = ExerciseRecordInputView()
+    var onSave: (() -> Void)?
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
@@ -24,12 +25,24 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
     }
     
     override func bind(reactor: ExerciseRecordInputReactor) {
+        Observable.just(())
+            .map { ExerciseRecordInputReactor.Action.viewDidLoad }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
         exerciseRecordInputView.rx.customButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ExerciseRecordInputReactor.Action.customButtonTapped }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
+        exerciseRecordInputView.rx.registeredProgramCategorySelected
+            .map { ExerciseRecordInputReactor.Action.registeredProgramCategorySelected($0) }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
         exerciseRecordInputView.rx.exerciseNameFieldTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ExerciseRecordInputReactor.Action.exerciseNameFieldTapped }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
@@ -51,16 +64,19 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.rx.exerciseSelectionApplyButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ExerciseRecordInputReactor.Action.exerciseSelectionApplyButtonTapped }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.rx.exerciseSelectionCloseButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ExerciseRecordInputReactor.Action.exerciseSelectionCloseButtonTapped }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.rx.durationFieldTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ExerciseRecordInputReactor.Action.durationFieldTapped }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
@@ -71,20 +87,41 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.rx.durationPickerSelectButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { ExerciseRecordInputReactor.Action.durationPickerSelectButtonTapped }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
 
+        exerciseRecordInputView.rx.durationPickerCloseButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
+            .map { ExerciseRecordInputReactor.Action.durationPickerCloseButtonTapped }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
         exerciseRecordInputView.closeButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
+            .bind(with: self) { owner, _ in
+                owner.dismiss(animated: true)
+            }
+            .disposed(by: disposeBag)
+
+        exerciseRecordInputView.rx.swipeDownToDismiss
             .bind(with: self) { owner, _ in
                 owner.dismiss(animated: true)
             }
             .disposed(by: disposeBag)
 
         exerciseRecordInputView.saveButton.rx.tap
-            .bind(with: self) { owner, _ in
-                owner.dismiss(animated: true)
-            }
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
+            .map { ExerciseRecordInputReactor.Action.saveButtonTapped }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        reactor.state
+            .map(\.isSaveButtonEnabled)
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind(to: exerciseRecordInputView.saveButton.rx.isEnabled)
             .disposed(by: disposeBag)
 
         reactor.state
@@ -102,6 +139,27 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .observe(on: MainScheduler.instance)
             .bind(with: self) { owner, isVisible in
                 owner.exerciseRecordInputView.updateCustomInputVisible(isVisible)
+            }
+            .disposed(by: disposeBag)
+
+        reactor.state
+            .map(\.registeredSportsCategories)
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind(with: self) { owner, categories in
+                owner.exerciseRecordInputView.updateRegisteredSportsCategories(
+                    categories,
+                    selectedCategory: reactor.currentState.selectedRegisteredSportsCategory
+                )
+            }
+            .disposed(by: disposeBag)
+
+        reactor.state
+            .map(\.selectedRegisteredSportsCategory)
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind(with: self) { owner, selectedCategory in
+                owner.exerciseRecordInputView.updateSelectedRegisteredSportsCategory(selectedCategory)
             }
             .disposed(by: disposeBag)
 
@@ -162,6 +220,22 @@ final class ExerciseRecordInputViewController: BaseViewController<ExerciseRecord
             .bind(with: self) { owner, duration in
                 owner.exerciseRecordInputView.updateConfirmedDuration(duration)
             }
+            .disposed(by: disposeBag)
+
+        reactor.pulse(\.$didSave)
+            .compactMap { $0 }
+            .filter { $0 }
+            .observe(on: MainScheduler.instance)
+            .bind(with: self) { owner, _ in
+                owner.onSave?()
+                owner.dismiss(animated: true)
+            }
+            .disposed(by: disposeBag)
+
+        reactor.pulse(\.$error)
+            .compactMap { $0 }
+            .map { AppStep.alert(title: $0.0, message: $0.1) }
+            .bind(to: steps)
             .disposed(by: disposeBag)
     }
 }

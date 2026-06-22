@@ -39,4 +39,11 @@ final class CoreDataStack {
             fatalError("Unresolved CoreData save error \(error), \(error.userInfo)")
         }
     }
+
+    func makeBackgroundContext() -> NSManagedObjectContext {
+        let context = persistentContainer.newBackgroundContext()
+        context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        return context
+    }
 }

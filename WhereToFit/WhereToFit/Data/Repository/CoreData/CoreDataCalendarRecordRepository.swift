@@ -10,10 +10,12 @@ import Foundation
 import RxSwift
 
 final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
-    private let context: NSManagedObjectContext
+    private let backgroundContext: NSManagedObjectContext
 
-    init(context: NSManagedObjectContext = CoreDataStack.shared.viewContext) {
-        self.context = context
+    init(
+        backgroundContext: NSManagedObjectContext = CoreDataStack.shared.makeBackgroundContext()
+    ) {
+        self.backgroundContext = backgroundContext
     }
 
     func fetchWeightRecord(on date: Date) -> Single<WeightRecord?> {
@@ -83,14 +85,17 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
     }
 
     func saveExerciseRecord(_ record: ExerciseRecord) -> Single<ExerciseRecord> {
-        Single.create { [context] single in
-            context.perform {
+        Single.create { [backgroundContext] single in
+            backgroundContext.perform {
                 do {
-                    let object = try Self.fetchObject(entityName: "ExerciseRecordEntity", id: record.id, context: context)
-                        ?? context.insertObject(entityName: "ExerciseRecordEntity")
+                    let object = try Self.fetchObject(
+                        entityName: "ExerciseRecordEntity",
+                        id: record.id,
+                        context: backgroundContext
+                    ) ?? backgroundContext.insertObject(entityName: "ExerciseRecordEntity")
 
                     Self.apply(record, to: object)
-                    try context.save()
+                    try backgroundContext.save()
                     single(.success(record))
                 } catch {
                     single(.failure(error))
@@ -107,10 +112,10 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
             return saveExerciseRecord(record).map(Optional.some)
         }
 
-        return Single.create { [context] single in
-            context.perform {
+        return Single.create { [backgroundContext] single in
+            backgroundContext.perform {
                 do {
-                    let existingObject = try context.fetchObjects(
+                    let existingObject = try backgroundContext.fetchObjects(
                         entityName: "ExerciseRecordEntity",
                         predicate: NSPredicate(format: "%K == %@", "healthKitUUID", healthKitUUID as NSUUID),
                         fetchLimit: 1
@@ -121,9 +126,9 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
                         return
                     }
 
-                    let object = try context.insertObject(entityName: "ExerciseRecordEntity")
+                    let object = try backgroundContext.insertObject(entityName: "ExerciseRecordEntity")
                     Self.apply(record, to: object)
-                    try context.save()
+                    try backgroundContext.save()
                     single(.success(record))
                 } catch {
                     single(.failure(error))
@@ -139,10 +144,10 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
         predicate: NSPredicate?,
         mapper: @escaping (NSManagedObject) -> T?
     ) -> Single<[T]> {
-        Single.create { [context] single in
-            context.perform {
+        Single.create { [backgroundContext] single in
+            backgroundContext.perform {
                 do {
-                    let objects = try context.fetchObjects(
+                    let objects = try backgroundContext.fetchObjects(
                         entityName: entityName,
                         predicate: predicate,
                         sortDescriptors: [NSSortDescriptor(key: "date", ascending: true)]
@@ -162,10 +167,10 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
         predicate: NSPredicate?,
         mapper: @escaping (NSManagedObject) -> T?
     ) -> Single<T?> {
-        Single.create { [context] single in
-            context.perform {
+        Single.create { [backgroundContext] single in
+            backgroundContext.perform {
                 do {
-                    let object = try context.fetchObjects(
+                    let object = try backgroundContext.fetchObjects(
                         entityName: entityName,
                         predicate: predicate,
                         sortDescriptors: [NSSortDescriptor(key: "updatedAt", ascending: false)],
@@ -187,17 +192,17 @@ final class CoreDataCalendarRecordRepository: CalendarRecordRepositoryProtocol {
         apply: @escaping (NSManagedObject) -> Void,
         result: T
     ) -> Single<T> {
-        Single.create { [context] single in
-            context.perform {
+        Single.create { [backgroundContext] single in
+            backgroundContext.perform {
                 do {
-                    let object = try context.fetchObjects(
+                    let object = try backgroundContext.fetchObjects(
                         entityName: entityName,
                         predicate: CoreDataDateRange.dayPredicate(key: "date", date: date),
                         fetchLimit: 1
-                    ).first ?? context.insertObject(entityName: entityName)
+                    ).first ?? backgroundContext.insertObject(entityName: entityName)
 
                     apply(object)
-                    try context.save()
+                    try backgroundContext.save()
                     single(.success(result))
                 } catch {
                     single(.failure(error))

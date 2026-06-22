@@ -17,7 +17,7 @@ final class ConditionInputViewController: UIViewController {
 
     init(reactor: CalendarReactor) {
         self.reactor = reactor
-        conditionInputView = ConditionInputView(currentCondition: reactor.currentState.condition)
+        conditionInputView = ConditionInputView(currentCondition: reactor.currentState.condition ?? .normal)
 
         super.init(nibName: nil, bundle: nil)
 
@@ -43,6 +43,13 @@ final class ConditionInputViewController: UIViewController {
 private extension ConditionInputViewController {
     func bind() {
         conditionInputView.closeButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
+            .bind(with: self) { owner, _ in
+                owner.dismiss(animated: true)
+            }
+            .disposed(by: disposeBag)
+
+        conditionInputView.rx.swipeDownToDismiss
             .bind(with: self) { owner, _ in
                 owner.dismiss(animated: true)
             }
@@ -63,6 +70,7 @@ private extension ConditionInputViewController {
         }
 
         conditionInputView.saveButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.reactor.action.onNext(.updateCondition(owner.conditionInputView.selectedCondition))
                 owner.dismiss(animated: true)

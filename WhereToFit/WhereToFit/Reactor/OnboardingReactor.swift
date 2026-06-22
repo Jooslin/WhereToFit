@@ -12,9 +12,23 @@ import RxSwift
 
 final class OnboardingReactor: BaseReactor {
     private let logger = Logger.init(subsystem: "WhereToFit", category: "OnboardingReactor")
-    let initialState: State = State(currentStep: .start)
+    let initialState: State
+
+    enum Mode {
+        case initial
+        case exerciseResultRetry
+
+        var initialStep: OnboardingStep {
+            switch self {
+            case .initial: .start
+            case .exerciseResultRetry: .experience
+            }
+        }
+    }
 
     enum Action {
+        case viewDidLoad
+
         // 이동
         case nextButtonTapped
         case backButtonTapped
@@ -45,8 +59,11 @@ final class OnboardingReactor: BaseReactor {
         case setAddress(String?)
         case setWeight(Double?)
         case setHeight(Double?)
+        case setUserProfile(UserProfile)
         case setExerciseExperience(ExerciseExperience)
         case setExerciseGoal(ExerciseGoal)
+        case setPreferredSportsCategories([SportsCategory])
+        case setDiscomfortBodyParts([DiscomfortBodyPart])
         case togglePreferredSportsCategory(SportsCategory)
         case toggleDiscomfortBodyPart(DiscomfortBodyPart)
         case setUsesPublicFacility(Bool)
@@ -79,6 +96,7 @@ final class OnboardingReactor: BaseReactor {
     }
 
     struct State {
+        var mode: Mode
         var currentStep: OnboardingStep
         var nickname: String?
         var birthday: Date?
@@ -95,6 +113,19 @@ final class OnboardingReactor: BaseReactor {
         @Pulse var error: (String, String)?
         @Pulse var saveResult: SaveResult?
         var isSaving: Bool = false
+        var isRetryMode: Bool {
+            mode == .exerciseResultRetry
+        }
+
+        func shouldSave(for step: OnboardingStep) -> Bool {
+            switch mode {
+            case .initial:
+                return step == .facility
+            case .exerciseResultRetry:
+                return step == .disabled
+            }
+        }
+
         var isNextButtonEnabled: Bool {
             switch currentStep {
             case .personalInfo:
@@ -118,23 +149,39 @@ final class OnboardingReactor: BaseReactor {
     //MARK: Properties & Initializer
     private let validatePersonalInfoUseCase: ValidateOnboardingPersonalInfoUseCase
     private let addressCoordinateUseCase: AddressCoordinateUseCase
+    private let fetchUserProfileUseCase: FetchUserProfileUseCase
     private let upsertUserProfileUseCase: UpsertUserProfileUseCase
     private let addUserLocationUseCase: AddUserLocationUseCase
+    private let saveWeightRecordUseCase: SaveWeightRecordUseCase
 
     init(
+        mode: Mode = .initial,
         dateService: DateService,
         addressCoordinateUseCase: AddressCoordinateUseCase,
+        fetchUserProfileUseCase: FetchUserProfileUseCase,
         upsertUserProfileUseCase: UpsertUserProfileUseCase,
-        addUserLocationUseCase: AddUserLocationUseCase
+        addUserLocationUseCase: AddUserLocationUseCase,
+        saveWeightRecordUseCase: SaveWeightRecordUseCase
     ) {
+        self.initialState = State(mode: mode, currentStep: mode.initialStep)
         self.validatePersonalInfoUseCase = ValidateOnboardingPersonalInfoUseCase(dateService: dateService)
         self.addressCoordinateUseCase = addressCoordinateUseCase
+        self.fetchUserProfileUseCase = fetchUserProfileUseCase
         self.upsertUserProfileUseCase = upsertUserProfileUseCase
         self.addUserLocationUseCase = addUserLocationUseCase
+        self.saveWeightRecordUseCase = saveWeightRecordUseCase
     }
 
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
+        case .viewDidLoad:
+            guard currentState.isRetryMode else { return .empty() }
+            return fetchUserProfileUseCase.execute()
+                .asObservable()
+                .compactMap { $0 }
+                .map(Mutation.setUserProfile)
+                .catch { _ in .just(.setError(title: "조회 실패", message: "저장된 운동 검사 정보를 불러오지 못했어요.")) }
+
         case .nextButtonTapped:
             guard let nextStep = currentState.currentStep.next else {
                 return .empty()
@@ -234,10 +281,25 @@ final class OnboardingReactor: BaseReactor {
             newState.weight = weight
         case .setHeight(let height):
             newState.height = height
+        case .setUserProfile(let profile):
+            newState.nickname = profile.nickname
+            newState.birthday = profile.birthDate
+            newState.gender = profile.gender
+            newState.weight = profile.initialWeight
+            newState.height = profile.height
+            newState.exerciseExperience = profile.exerciseExperience
+            newState.exerciseGoal = profile.exerciseGoal
+            newState.preferredSportsCategories = profile.preferredSportsCategories
+            newState.discomfortBodyParts = profile.discomfortBodyParts
+            newState.usesPublicFacility = profile.usesPublicFacility
         case .setExerciseExperience(let experience):
             newState.exerciseExperience = experience
         case .setExerciseGoal(let goal):
             newState.exerciseGoal = goal
+        case .setPreferredSportsCategories(let categories):
+            newState.preferredSportsCategories = categories
+        case .setDiscomfortBodyParts(let bodyParts):
+            newState.discomfortBodyParts = bodyParts
         case .togglePreferredSportsCategory(let category):
             if newState.preferredSportsCategories.contains(category) {
                 newState.preferredSportsCategories.removeAll { $0 == category }
@@ -314,10 +376,15 @@ extension OnboardingReactor {
         let address = currentState.address?.trimmingCharacters(in: .whitespacesAndNewlines)
         let saveResult = saveProfileAndLocation(profileInput: profileInput, address: address)
             .asObservable()
-            .map { [logger] result in
+            .map { [logger, mode = currentState.mode] result in
                 switch result {
                 case .success:
-                    return Mutation.setStep(.end)
+                    switch mode {
+                    case .initial:
+                        return Mutation.setStep(.end)
+                    case .exerciseResultRetry:
+                        return Mutation.setSaveResult(.success)
+                    }
                 case .successWithLocationWarning(let reason):
                     logger.notice("onboarding location warning: \(reason.logMessage, privacy: .public)")
                     return Mutation.setSaveResult(result)
@@ -360,6 +427,15 @@ extension OnboardingReactor {
         address: String?
     ) -> Single<SaveResult> {
         upsertUserProfileUseCase.execute(profileInput)
+            .flatMap { [saveWeightRecordUseCase, mode = currentState.mode] profile -> Single<UserProfile> in
+                guard mode == .initial,
+                      let initialWeight = profileInput.initialWeight else {
+                    return .just(profile)
+                }
+
+                return saveWeightRecordUseCase.execute(date: Date(), value: initialWeight)
+                    .map { _ in profile }
+            }
             .flatMap { [addressCoordinateUseCase, addUserLocationUseCase, logger] profile -> Single<SaveResult> in
                 guard let address,
                       address.isEmpty == false else {

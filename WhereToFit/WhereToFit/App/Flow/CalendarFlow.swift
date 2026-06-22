@@ -11,7 +11,14 @@ import ReactorKit
 
 final class CalendarFlow: Flow {
     private let navigationController = UINavigationController()
-    private let calendarReactor = CalendarReactor()
+    private let calendarRecordRepository = CoreDataCalendarRecordRepository()
+    private let registeredProgramRepository = CoreDataRegisteredProgramRepository()
+    private lazy var calendarReactor = CalendarReactor(
+        saveWeightRecordUseCase: SaveWeightRecordUseCase(repository: calendarRecordRepository),
+        saveConditionRecordUseCase: SaveConditionRecordUseCase(repository: calendarRecordRepository),
+        fetchCalendarDayRecordsUseCase: FetchCalendarDayRecordsUseCase(repository: calendarRecordRepository),
+        fetchReportRecordsUseCase: FetchReportRecordsUseCase(repository: calendarRecordRepository)
+    )
     private lazy var calendarViewController = CalendarViewController(reactor: calendarReactor)
     var root: any RxFlow.Presentable { navigationController }
     
@@ -84,8 +91,17 @@ private extension CalendarFlow {
         else { return }
 
         let viewController = ExerciseRecordInputViewController(
-            reactor: ExerciseRecordInputReactor(selectedDate: calendarReactor.currentState.selectedDate)
+            reactor: ExerciseRecordInputReactor(
+                selectedDate: calendarReactor.currentState.selectedDate,
+                saveExerciseRecordUseCase: SaveExerciseRecordUseCase(repository: calendarRecordRepository),
+                fetchRegisteredProgramsUseCase: FetchRegisteredProgramsUseCase(
+                    repository: registeredProgramRepository
+                )
+            )
         )
+        viewController.onSave = { [weak self] in
+            self?.calendarReactor.action.onNext(.refreshSelectedDate)
+        }
         viewController.modalPresentationStyle = .overFullScreen
         viewController.modalTransitionStyle = .crossDissolve
 

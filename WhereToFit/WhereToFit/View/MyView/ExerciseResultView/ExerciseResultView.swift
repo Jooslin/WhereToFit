@@ -5,6 +5,8 @@
 //  Created by Yeseul Jang on 6/10/26.
 //
 
+import RxCocoa
+import RxSwift
 import SnapKit
 import Then
 import UIKit
@@ -56,6 +58,10 @@ final class ExerciseResultView: UIView {
 }
 
 extension ExerciseResultView {
+    var retryButtonTap: ControlEvent<Void> {
+        retryButton.rx.tap
+    }
+
     func updateSummaryItems(_ items: [ExerciseResultReactor.SummaryItem]) {
         summaryStackView.arrangedSubviews.forEach {
             summaryStackView.removeArrangedSubview($0)

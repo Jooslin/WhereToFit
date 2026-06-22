@@ -98,17 +98,24 @@ extension AppFlow {
     private func navigateToOnboarding() -> FlowContributors {
         let userProfileRepository = CoreDataUserProfileRepository()
         let userLocationRepository = CoreDataUserLocationRepository()
+        let calendarRecordRepository = CoreDataCalendarRecordRepository()
         let vc = OnboardingViewController(
             reactor: OnboardingReactor(
                 dateService: dateService,
                 addressCoordinateUseCase: AddressCoordinateUseCase(
                     repository: NaverMapSearchRepository()
                 ),
+                fetchUserProfileUseCase: FetchUserProfileUseCase(
+                    repository: userProfileRepository
+                ),
                 upsertUserProfileUseCase: UpsertUserProfileUseCase(
                     repository: userProfileRepository
                 ),
                 addUserLocationUseCase: AddUserLocationUseCase(
                     repository: userLocationRepository
+                ),
+                saveWeightRecordUseCase: SaveWeightRecordUseCase(
+                    repository: calendarRecordRepository
                 )
             )
         )

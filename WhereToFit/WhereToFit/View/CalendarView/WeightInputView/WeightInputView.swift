@@ -5,6 +5,8 @@
 //  Created by Yeseul Jang on 6/14/26.
 //
 
+import RxCocoa
+import RxSwift
 import SnapKit
 import Then
 import UIKit
@@ -22,6 +24,8 @@ final class WeightInputView: UIView {
     private let currentWeight: CalendarReactor.WeightValue
     private let integerValues = Array(20...200)
     private let decimalValues = Array(0...9)
+    fileprivate let swipeDismissRelay = PublishRelay<Void>()
+    private var swipeDismissHandler: BottomSheetSwipeDismissHandler?
 
     private let dimmedView = UIView().then {
         $0.backgroundColor = UIColor.black.withAlphaComponent(0.2)
@@ -73,6 +77,10 @@ extension WeightInputView {
 private extension WeightInputView {
     func setStyle() {
         backgroundColor = .clear
+        swipeDismissHandler = BottomSheetSwipeDismissHandler(sheetView: sheetView)
+        swipeDismissHandler?.onDismiss = { [weak self] in
+            self?.swipeDismissRelay.accept(())
+        }
     }
 
     func setLayout() {
@@ -151,6 +159,12 @@ private extension WeightInputView {
         default:
             return ""
         }
+    }
+}
+
+extension Reactive where Base == WeightInputView {
+    var swipeDownToDismiss: ControlEvent<Void> {
+        ControlEvent(events: base.swipeDismissRelay)
     }
 }
 

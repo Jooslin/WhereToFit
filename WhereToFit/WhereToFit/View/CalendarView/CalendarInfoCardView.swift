@@ -9,7 +9,7 @@ import SnapKit
 import Then
 import UIKit
 
-final class CalendarInfoCardView: UIControl {
+final class CalendarInfoCardView: UIView {
     private let titleLabel: UILabel
     private let valueImageView = UIImageView().then {
         $0.contentMode = .scaleAspectFit
@@ -45,6 +45,10 @@ final class CalendarInfoCardView: UIControl {
 extension CalendarInfoCardView {
     func updateValue(_ value: String) {
         valueLabel.text = value
+    }
+
+    func updateUnitHidden(_ isHidden: Bool) {
+        unitLabel?.isHidden = isHidden
     }
 
     func updateValueImage(_ image: UIImage?) {

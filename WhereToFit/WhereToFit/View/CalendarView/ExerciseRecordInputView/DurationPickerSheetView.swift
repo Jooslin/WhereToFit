@@ -12,6 +12,11 @@ import Then
 import UIKit
 
 final class DurationPickerSheetView: UIView {
+    let closeButton = UIButton(type: .system).then {
+        $0.setImage(UIImage(systemName: "xmark"), for: .normal)
+        $0.tintColor = .gray600
+    }
+
     let selectButton = DesignButton(config: .largeFilledBlue).then {
         $0.title = "선택하기"
     }
@@ -32,11 +37,6 @@ final class DurationPickerSheetView: UIView {
         $0.layer.cornerRadius = 16
         $0.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         $0.clipsToBounds = true
-    }
-
-    private let handleView = UIView().then {
-        $0.backgroundColor = .gray200
-        $0.layer.cornerRadius = 2
     }
 
     private let titleLabel = UILabel(text: "운동한 시간", config: .body14Medium, color: .gray700)
@@ -85,8 +85,8 @@ private extension DurationPickerSheetView {
         addSubview(sheetView)
 
         [
-            handleView,
             titleLabel,
+            closeButton,
             pickerView,
             selectButton
         ].forEach(sheetView.addSubview)
@@ -99,27 +99,28 @@ private extension DurationPickerSheetView {
             $0.horizontalEdges.bottom.equalToSuperview()
         }
 
-        handleView.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(12)
-            $0.centerX.equalToSuperview()
-            $0.width.equalTo(72)
-            $0.height.equalTo(4)
-        }
-
         titleLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(40)
             $0.leading.equalToSuperview().offset(16)
         }
 
+        closeButton.snp.makeConstraints {
+            $0.centerY.equalTo(titleLabel)
+            $0.trailing.equalToSuperview().inset(16)
+            $0.size.equalTo(32)
+        }
+
         pickerView.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(22)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().inset(16)
+            $0.trailing.equalToSuperview().inset(16).priority(999)
             $0.height.equalTo(168)
         }
 
         selectButton.snp.makeConstraints {
             $0.top.equalTo(pickerView.snp.bottom).offset(32)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().inset(16)
+            $0.trailing.equalToSuperview().inset(16).priority(999)
             $0.bottom.equalTo(sheetView.safeAreaLayoutGuide).inset(20)
             $0.height.equalTo(48)
         }

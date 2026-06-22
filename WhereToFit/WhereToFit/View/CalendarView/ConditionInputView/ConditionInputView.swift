@@ -5,6 +5,8 @@
 //  Created by Yeseul Jang on 6/14/26.
 //
 
+import RxCocoa
+import RxSwift
 import SnapKit
 import Then
 import UIKit
@@ -26,6 +28,8 @@ final class ConditionInputView: UIView {
     let worstButton = ConditionOptionButton(condition: .worst)
 
     private(set) var selectedCondition: CalendarReactor.ConditionValue
+    fileprivate let swipeDismissRelay = PublishRelay<Void>()
+    private var swipeDismissHandler: BottomSheetSwipeDismissHandler?
 
     private let dimmedView = UIView().then {
         $0.backgroundColor = UIColor.black.withAlphaComponent(0.2)
@@ -51,7 +55,6 @@ final class ConditionInputView: UIView {
     ]).then {
         $0.axis = .horizontal
         $0.spacing = 16
-        $0.distribution = .fillEqually
     }
 
     private lazy var secondRowStackView = UIStackView(arrangedSubviews: [
@@ -61,7 +64,6 @@ final class ConditionInputView: UIView {
     ]).then {
         $0.axis = .horizontal
         $0.spacing = 14
-        $0.distribution = .fillEqually
     }
 
     init(currentCondition: CalendarReactor.ConditionValue) {
@@ -90,6 +92,10 @@ extension ConditionInputView {
 private extension ConditionInputView {
     func setStyle() {
         backgroundColor = .clear
+        swipeDismissHandler = BottomSheetSwipeDismissHandler(sheetView: sheetView)
+        swipeDismissHandler?.onDismiss = { [weak self] in
+            self?.swipeDismissRelay.accept(())
+        }
     }
 
     func setLayout() {
@@ -135,13 +141,14 @@ private extension ConditionInputView {
         firstRowStackView.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(22)
             $0.leading.equalToSuperview().offset(16)
-            $0.trailing.lessThanOrEqualToSuperview().inset(116)
+            $0.trailing.lessThanOrEqualToSuperview().inset(16)
             $0.height.equalTo(48)
         }
 
         secondRowStackView.snp.makeConstraints {
             $0.top.equalTo(firstRowStackView.snp.bottom).offset(18)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().offset(16)
+            $0.trailing.lessThanOrEqualToSuperview().inset(16)
             $0.height.equalTo(48)
         }
 
@@ -165,6 +172,12 @@ private extension ConditionInputView {
     }
 }
 
+extension Reactive where Base == ConditionInputView {
+    var swipeDownToDismiss: ControlEvent<Void> {
+        ControlEvent(events: base.swipeDismissRelay)
+    }
+}
+
 final class ConditionOptionButton: UIControl {
     let condition: CalendarReactor.ConditionValue
 
@@ -176,7 +189,14 @@ final class ConditionOptionButton: UIControl {
     }
 
     private let titleLabel = UILabel(config: .body15, lines: 1).then {
+        $0.lineBreakMode = .byClipping
+        $0.setContentHuggingPriority(.required, for: .horizontal)
         $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+    }
+
+    override var intrinsicContentSize: CGSize {
+        let width = 6 + 36 + 12 + titleLabel.intrinsicContentSize.width + 10
+        return CGSize(width: width, height: 48)
     }
 
     override var isSelected: Bool {

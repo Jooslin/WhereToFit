@@ -23,7 +23,7 @@ final class CalendarView: UIView {
     private let contentView = UIView()
     private let contentContainerView = UIView()
     private let calendarContentView = UIView()
-    private let reportContentView = ReportContentView()
+    private let reportContentContainerView = UIView()
     private var currentContentView: UIView?
 
     fileprivate let segmentedControl = UISegmentedControl(items: ["캘린더", "리포트"]).then {
@@ -49,14 +49,26 @@ final class CalendarView: UIView {
 
     private let calendarView = UICalendarView().then {
         let calendar = Calendar(identifier: .gregorian)
+        let today = calendar.startOfDay(for: Date())
+        let startDate = calendar.date(
+            from: calendar.dateComponents([.year, .month], from: calendar.date(byAdding: .year, value: -5, to: today) ?? today)
+        ) ?? today
+        let endBaseDate = calendar.date(byAdding: .year, value: 1, to: today) ?? today
+        let endMonthStartDate = calendar.date(
+            from: calendar.dateComponents([.year, .month], from: endBaseDate)
+        ) ?? endBaseDate
+        let endDate = calendar.date(
+            byAdding: DateComponents(month: 1, day: -1),
+            to: endMonthStartDate
+        ) ?? endBaseDate
 
         $0.calendar = Calendar(identifier: .gregorian)
         $0.locale = Locale(identifier: "ko_KR")
         $0.tintColor = .primary400
         $0.backgroundColor = .clear
         $0.availableDateRange = DateInterval(
-            start: DateComponents(calendar: Calendar(identifier: .gregorian), year: 2026, month: 1, day: 1).date ?? Date(),
-            end: DateComponents(calendar: Calendar(identifier: .gregorian), year: 2026, month: 12, day: 31).date ?? Date()
+            start: startDate,
+            end: endDate
         )
         $0.visibleDateComponents = calendar.dateComponents([.year, .month], from: Date())
     }
@@ -72,13 +84,15 @@ final class CalendarView: UIView {
         $0.isUserInteractionEnabled = false
     }
 
-    fileprivate let weightCard = CalendarInfoCardView(title: "몸무게", value: "54.2", unit: "kg")
+    fileprivate let weightCard = CalendarInfoCardView(title: "몸무게", value: "입력 필요", unit: "kg")
     fileprivate let conditionCard = CalendarInfoCardView(
         title: "컨디션",
-        value: "최악",
+        value: "입력 필요",
         unit: nil,
-        valueImage: CalendarReactor.ConditionValue.worst.image
+        valueImage: nil
     )
+    fileprivate let weightCardTapArea = UIControl()
+    fileprivate let conditionCardTapArea = UIControl()
 
     private let exerciseTitleLabel = UILabel(text: "운동", config: .body16Medium)
 
@@ -116,13 +130,14 @@ final class CalendarView: UIView {
 }
 
 extension CalendarView {
-    func updateWeight(_ weight: CalendarReactor.WeightValue) {
-        weightCard.updateValue(weight.displayText)
+    func updateWeight(_ weight: CalendarReactor.WeightValue?) {
+        weightCard.updateValue(weight?.displayText ?? "입력 필요")
+        weightCard.updateUnitHidden(weight == nil)
     }
 
-    func updateCondition(_ condition: CalendarReactor.ConditionValue) {
-        conditionCard.updateValue(condition.displayText)
-        conditionCard.updateValueImage(condition.image)
+    func updateCondition(_ condition: CalendarReactor.ConditionValue?) {
+        conditionCard.updateValue(condition?.displayText ?? "입력 필요")
+        conditionCard.updateValueImage(condition?.image)
     }
 
     func setExerciseCollectionViewDataSource(_ dataSource: UICollectionViewDataSource) {
@@ -137,13 +152,14 @@ extension CalendarView {
     func updateSelectedDate(_ date: Date, text: String) {
         let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
 
+        calendarView.setVisibleDateComponents(dateComponents, animated: true)
+
         if let selection = calendarView.selectionBehavior as? UICalendarSelectionSingleDate {
             isUpdatingSelectedDate = true
             selection.setSelected(dateComponents, animated: true)
             isUpdatingSelectedDate = false
         }
 
-        calendarView.setVisibleDateComponents(dateComponents, animated: true)
         selectedDateLabel.text = text
     }
 
@@ -152,7 +168,19 @@ extension CalendarView {
         case .calendar:
             replaceContentView(with: calendarContentView)
         case .report:
-            replaceContentView(with: reportContentView)
+            replaceContentView(with: reportContentContainerView)
+        }
+    }
+
+    func isReportContentSelected() -> Bool {
+        segmentedControl.selectedSegmentIndex == 1
+    }
+
+    func installReportContentView(_ view: UIView) {
+        reportContentContainerView.subviews.forEach { $0.removeFromSuperview() }
+        reportContentContainerView.addSubview(view)
+        view.snp.makeConstraints {
+            $0.edges.equalToSuperview()
         }
     }
 }
@@ -177,6 +205,8 @@ private extension CalendarView {
             selectedDateLabel,
             weightCard,
             conditionCard,
+            weightCardTapArea,
+            conditionCardTapArea,
             exerciseTitleLabel,
             exerciseCollectionView
         ].forEach(calendarContentView.addSubview)
@@ -250,6 +280,14 @@ private extension CalendarView {
             $0.leading.equalTo(calendarContentView.snp.centerX).offset(8)
             $0.trailing.equalToSuperview().inset(16)
             $0.height.equalTo(weightCard)
+        }
+
+        weightCardTapArea.snp.makeConstraints {
+            $0.edges.equalTo(weightCard)
+        }
+
+        conditionCardTapArea.snp.makeConstraints {
+            $0.edges.equalTo(conditionCard)
         }
 
         exerciseTitleLabel.snp.makeConstraints {
@@ -335,11 +373,11 @@ extension Reactive where Base == CalendarView {
     }
 
     var weightCardTap: ControlEvent<Void> {
-        base.weightCard.rx.controlEvent(.touchUpInside)
+        base.weightCardTapArea.rx.controlEvent(.touchUpInside)
     }
 
     var conditionCardTap: ControlEvent<Void> {
-        base.conditionCard.rx.controlEvent(.touchUpInside)
+        base.conditionCardTapArea.rx.controlEvent(.touchUpInside)
     }
 
     var selectedSegmentIndex: ControlProperty<Int> {

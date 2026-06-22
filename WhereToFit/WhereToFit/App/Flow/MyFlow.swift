@@ -12,13 +12,17 @@ import RxSwift
 
 final class MyFlow: Flow {
     private let navigationController = UINavigationController()
-    private let myReactor = MyReactor()
-    private let favoriteRepository = CoreDataFavoriteRepository()
-    private let disposeBag = DisposeBag()
-    private lazy var favoriteDetailResolver = FavoriteDetailResolver(
-        favoriteRepository: favoriteRepository
+    private let myReactor = MyReactor(
+        fetchICloudSyncStatusUseCase: FetchICloudSyncStatusUseCase(
+            service: ICloudStatusService()
+        ),
+        fetchUserProfileUseCase: FetchUserProfileUseCase(
+            repository: CoreDataUserProfileRepository()
+        ),
+        fetchUserLocationsUseCase: FetchUserLocationsUseCase(
+            repository: CoreDataUserLocationRepository()
+        )
     )
-    private lazy var favoriteToggleService = FavoriteToggleService(repository: favoriteRepository)
     private lazy var myViewController = MyViewController(reactor: myReactor)
     var root: any RxFlow.Presentable { navigationController }
 
@@ -43,7 +47,19 @@ final class MyFlow: Flow {
             )
 
         case .profileManagement:
-            let vc = ProfileManagementViewController(reactor: ProfileManagementReactor())
+            let vc = ProfileManagementViewController(
+                reactor: ProfileManagementReactor(
+                    fetchUserProfileUseCase: FetchUserProfileUseCase(
+                        repository: CoreDataUserProfileRepository()
+                    ),
+                    upsertUserProfileUseCase: UpsertUserProfileUseCase(
+                        repository: CoreDataUserProfileRepository()
+                    ),
+                    validatePersonalInfoUseCase: ValidateOnboardingPersonalInfoUseCase(
+                        dateService: DateService()
+                    )
+                )
+            )
             vc.hidesBottomBarWhenPushed = true
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
@@ -88,7 +104,40 @@ final class MyFlow: Flow {
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
 
         case .exerciseResult:
-            let vc = ExerciseResultViewController(reactor: ExerciseResultReactor())
+            let vc = ExerciseResultViewController(
+                reactor: ExerciseResultReactor(
+                    fetchUserProfileUseCase: FetchUserProfileUseCase(
+                        repository: CoreDataUserProfileRepository()
+                    )
+                )
+            )
+            vc.hidesBottomBarWhenPushed = true
+            navigationController.pushViewController(vc, animated: true)
+            return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))
+
+        case .exerciseResultRetry:
+            let userProfileRepository = CoreDataUserProfileRepository()
+            let vc = OnboardingViewController(
+                reactor: OnboardingReactor(
+                    mode: .exerciseResultRetry,
+                    dateService: DateService(),
+                    addressCoordinateUseCase: AddressCoordinateUseCase(
+                        repository: NaverMapSearchRepository()
+                    ),
+                    fetchUserProfileUseCase: FetchUserProfileUseCase(
+                        repository: userProfileRepository
+                    ),
+                    upsertUserProfileUseCase: UpsertUserProfileUseCase(
+                        repository: userProfileRepository
+                    ),
+                    addUserLocationUseCase: AddUserLocationUseCase(
+                        repository: CoreDataUserLocationRepository()
+                    ),
+                    saveWeightRecordUseCase: SaveWeightRecordUseCase(
+                        repository: CoreDataCalendarRecordRepository()
+                    )
+                )
+            )
             vc.hidesBottomBarWhenPushed = true
             navigationController.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc, withNextStepper: vc))

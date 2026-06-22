@@ -27,6 +27,7 @@ final class NotificationSettingViewController: BaseViewController<NotificationSe
 
     override func bind(reactor: NotificationSettingReactor) {
         notificationSettingView.titleView.rx.leftButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.pageBack)
             }

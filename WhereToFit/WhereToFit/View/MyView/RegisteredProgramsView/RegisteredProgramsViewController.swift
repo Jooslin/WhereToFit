@@ -7,6 +7,7 @@
 
 import ReactorKit
 import RxCocoa
+import RxSwift
 import UIKit
 
 final class RegisteredProgramsViewController: BaseViewController<RegisteredProgramsReactor> {
@@ -30,12 +31,14 @@ final class RegisteredProgramsViewController: BaseViewController<RegisteredProgr
 
     override func bind(reactor: RegisteredProgramsReactor) {
         registeredProgramsView.titleView.rx.leftButtonTap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .bind(with: self) { owner, _ in
                 owner.steps.accept(AppStep.pageBack)
             }
             .disposed(by: disposeBag)
 
         registeredProgramsView.editButton.rx.tap
+            .throttle(.milliseconds(500), latest: false, scheduler: MainScheduler.instance)
             .map { RegisteredProgramsReactor.Action.toggleEditing }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
@@ -85,6 +88,8 @@ extension RegisteredProgramsViewController: UICollectionViewDataSource {
 
 private extension RegisteredProgramsViewController {
     func presentRemoveRegisteredProgramAlert(_ item: RegisteredProgramsReactor.RegisteredProgramItem) {
+        guard presentedViewController == nil else { return }
+
         let alert = UIAlertController(
             title: "등록한 프로그램을 삭제할까요?",
             message: "\(item.programName)을(를) 등록 목록에서 삭제합니다.",

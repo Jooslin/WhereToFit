@@ -76,6 +76,24 @@ enum SportsCategory: String, CaseIterable, Hashable, Sendable {
         case .other: "sportsOthers"
         }
     }
+
+    nonisolated var estimatedCaloriesPerMinute: Double {
+        switch self {
+        case .health: 6.0
+        case .fitness: 7.0
+        case .yogaPilates: 3.5
+        case .gymnastics: 4.0
+        case .dance: 6.5
+        case .aquaticSports: 8.0
+        case .ballSports: 7.5
+        case .iceSports: 7.0
+        case .martialArts: 8.5
+        case .runningCycle: 9.0
+        case .recreationalSports: 5.0
+        case .adaptivePhysicalEducation: 3.5
+        case .other: 4.0
+        }
+    }
     
     init(sport: String?) {
         let value = sport?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
