@@ -13,12 +13,13 @@ import SnapKit
 import Then
 
 final class SplashViewController: BaseViewController<SplashReactor> {
-    private let logoLabel = UILabel(text: "WhereToFit", config: .title24, color: .gray900).then {
-        $0.textAlignment = .center
+    private enum Layout {
+        static let logoSize = CGSize(width: 138, height: 98)
+        static let logoTopOffset = 196
     }
-    private let indicatorView = UIActivityIndicatorView(style: .medium).then {
-        $0.hidesWhenStopped = false
-        $0.startAnimating()
+    
+    private let logoImageView = UIImageView(image: UIImage(named: "appLogo")).then {
+        $0.contentMode = .scaleAspectFit
     }
     
     override func viewDidLoad() {
@@ -48,19 +49,14 @@ final class SplashViewController: BaseViewController<SplashReactor> {
 
 private extension SplashViewController {
     func setLayout() {
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
         
-        view.addSubview(logoLabel)
-        view.addSubview(indicatorView)
+        view.addSubview(logoImageView)
         
-        logoLabel.snp.makeConstraints {
-            $0.center.equalToSuperview()
-            $0.horizontalEdges.equalToSuperview().inset(32)
-        }
-        
-        indicatorView.snp.makeConstraints {
-            $0.top.equalTo(logoLabel.snp.bottom).offset(20)
+        logoImageView.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(Layout.logoTopOffset)
             $0.centerX.equalToSuperview()
+            $0.size.equalTo(Layout.logoSize)
         }
     }
 }

@@ -10,6 +10,12 @@ import SnapKit
 import Then
 
 final class OnboardingStartView: UIView {
+    private enum Layout {
+        static let logoSize = CGSize(width: 138, height: 98)
+        static let logoTopOffset = 196
+        static let descriptionTopOffset = 24
+    }
+    
     private let imageView = UIImageView(image: .appLogo)
     private let descriptionLabel = UILabel(
         text: """
@@ -30,29 +36,26 @@ final class OnboardingStartView: UIView {
     override init(frame: CGRect) {
         super.init(frame: .zero)
         
-        let logoStackView = UIStackView(arrangedSubviews: [imageView, descriptionLabel]).then {
-            $0.axis = .vertical
-            $0.alignment = .center
-            $0.spacing = 24
-        }
-        
         let buttonStackView = UIStackView(arrangedSubviews: [startButton, skipButton]).then {
             $0.axis = .vertical
             $0.alignment = .center
             $0.spacing = 12
         }
         
-        addSubview(logoStackView)
+        addSubview(imageView)
+        addSubview(descriptionLabel)
         addSubview(buttonStackView)
         
         imageView.snp.makeConstraints {
-            $0.width.equalTo(137)
-            $0.height.equalTo(97)
+            $0.top.equalTo(safeAreaLayoutGuide.snp.top).offset(Layout.logoTopOffset)
+            $0.centerX.equalToSuperview()
+            $0.size.equalTo(Layout.logoSize)
         }
         
-        logoStackView.snp.makeConstraints {
+        descriptionLabel.snp.makeConstraints {
+            $0.top.equalTo(imageView.snp.bottom).offset(Layout.descriptionTopOffset)
             $0.centerX.equalToSuperview()
-            $0.centerY.equalToSuperview().multipliedBy(0.85)
+            $0.horizontalEdges.lessThanOrEqualToSuperview().inset(16)
         }
         
         buttonStackView.snp.makeConstraints {
