@@ -4,10 +4,10 @@
 <dict>
 	<key>aps-environment</key>
 	<string>development</string>
-	<key>com.apple.developer.healthkit</key>
-	<true/>
 	<key>com.apple.developer.icloud-container-identifiers</key>
-	<array/>
+	<array>
+		<string>iCloud.Jooslin.com.WhereToFit</string>
+	</array>
 	<key>com.apple.developer.icloud-services</key>
 	<array>
 		<string>CloudKit</string>
