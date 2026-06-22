@@ -20,6 +20,7 @@ enum AppStep: Step {
     case homeTab
     case mapTab
     case calendarTab
+    case selectCalendarTab
     case myTab
     
     // Map

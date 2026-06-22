@@ -12,6 +12,7 @@ import ReactorKit
 final class MainFlow: Flow {
     private let window: UIWindow
     private let tabBarController = UITabBarController()
+    private let calendarTabIndex = 2
     private let myTabIndex = 3
     
     var root: any Presentable { tabBarController }
@@ -46,6 +47,10 @@ final class MainFlow: Flow {
 
         case .registeredPrograms:
             return navigateToRegisteredPrograms(animated: true)
+
+        case .selectCalendarTab:
+            tabBarController.selectedIndex = calendarTabIndex
+            return .none
             
         default:
             return .one(flowContributor: .forwardToParentFlow(withStep: step))

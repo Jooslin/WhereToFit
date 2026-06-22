@@ -18,7 +18,9 @@ final class HomeWeatherCell: UICollectionViewCell {
     private let weatherImageView = UIImageView()
     private let weatherLabel = UILabel(config: .body14Medium)
     private let weatherDescriptionLabel = UILabel(config: .title24)
-    private let reservationLabel = UILabel(config: .body16Medium)
+    private let reservationLabel = UILabel(config: .body16Medium).then {
+        $0.isHidden = true
+    }
     
     fileprivate let registrationButton = DesignButton(config: .smallBorderBlue).then {
         $0.title = "프로그램 등록"

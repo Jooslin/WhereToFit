@@ -45,6 +45,12 @@ final class HomeViewController: BaseViewController<HomeReactor> {
             .bind(to: steps)
             .disposed(by: disposeBag)
 
+        homeView.rx.recordButtonTap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .map { AppStep.selectCalendarTab }
+            .bind(to: steps)
+            .disposed(by: disposeBag)
+        
         homeView.rx.alarmButtonTap
             .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
             .map { AppStep.notificationCenter }
