@@ -311,23 +311,26 @@ private extension ProgramRegisterViewController {
     }
 
     nonisolated static func makeDateText(_ dates: [Date]) -> String? {
+        struct Formatters {
+            static let fullFormatter = DateFormatter().then {
+                $0.locale = Locale(identifier: "ko_KR")
+                $0.timeZone = TimeZone(identifier: "Asia/Seoul")
+                $0.dateFormat = "yyyy.MM.dd"
+            }
+            static let shortFormatter = DateFormatter().then {
+                $0.locale = Locale(identifier: "ko_KR")
+                $0.timeZone = TimeZone(identifier: "Asia/Seoul")
+                $0.dateFormat = "MM.dd"
+            }
+        }
+
         let sortedDates = dates.sorted()
         guard sortedDates.isEmpty == false else {
             return nil
         }
 
-        let fullFormatter = DateFormatter()
-        fullFormatter.locale = Locale(identifier: "ko_KR")
-        fullFormatter.timeZone = TimeZone(identifier: "Asia/Seoul")
-        fullFormatter.dateFormat = "yyyy.MM.dd"
-
-        let shortFormatter = DateFormatter()
-        shortFormatter.locale = Locale(identifier: "ko_KR")
-        shortFormatter.timeZone = TimeZone(identifier: "Asia/Seoul")
-        shortFormatter.dateFormat = "MM.dd"
-
         let displayDates = sortedDates.prefix(3).enumerated().map { index, date in
-            index == 0 ? fullFormatter.string(from: date) : shortFormatter.string(from: date)
+            index == 0 ? Formatters.fullFormatter.string(from: date) : Formatters.shortFormatter.string(from: date)
         }
 
         let dateText = displayDates.joined(separator: " , ")
