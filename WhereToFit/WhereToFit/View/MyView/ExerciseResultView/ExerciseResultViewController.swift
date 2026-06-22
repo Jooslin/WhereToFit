@@ -49,13 +49,5 @@ final class ExerciseResultViewController: BaseViewController<ExerciseResultReact
                 owner.exerciseResultView.updateSummaryItems(items)
             }
             .disposed(by: disposeBag)
-
-        reactor.state
-            .map(\.recommendationItems)
-            .distinctUntilChanged()
-            .bind(with: self) { owner, items in
-                owner.exerciseResultView.updateRecommendationItems(items)
-            }
-            .disposed(by: disposeBag)
     }
 }

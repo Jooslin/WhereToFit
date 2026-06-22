@@ -30,19 +30,6 @@ final class ExerciseResultView: UIView {
         $0.backgroundColor = .primary400
         $0.layer.cornerRadius = 19
     }
-    private let recommendationTitleLabel = UILabel(text: "AI 맞춤 운동 추천", config: .body16Medium)
-    private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionViewLayout()).then {
-        $0.backgroundColor = .gray50
-        $0.layer.cornerRadius = 12
-        $0.clipsToBounds = true
-        $0.showsVerticalScrollIndicator = false
-        $0.isScrollEnabled = false
-        $0.dataSource = self
-        $0.register(ExerciseRecommendationCell.self, forCellWithReuseIdentifier: ExerciseRecommendationCell.reuseIdentifier)
-    }
-
-    private var recommendationItems: [ExerciseResultReactor.RecommendationItem] = []
-    private var collectionViewHeightConstraint: Constraint?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -72,12 +59,6 @@ extension ExerciseResultView {
             summaryStackView.addArrangedSubview(ExerciseSummaryRow(item: $0))
         }
     }
-
-    func updateRecommendationItems(_ items: [ExerciseResultReactor.RecommendationItem]) {
-        recommendationItems = items
-        collectionView.reloadData()
-        collectionViewHeightConstraint?.update(offset: CGFloat(items.count) * 70)
-    }
 }
 
 private extension ExerciseResultView {
@@ -94,9 +75,7 @@ private extension ExerciseResultView {
         scrollView.addSubview(contentView)
 
         [
-            summaryCardView,
-            recommendationTitleLabel,
-            collectionView
+            summaryCardView
         ].forEach(contentView.addSubview)
 
         [
@@ -122,6 +101,7 @@ private extension ExerciseResultView {
         summaryCardView.snp.makeConstraints {
             $0.top.equalToSuperview().offset(32)
             $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.bottom.equalToSuperview().inset(24)
         }
 
         summaryStackView.snp.makeConstraints {
@@ -136,53 +116,6 @@ private extension ExerciseResultView {
             $0.width.equalTo(118)
             $0.height.equalTo(38)
         }
-
-        recommendationTitleLabel.snp.makeConstraints {
-            $0.top.equalTo(summaryCardView.snp.bottom).offset(32)
-            $0.horizontalEdges.equalToSuperview().inset(16)
-        }
-
-        collectionView.snp.makeConstraints {
-            $0.top.equalTo(recommendationTitleLabel.snp.bottom).offset(14)
-            $0.horizontalEdges.equalToSuperview().inset(16)
-            collectionViewHeightConstraint = $0.height.equalTo(0).constraint
-            $0.bottom.equalToSuperview().inset(24)
-        }
-    }
-
-    func makeCollectionViewLayout() -> UICollectionViewLayout {
-        let itemSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(1),
-            heightDimension: .absolute(70)
-        )
-        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-
-        let groupSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(1),
-            heightDimension: .absolute(70)
-        )
-        let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
-
-        let section = NSCollectionLayoutSection(group: group)
-        return UICollectionViewCompositionalLayout(section: section)
-    }
-}
-
-extension ExerciseResultView: UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        recommendationItems.count
-    }
-
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: ExerciseRecommendationCell.reuseIdentifier,
-            for: indexPath
-        ) as? ExerciseRecommendationCell else {
-            return UICollectionViewCell()
-        }
-
-        cell.configure(item: recommendationItems[indexPath.item], hidesDivider: indexPath.item == recommendationItems.count - 1)
-        return cell
     }
 }
 
