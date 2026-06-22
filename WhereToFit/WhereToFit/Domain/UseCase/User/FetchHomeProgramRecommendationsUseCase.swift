@@ -219,33 +219,29 @@ private extension FetchHomeProgramRecommendationsUseCase {
         personalizedSports: [RecommendedSport],
         radiusMeters: Double
     ) -> [HomeRecommendedProgram] {
-        let categoryScore = sportScores(from: categorySports)
-        let personalizedScore = sportScores(from: personalizedSports)
+        let matchRateContext = ProgramMatchRateCalculator.Context(
+            profile: profile,
+            categorySports: categorySports,
+            personalizedSports: personalizedSports
+        )
         
         return candidates
             .compactMap { candidate -> (candidate: ProgramCandidate, finalScore: Int, matchRate: Int)? in
-                guard let sportName = candidate.program.sport?.trimmingCharacters(in: .whitespacesAndNewlines),
-                      sportName.isEmpty == false else {
+                guard let programScore = ProgramMatchRateCalculator.programScore(
+                    for: candidate.program,
+                    context: matchRateContext
+                ) else {
                     return nil
                 }
-                
-                let selectionSportScore = categoryScore[sportName] ?? 0
-                let personalizedSportScore = personalizedScore[sportName] ?? selectionSportScore
-                guard selectionSportScore > 0 else { return nil }
-                
-                let ageScore = ageConditionScore(program: candidate.program, profile: profile)
-                let levelScore = levelConditionScore(program: candidate.program, profile: profile)
-                let selectionScore = average([selectionSportScore, ageScore, levelScore])
-                let matchRate = average([personalizedSportScore, ageScore, levelScore])
                 
                 return (
                     candidate,
                     finalSelectionScore(
-                        selectionScore: selectionScore,
+                        selectionScore: programScore.selectionScore,
                         distance: candidate.distance,
                         radiusMeters: radiusMeters
                     ),
-                    matchRate
+                    programScore.matchRate
                 )
             }
             .sorted {
@@ -263,80 +259,6 @@ private extension FetchHomeProgramRecommendationsUseCase {
                     matchRate: $0.matchRate
                 )
             }
-    }
-    
-    static func sportScores(from sports: [RecommendedSport]) -> [String: Int] {
-        Dictionary(
-            sports.map { ($0.sportName, $0.matchRate) },
-            uniquingKeysWith: { first, _ in first }
-        )
-    }
-    
-    static func ageConditionScore(program: Program, profile: UserProfile) -> Int {
-        guard program.targetAges.isEmpty == false,
-              program.targetAges.contains(.all) == false else {
-            return 100
-        }
-        
-        let targetAge = programTargetAge(for: profile.birthDate)
-        return program.targetAges.contains(targetAge) ? 100 : 45
-    }
-    
-    static func programTargetAge(for birthDate: Date) -> ProgramTargetAge {
-        let age = Calendar.current.dateComponents([.year], from: birthDate, to: Date()).year ?? 0
-        
-        switch age {
-        case ..<7:
-            return .infant
-        case 7..<13:
-            return .child
-        case 13..<20:
-            return .youth
-        case 20..<60:
-            return .adult
-        default:
-            return .senior
-        }
-    }
-    
-    static func levelConditionScore(program: Program, profile: UserProfile) -> Int {
-        guard program.levels.isEmpty == false,
-              program.levels.contains(.all) == false,
-              let expectedLevel = programLevel(for: profile.exerciseExperience) else {
-            return 100
-        }
-        
-        if program.levels.contains(expectedLevel) {
-            return 100
-        }
-        
-        switch expectedLevel {
-        case .beginner:
-            return program.levels.contains(.intermediate) ? 70 : 50
-        case .intermediate:
-            return program.levels.contains(.beginner) || program.levels.contains(.advanced) ? 75 : 50
-        case .advanced:
-            return program.levels.contains(.intermediate) ? 75 : 50
-        case .all:
-            return 100
-        }
-    }
-    
-    static func programLevel(for experience: ExerciseExperience?) -> ProgramLevel? {
-        switch experience {
-        case .starter, .beginner:
-            return .beginner
-        case .intermediate:
-            return .intermediate
-        case .advanced:
-            return .advanced
-        case .none:
-            return nil
-        }
-    }
-    
-    static func average(_ scores: [Int]) -> Int {
-        Int((Double(scores.reduce(0, +)) / Double(scores.count)).rounded())
     }
     
     static func coordinateBounds(

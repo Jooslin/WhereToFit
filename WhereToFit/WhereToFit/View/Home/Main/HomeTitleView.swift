@@ -13,7 +13,7 @@ final class HomeTitleView: TitleView {
     private let homeLeftButton: IconButton
     
     init() {
-        let leftButton = IconButton(config: .icon, style: .bothImage).then {
+        let leftButton = IconButton(config: .icon, style: .leftImage).then {
             $0.normalImage = .locationPinFilled
             $0.title = "지역"
             $0.normalRightImage = .arrowDown

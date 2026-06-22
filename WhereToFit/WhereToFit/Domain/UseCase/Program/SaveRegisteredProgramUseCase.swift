@@ -36,14 +36,17 @@ final class SaveRegisteredProgramUseCase {
 
     // UseCase는 저장 방식(CoreData 등)을 직접 알지 않고 Repository Protocol에만 의존
     private let repository: RegisteredProgramRepositoryProtocol
+    private let reminderScheduler: ProgramReminderScheduler
     // 예약 날짜를 하루 단위로 정규화할 때 사용하는 Calendar
     private let calendar: Calendar
 
     init(
         repository: RegisteredProgramRepositoryProtocol,
+        reminderScheduler: ProgramReminderScheduler = .shared,
         calendar: Calendar = .current
     ) {
         self.repository = repository
+        self.reminderScheduler = reminderScheduler
         self.calendar = calendar
     }
 
@@ -71,6 +74,14 @@ final class SaveRegisteredProgramUseCase {
         )
 
         return repository.saveRegisteredProgram(program)
+            .do(onSuccess: { [reminderScheduler] savedProgram in
+                guard let reminderTarget = savedProgram.reminderTarget else {
+                    reminderScheduler.cancelStartReminders(for: savedProgram.id.uuidString)
+                    return
+                }
+
+                reminderScheduler.scheduleStartReminderIfNeeded(for: reminderTarget) { _ in }
+            })
     }
 
     // Date는 시/분/초를 포함하므로 같은 날짜라도 서로 다른 값일 수 있습니다.

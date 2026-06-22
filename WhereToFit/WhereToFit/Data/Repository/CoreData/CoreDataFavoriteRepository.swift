@@ -38,6 +38,11 @@ final class CoreDataFavoriteRepository: FavoriteRepositoryProtocol {
 
                     Self.apply(favorite, to: object)
                     try context.save()
+                    FavoriteChangeNotifier.post(
+                        targetType: favorite.targetType,
+                        targetID: favorite.targetID,
+                        isFavorite: true
+                    )
                     single(.success(favorite))
                 } catch {
                     single(.failure(error))
@@ -58,6 +63,11 @@ final class CoreDataFavoriteRepository: FavoriteRepositoryProtocol {
                     )
                     objects.forEach(context.delete)
                     try context.save()
+                    FavoriteChangeNotifier.post(
+                        targetType: targetType,
+                        targetID: targetID,
+                        isFavorite: false
+                    )
                     completable(.completed)
                 } catch {
                     completable(.error(error))

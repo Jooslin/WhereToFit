@@ -45,7 +45,6 @@ final class MapViewController: BaseViewController<MapReactor> {
     private var markerFacilities: [FitnessFacility] = []
     private var displayedFacilities: [FitnessFacility] = []
     private var searchSuggestions: [MapSearchSuggestion] = []
-    private var latestSearchSuggestionQuery = ""
     private var selectedFacility: FitnessFacility?
     private var shouldUpdateListForVisibleMapBounds = false
     private var bottomPanelDetent: BottomPanelDetent = .collapsed
@@ -53,6 +52,7 @@ final class MapViewController: BaseViewController<MapReactor> {
     private var isShowingFacilityEmptyState = false
     private var emptyStateMessage = "조건에 맞는 프로그램이 없습니다."
     private var hasEmptyStateError = false
+    private var hasAppearedOnce = false
     private let locationService = LocationService()
     private var currentUserCoordinate: GeoCoordinate?
     private let defaultCoordinate = GeoCoordinate(latitude: 37.576022, longitude: 126.976900) // 기본 좌표 광화문
@@ -90,8 +90,17 @@ final class MapViewController: BaseViewController<MapReactor> {
         reactor?.action.onNext(.viewDidLoad)
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: false)
+        if hasAppearedOnce {
+            reactor?.action.onNext(.refreshFavorites)
+        }
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        hasAppearedOnce = true
         locationService.requestCurrentLocation()
     }
 
@@ -227,6 +236,14 @@ final class MapViewController: BaseViewController<MapReactor> {
             })
             .disposed(by: disposeBag)
 
+        reactor.pulse(\.$shouldOpenOnboardingForAIRecommendation)
+            .filter { $0 }
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] _ in
+                self?.presentAIRecommendationOnboardingAlert()
+            })
+            .disposed(by: disposeBag)
+
         reactor.state
             .map(\.isNaverMapKeyConfigured)
             .distinctUntilChanged()
@@ -277,6 +294,8 @@ final class MapViewController: BaseViewController<MapReactor> {
     }
 
     private func configureMap() {
+        mapView.naverMapView.showCompass = false
+        mapView.naverMapView.showScaleBar = false
         mapView.naverMapView.showZoomControls = false
         mapView.naverMapView.showLocationButton = false
         mapView.naverMapView.mapView.addCameraDelegate(delegate: self)
@@ -351,35 +370,12 @@ final class MapViewController: BaseViewController<MapReactor> {
     }
 
     private func updateSearchSuggestions(for query: String) {
-        latestSearchSuggestionQuery = query
-
         guard query.isEmpty == false else {
             showSearchSuggestions([])
             return
         }
 
-        // 입력 즉시 로컬 시설 결과를 먼저 보여주고, 네이버 결과는 도착하면 뒤에 합쳐 UX 지연을 줄입니다.
-        let localSuggestions = makeLocalSearchSuggestions(for: query)
-        showSearchSuggestions(localSuggestions)
-
-        guard query.count >= 2 else { return }
-
-        Task { [weak self] in
-            guard let self else { return }
-            let remoteSuggestions = await fetchRemoteSearchSuggestions(for: query)
-
-            await MainActor.run {
-                // 사용자가 그 사이에 다른 검색어를 입력했다면 오래된 네이버 응답은 버립니다.
-                guard self.latestSearchSuggestionQuery == query else { return }
-                let currentLocalSuggestions = self.makeLocalSearchSuggestions(for: query)
-                self.showSearchSuggestions(
-                    self.mergeSearchSuggestions(
-                        currentLocalSuggestions,
-                        remoteSuggestions
-                    )
-                )
-            }
-        }
+        showSearchSuggestions(makeLocalSearchSuggestions(for: query))
     }
 
     private func fetchRemoteSearchSuggestions(for query: String) async -> [MapSearchSuggestion] {
@@ -395,13 +391,6 @@ final class MapViewController: BaseViewController<MapReactor> {
             facilities: reactor?.currentState.markerFacilities ?? markerFacilities,
             referenceCoordinate: searchDistanceReferenceCoordinate
         )
-    }
-
-    private func mergeSearchSuggestions(
-        _ localSuggestions: [MapSearchSuggestion],
-        _ remoteSuggestions: [MapSearchSuggestion]
-    ) -> [MapSearchSuggestion] {
-        searchMapSuggestionsUseCase.mergeSuggestions(localSuggestions, remoteSuggestions)
     }
 
     private func showSearchSuggestions(_ suggestions: [MapSearchSuggestion]) {
@@ -571,7 +560,7 @@ final class MapViewController: BaseViewController<MapReactor> {
         let visiblePrograms = visibleProgramFacilitiesInCurrentMapBounds()
 
         if shouldIncludeFacilityCellsInVisibleList {
-            return uniqueFacilities(visibleFacilities + visiblePrograms)
+            return sortByCurrentRecommendationState(uniqueFacilities(visibleFacilities + visiblePrograms))
         }
 
         guard visiblePrograms.isEmpty,
@@ -588,14 +577,15 @@ final class MapViewController: BaseViewController<MapReactor> {
             ? markerFacilities
             : unfilteredMarkerFacilities
 
-        return visibleMarkerFacilitiesInCurrentMapBounds(from: sourceFacilities)
+        let visibleFacilities = visibleMarkerFacilitiesInCurrentMapBounds(from: sourceFacilities)
             .filter(matchesCurrentSearchAndFilter)
-            .sorted { $0.distanceInMeters < $1.distanceInMeters }
+
+        return sortByCurrentRecommendationState(visibleFacilities)
     }
 
     private func visibleProgramFacilitiesInCurrentMapBounds() -> [FitnessFacility] {
         guard shouldUpdateListForVisibleMapBounds else {
-            return allFacilities.sorted { $0.distanceInMeters < $1.distanceInMeters }
+            return sortByCurrentRecommendationState(allFacilities)
         }
 
         let visibleSourceIDs = Set(
@@ -603,12 +593,28 @@ final class MapViewController: BaseViewController<MapReactor> {
                 .compactMap(\.sourceFacilityID)
         )
 
-        return allFacilities
+        let visiblePrograms = allFacilities
             .filter { facility in
                 guard let sourceFacilityID = facility.sourceFacilityID else { return false }
                 return visibleSourceIDs.contains(sourceFacilityID)
             }
-            .sorted { $0.distanceInMeters < $1.distanceInMeters }
+
+        return sortByCurrentRecommendationState(visiblePrograms)
+    }
+
+    private func sortByCurrentRecommendationState(_ facilities: [FitnessFacility]) -> [FitnessFacility] {
+        guard reactor?.currentState.filter.isAIRecommendationEnabled == true else {
+            return facilities.sorted { $0.distanceInMeters < $1.distanceInMeters }
+        }
+
+        return facilities.sorted {
+            let lhsMatchingRate = $0.matchingRate ?? -1
+            let rhsMatchingRate = $1.matchingRate ?? -1
+            if lhsMatchingRate == rhsMatchingRate {
+                return $0.distanceInMeters < $1.distanceInMeters
+            }
+            return lhsMatchingRate > rhsMatchingRate
+        }
     }
 
     private var shouldShowVisibleFacilityFallback: Bool {
@@ -838,6 +844,26 @@ final class MapViewController: BaseViewController<MapReactor> {
         )
         alertController.addAction(
             UIAlertAction(title: "기본 위치로 보기", style: .cancel)
+        )
+
+        present(alertController, animated: true)
+    }
+
+    private func presentAIRecommendationOnboardingAlert() {
+        guard presentedViewController == nil else { return }
+
+        let alertController = UIAlertController(
+            title: "AI 추천을 받으려면 정보 입력이 필요해요",
+            message: "운동 목적과 선호 정보를 바탕으로 나에게 맞는 시설과 프로그램을 추천해드려요.",
+            preferredStyle: .alert
+        )
+        alertController.addAction(
+            UIAlertAction(title: "정보 입력하기", style: .default) { [weak self] _ in
+                self?.steps.accept(AppStep.onboarding)
+            }
+        )
+        alertController.addAction(
+            UIAlertAction(title: "다음에 할게요", style: .cancel)
         )
 
         present(alertController, animated: true)

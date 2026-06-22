@@ -47,4 +47,5 @@ enum AppStep: Step {
     case facilitySearch
     case sportsCategorySelection
     case selectDate
+    case notificationCenter
 }
