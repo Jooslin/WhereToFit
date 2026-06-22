@@ -134,11 +134,11 @@
 				};
 			};
 			buildConfigurationList = F9B36CF62FBC13FB006BCED0 /* Build configuration list for PBXProject "WhereToFit" */;
-			developmentRegion = en;
+			developmentRegion = ko;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
 				Base,
+				ko,
 			);
 			mainGroup = F9B36CF22FBC13FB006BCED0;
 			minimizedProjectReferenceProxies = 1;
@@ -198,7 +198,9 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = Q7HGK38S83;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = WhereToFit/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "운동갈지도";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "내 주변 운동 시설을 지도에 표시하기 위해 현재 위치 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -243,7 +245,9 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = Q7HGK38S83;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = WhereToFit/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "운동갈지도";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "내 주변 운동 시설을 지도에 표시하기 위해 현재 위치 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -280,6 +284,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -345,6 +350,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
