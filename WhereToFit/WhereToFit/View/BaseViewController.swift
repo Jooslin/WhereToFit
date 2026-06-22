@@ -32,6 +32,10 @@ class BaseViewController<R: Reactor>: UIViewController, Stepper, ReactorKit.View
       fatalError("init(coder:) has not been implemented")
     }
     
+    // Xcode 26.5 Release optimizer can crash while compiling this generic VC deinit.
+    @_optimize(none)
+    deinit {}
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
