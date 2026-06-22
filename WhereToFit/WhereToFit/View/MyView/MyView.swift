@@ -54,7 +54,7 @@ final class MyView: UIView {
 
     private let notificationSettingRow = MyPageMenuRow(title: "알림설정")
     private let inquiryRow = MyPageMenuRow(title: "문의하기")
-    private let versionInfoRow = MyPageMenuRow(title: "버전 정보", trailingText: "v1.0.0")
+    private let versionInfoRow = MyPageMenuRow(title: "버전 정보", trailingText: "v1.0.0", accessory: .none)
     private let privacyPolicyRow = MyPageMenuRow(title: "개인정보처리방침")
     private let termsOfServiceRow = MyPageMenuRow(title: "이용약관")
     private let locationTermsRow = MyPageMenuRow(title: "위치기반 서비스 이용약관")
@@ -342,6 +342,7 @@ private final class MyPageMenuRow: UIView {
     enum Accessory {
         case disclosure
         case toggle
+        case none
     }
 
     private let titleLabel: UILabel
@@ -389,6 +390,11 @@ private final class MyPageMenuRow: UIView {
                 $0.onTintColor = .primary400
             }
             accessoryButton.isHidden = true
+        case .none:
+            accessoryView = UIView().then {
+                $0.isHidden = true
+            }
+            accessoryButton.isHidden = true
         }
 
         super.init(frame: .zero)
@@ -430,6 +436,8 @@ private extension MyPageMenuRow {
             if accessoryView is UIImageView {
                 $0.width.equalTo(24)
                 $0.height.equalTo(24)
+            } else if case .none = accessory {
+                $0.width.height.equalTo(0)
             }
         }
 
@@ -463,7 +471,11 @@ private extension MyPageMenuRow {
             let trailingLabel = UILabel(text: trailingText, config: .body12Regular, color: .gray500)
             addSubview(trailingLabel)
             trailingLabel.snp.makeConstraints {
-                $0.trailing.equalTo(accessoryView.snp.leading).offset(-10)
+                if case .none = accessory {
+                    $0.trailing.equalToSuperview().inset(12)
+                } else {
+                    $0.trailing.equalTo(accessoryView.snp.leading).offset(-10)
+                }
                 $0.centerY.equalToSuperview()
             }
         }
