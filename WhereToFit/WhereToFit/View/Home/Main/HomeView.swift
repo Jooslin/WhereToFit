@@ -15,8 +15,8 @@ final class HomeView: UIView {
     fileprivate let titleView = HomeTitleView().then {
         $0.leftButton.isUserInteractionEnabled = false
     }
-    private lazy var collectionView = HomeCollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout())
-    private lazy var dataSource = makeCollectionViewDiffableDataSource(collectionView)
+    private(set) lazy var collectionView = HomeCollectionView(frame: .zero, collectionViewLayout: makeCompositionalLayout())
+    private(set) lazy var dataSource = makeCollectionViewDiffableDataSource(collectionView)
     private var programHeaderTitle = "주변 프로그램"
     
     // Reactive
@@ -352,5 +352,17 @@ extension Reactive where Base: HomeView {
     
     var favoriteButtonTap: PublishRelay<HomeCollectionView.ProgramSectionItem> {
         base.favoriteButtonTap
+    }
+    
+    var programSelected: Observable<Int> {
+        base.collectionView.rx.itemSelected
+            .compactMap {
+                guard let item = base.dataSource.itemIdentifier(for: $0),
+                      case let .program(program) = item else {
+                    return nil
+                }
+                
+                return program.id
+            }
     }
 }

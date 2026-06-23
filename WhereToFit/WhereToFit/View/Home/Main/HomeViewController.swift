@@ -62,6 +62,9 @@ final class HomeViewController: BaseViewController<HomeReactor> {
             .map { AppStep.onboarding }
             .bind(to: steps)
             .disposed(by: disposeBag)
+        
+        homeView.rx.programSelected
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
     }
     
     private func bindState(reactor: HomeReactor) {
