@@ -51,6 +51,6 @@ final class HomeOnboardingReasonCell: UICollectionViewCell {
 
 extension HomeOnboardingReasonCell {
     func configure(_ text: String) {
-        descriptionLabel.text = text
+        descriptionLabel.setTextWithLineHeight(text: text, height: 23)
     }
 }
