@@ -33,4 +33,19 @@ extension UILabel {
         self.textColor = color ?? config.color
         self.numberOfLines = lines ?? config.lines
     }
+    
+    // 줄 간격 설정
+    func setTextWithLineHeight(text: String, height: CGFloat) {
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.minimumLineHeight = height
+        paragraphStyle.maximumLineHeight = height
+        
+        attributedText = NSAttributedString(
+            string: text,
+            attributes: [
+                .font: font as Any,
+                .foregroundColor: textColor as Any,
+                .paragraphStyle: paragraphStyle
+            ])
+    }
 }
