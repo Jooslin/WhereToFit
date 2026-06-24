@@ -40,12 +40,20 @@ extension UILabel {
         paragraphStyle.minimumLineHeight = height
         paragraphStyle.maximumLineHeight = height
         
+        var attributes: [NSAttributedString.Key: Any] = [
+                    .paragraphStyle: paragraphStyle
+                ]
+        
+        if let font = font {
+            attributes[.font] = font
+        }
+        if let textColor = textColor {
+            attributes[.foregroundColor] = textColor
+        }
+        
         attributedText = NSAttributedString(
             string: text,
-            attributes: [
-                .font: font as Any,
-                .foregroundColor: textColor as Any,
-                .paragraphStyle: paragraphStyle
-            ])
+            attributes: attributes
+        )
     }
 }
