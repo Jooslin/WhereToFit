@@ -105,29 +105,3 @@ struct WeeklyDate: Hashable {
     let weekdayString: String
     let day: Int
 }
-
-enum Weekday: Int, Hashable, CaseIterable {
-    case monday = 0
-    case tuesday
-    case wednesday
-    case thursday
-    case friday
-    case saturday
-    case sunday
-
-    init(dateCompWeekday: Int) {
-        self = Weekday(rawValue: (dateCompWeekday + 5) % 7)!
-    }
-
-    var title: String {
-        switch self {
-        case .monday: "월"
-        case .tuesday: "화"
-        case .wednesday: "수"
-        case .thursday: "목"
-        case .friday: "금"
-        case .saturday: "토"
-        case .sunday: "일"
-        }
-    }
-}
