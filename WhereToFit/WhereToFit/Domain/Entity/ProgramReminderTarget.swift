@@ -182,6 +182,7 @@ extension Weekday {
             parsedDays.append(contentsOf: [.saturday, .sunday])
         }
 
+        // 누락 사항 중복체크
         allCases
             .filter { joinedDays.contains($0.title) }
             .forEach { day in

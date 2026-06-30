@@ -248,7 +248,7 @@ final class MapFilterViewController: UIViewController {
     private let priceRangeSlider = PriceRangeSliderView()
 
     private var categoryButtons: [FacilityCategory: FilterOptionChipButton] = [:]
-    private var dayButtons: [DayOfWeek: FilterOptionChipButton] = [:]
+    private var dayButtons: [Weekday: FilterOptionChipButton] = [:]
     private var timeButtons: [TimeSlot: FilterOptionChipButton] = [:]
     private var categoryOptionButtons: [(category: FacilityCategory, button: FilterOptionChipButton)] = []
     private var categoryGroupControls: [CategoryGroupControl] = []
@@ -707,7 +707,7 @@ final class MapFilterViewController: UIViewController {
         sectionStackView.addArrangedSubview(
             makeSection(
                 title: "요일",
-                options: DayOfWeek.allCases,
+                options: Weekday.allCases,
                 titleForOption: { $0.title },
                 numberOfItemsPerRow: 8,
                 buttons: &dayButtons,
@@ -1080,7 +1080,7 @@ final class MapFilterViewController: UIViewController {
         }
     }
 
-    private func toggleDay(_ day: DayOfWeek?) {
+    private func toggleDay(_ day: Weekday?) {
         guard let day else {
             draftFilter.days.removeAll()
             updateSelectionStates()
@@ -1088,7 +1088,7 @@ final class MapFilterViewController: UIViewController {
         }
 
         draftFilter.days.toggle(day)
-        if draftFilter.days.count == DayOfWeek.allCases.count {
+        if draftFilter.days.count == Weekday.allCases.count {
             draftFilter.days.removeAll()
         }
         updateSelectionStates()

@@ -427,13 +427,12 @@ extension HomeReactor {
         
         // 오늘 날짜로 예약된 프로그램의 ID
         let reservationProgramIDs = Set(reservationPrograms.map(\.id))
-        
-        //TODO: DayOfWeek 타입 Weekday로 변경
+
         // 오늘이 반복 요일과 일치하는 프로그램 중 reservationProgramIDs에 포함되지 않는 프로그램
         let recurringPrograms = programs.filter {
             $0.isRecurring
             && reservationProgramIDs.contains($0.id) == false
-            && DayOfWeek.programReminderDays(from: $0.days).contains(weekday)
+            && Weekday.programReminderDays(from: $0.days).contains(weekday)
         }
         
         return sortPrograms(reservationPrograms) + sortPrograms(recurringPrograms)
@@ -503,17 +502,5 @@ extension HomeReactor {
         }
         
         return "\(meridiem) \(hour12)시 \(minute)분"
-    }
-
-    private static func dayOfWeek(from weekday: Weekday) -> DayOfWeek {
-        switch weekday {
-        case .monday: return .monday
-        case .tuesday: return .tuesday
-        case .wednesday: return .wednesday
-        case .thursday: return .thursday
-        case .friday: return .friday
-        case .saturday: return .saturday
-        case .sunday: return .sunday
-        }
     }
 }
