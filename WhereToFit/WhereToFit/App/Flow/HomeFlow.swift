@@ -86,7 +86,8 @@ final class HomeFlow: Flow {
                         repository: sportsRepository
                     ),
                     saveRegisteredProgramUseCase: SaveRegisteredProgramUseCase(
-                        repository: registeredProgramRepository
+                        repository: registeredProgramRepository,
+                        dateService: dateService
                     )
                 )
             )

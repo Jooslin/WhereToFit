@@ -51,6 +51,14 @@ final class DateService {
             for: calendar.date(from: dateComp)!
         )
     }
+    
+    // Date는 시/분/초를 포함하므로 같은 날짜라도 서로 다른 값일 수 있습니다.
+    // 저장 전 자정 기준으로 맞추고, 오래된 날짜부터 정렬합니다.
+    func startOfDay(_ dates: [Date]) -> [Date] {
+        dates.map {
+            calendar.startOfDay(for: $0)
+        }.sorted()
+    }
 
     func date(year: Int, month: Int, day: Int) -> Date? {
         guard year > 0 else {
