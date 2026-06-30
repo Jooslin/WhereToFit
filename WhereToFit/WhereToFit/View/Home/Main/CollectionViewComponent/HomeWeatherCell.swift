@@ -21,6 +21,7 @@ final class HomeWeatherCell: UICollectionViewCell {
     private let reservationLabel = UILabel(config: .body16Medium).then {
         $0.numberOfLines = 0
         $0.textAlignment = .center
+        $0.lineBreakMode = .byWordWrapping
     }
     
     fileprivate let registrationButton = DesignButton(config: .smallBorderBlue).then {
@@ -47,6 +48,7 @@ final class HomeWeatherCell: UICollectionViewCell {
         weeklyDateView.arrangedSubviews.forEach {
             if let dayView = $0 as? OneDayView {
                 dayView.dateImageView.image = nil // 이미지 초기화
+                dayView.dateImageView.alpha = 1 // 이미지 투명도 초기화
                 dayView.dateBackgroundView.backgroundColor = .clear // 색상 초기화
                 dayView.dateLabel.isHidden = false // label isHidden 초기화
             }
@@ -62,14 +64,18 @@ extension HomeWeatherCell {
                 let date = item.weeklyDate[$0.offset]
                 view.weekdayLabel.text = date.weekdayString
                 view.dateLabel.text = String(date.day)
-                
+                view.dateImageView.image = nil
+                view.dateImageView.alpha = 1
+                view.dateLabel.isHidden = false
+                view.dateBackgroundView.backgroundColor = .clear
+
                 if let imageName = item.programIconNameByDate[date.date] {
+                    let isUpcomingProgram = item.upcomingProgramDates.contains(date.date)
+
                     view.dateImageView.image = UIImage(named: imageName)
-                    view.dateLabel.isHidden = true
-                    view.dateBackgroundView.backgroundColor = .primary50
-                } else {
-                    view.dateImageView.image = nil
-                    view.dateLabel.isHidden = false
+                    view.dateImageView.alpha = isUpcomingProgram ? 0.15 : 1
+                    view.dateLabel.isHidden = isUpcomingProgram == false
+                    view.dateBackgroundView.backgroundColor = isUpcomingProgram ? .primary25 : .primary50
                 }
             }
         }
@@ -136,7 +142,7 @@ extension HomeWeatherCell {
         
         reservationLabel.snp.makeConstraints {
             $0.top.equalTo(weatherStackView.snp.bottom).offset(36)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.horizontalEdges.equalToSuperview()
         }
         
         buttonStackView.snp.makeConstraints {
@@ -215,7 +221,7 @@ extension HomeWeatherCell {
         
         private func setLayout() {
             dateBackgroundView.addSubview(dateImageView)
-            dateImageView.addSubview(dateLabel)
+            dateBackgroundView.addSubview(dateLabel)
             
             dateBackgroundView.snp.makeConstraints {
                 $0.width.height.equalTo(32)

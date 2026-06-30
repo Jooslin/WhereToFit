@@ -243,6 +243,11 @@ extension HomeReactor {
                         weeklyDate: weeklyDate,
                         programs: programs,
                     ),
+                    upcomingProgramDates: self.makeUpcomingProgramDates(
+                        weeklyDate: weeklyDate,
+                        programs: programs,
+                        today: today
+                    ),
                     reservationText: self.makeReservationText(
                         today: today,
                         programs: programs,
@@ -386,6 +391,28 @@ extension HomeReactor {
             
             if let iconName {
                 result[date.date] = iconName
+            }
+        }
+    }
+
+    private func makeUpcomingProgramDates(
+        weeklyDate: [WeeklyDate],
+        programs: [RegisteredProgram],
+        today: Date
+    ) -> Set<Date> {
+        let today = dateService.startOfDay(today)
+
+        return weeklyDate.reduce(into: Set<Date>()) { result, date in
+            guard dateService.startOfDay(date.date) > today else { return }
+
+            let programs = programsForDate(
+                date.date,
+                weekday: date.weekday,
+                programs: programs
+            )
+
+            if programs.isEmpty == false {
+                result.insert(date.date)
             }
         }
     }

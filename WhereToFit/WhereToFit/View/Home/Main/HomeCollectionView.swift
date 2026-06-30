@@ -47,6 +47,7 @@ extension HomeCollectionView {
     struct WeatherSectionItem: Hashable {
         let weeklyDate: [WeeklyDate] // 주간 요일, day
         let programIconNameByDate: [Date: String]
+        let upcomingProgramDates: Set<Date>
         let reservationText: String
         let weather: Weather
         let isNight: Bool
@@ -54,6 +55,7 @@ extension HomeCollectionView {
         func hash(into hasher: inout Hasher) {
             hasher.combine(weeklyDate)
             hasher.combine(programIconNameByDate)
+            hasher.combine(upcomingProgramDates)
             hasher.combine(reservationText)
             hasher.combine(weather)
             hasher.combine(isNight)
