@@ -47,15 +47,17 @@ extension HomeCollectionView {
     //TODO: schedule
     struct WeatherSectionItem: Hashable {
         let weeklyDate: [WeeklyDate] // 주간 요일, day
-//        let schedule: [RegisteredProgram] // 해당 주에 등록된 프로그램
+        let programIconNameByDate: [Date: String]
+        let reservationText: String
         let weather: Weather
         let isNight: Bool
         
         func hash(into hasher: inout Hasher) {
             hasher.combine(weeklyDate)
+            hasher.combine(programIconNameByDate)
+            hasher.combine(reservationText)
             hasher.combine(weather)
             hasher.combine(isNight)
-//            hasher.combine(schedule)
         }
     }
     

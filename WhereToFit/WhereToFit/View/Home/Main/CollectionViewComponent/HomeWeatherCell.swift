@@ -19,7 +19,8 @@ final class HomeWeatherCell: UICollectionViewCell {
     private let weatherLabel = UILabel(config: .body14Medium)
     private let weatherDescriptionLabel = UILabel(config: .title24)
     private let reservationLabel = UILabel(config: .body16Medium).then {
-        $0.isHidden = true
+        $0.numberOfLines = 0
+        $0.textAlignment = .center
     }
     
     fileprivate let registrationButton = DesignButton(config: .smallBorderBlue).then {
@@ -57,11 +58,15 @@ extension HomeWeatherCell {
     func configure(_ item: HomeCollectionView.WeatherSectionItem) {
         weeklyDateView.arrangedSubviews.enumerated().forEach {
             if let view = $0.element as? OneDayView {
-                view.weekdayLabel.text = item.weeklyDate[$0.offset].weekdayString
-                view.dateLabel.text = String(item.weeklyDate[$0.offset].day)
+                let date = item.weeklyDate[$0.offset]
+                view.weekdayLabel.text = date.weekdayString
+                view.dateLabel.text = String(date.day)
                 
-                //TODO: 이미지 변경 필요
-//                view.dateImageView
+                if let imageName = item.programIconNameByDate[date.date] {
+                    view.dateImageView.image = UIImage(named: imageName)
+                } else {
+                    view.dateImageView.image = nil
+                }
             }
         }
         
@@ -78,8 +83,7 @@ extension HomeWeatherCell {
         weatherLabel.text = "\(String(format: "%.1f", item.weather.temperature))º"
         weatherDescriptionLabel.text = item.weather.description
         
-        //TODO: 문구 연동 필요
-        reservationLabel.text = "예약된 프로그램이 없습니다"
+        reservationLabel.text = item.reservationText
     }
 }
 

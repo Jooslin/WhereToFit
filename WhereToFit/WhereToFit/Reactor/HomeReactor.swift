@@ -222,19 +222,30 @@ extension HomeReactor {
     private func makeWeatherSection(location: UserLocation?) -> Observable<Mutation> {
         let weeklyDate = dateService.weeklyDate()
         let isNight = dateService.isNight()
+        let today = dateService.today()
         let latitude = location?.latitude ?? Self.defaultLocationLatitude
         let longitude = location?.longitude ?? Self.defaultLocationLongitude
         
         let weather = weatherRepository
             .fetchWeather(latitude: latitude, longitude: longitude)
         
-        let program = fetchRegisteredProgramUseCase.execute()
+        let programs = fetchRegisteredProgramUseCase.execute()
+            .catchAndReturn([])
         
-        return weatherRepository
-            .fetchWeather(latitude: latitude, longitude: longitude)
-            .map { weather in
+        return Single.zip(weather, programs)
+            .map { result in
+                let (weather, programs) = result
                 let item = HomeCollectionView.WeatherSectionItem(
                     weeklyDate: weeklyDate,
+                    programIconNameByDate: Self.makeProgramImageNameByDate(
+                        weeklyDate: weeklyDate,
+                        programs: programs,
+                    ),
+                    reservationText: Self.makeReservationText(
+                        today: today,
+                        programs: programs,
+                        dateService: self.dateService
+                    ),
                     weather: weather,
                     isNight: isNight
                 )
@@ -244,6 +255,7 @@ extension HomeReactor {
             .asObservable()
             .catch { _ in .just(.setWeatherSectionItem([])) }
     }
+
     
     private func makeRecommendationContent(context: HomeContext) -> Observable<Mutation> {
         guard let profile = context.profile else {
@@ -352,5 +364,156 @@ extension HomeReactor {
             .filter { !$0.isEmpty }
         
         return parts.dropFirst().first ?? defaultLocationTitle
+    }
+}
+
+//MARK: WeatherSectionItem 생성 Helper
+extension HomeReactor {
+    
+    private static func makeProgramImageNameByDate(
+        weeklyDate: [WeeklyDate],
+        programs: [RegisteredProgram],
+    ) -> [Date: String] {
+        weeklyDate.reduce(into: [Date: String]()) { result, date in
+            let iconName = programsForDate(
+                date.date,
+                weekday: date.weekday,
+                programs: programs
+            )
+                .compactMap { $0.sportsCategory?.iconName }
+                .first
+            
+            if let iconName {
+                result[date.date] = iconName
+            }
+        }
+    }
+
+    private static func makeReservationText(
+        today: Date,
+        programs: [RegisteredProgram],
+        dateService: DateService
+    ) -> String {
+        let todayPrograms = programsForDate(
+            today,
+            weekday: dateService.weekday(from: today),
+            programs: programs,
+        )
+        
+        guard todayPrograms.isEmpty == false else {
+            return "예약된 프로그램이 없습니다"
+        }
+        
+        let timedPrograms = todayPrograms.filter { $0.startMinuteOfDay != nil }
+        let untimedPrograms = todayPrograms.filter { $0.startMinuteOfDay == nil }
+        let text = [
+            makeTimedReservationText(timedPrograms),
+            makeUntimedReservationText(untimedPrograms)
+        ].compactMap { $0 }
+        
+        return text.joined(separator: "\n")
+    }
+
+    private func programsForDate(
+        _ date: Date,
+        weekday: Weekday,
+        programs: [RegisteredProgram],
+    ) -> [RegisteredProgram] {
+        // 오늘 날짜로 예약된 프로그램
+        let reservationPrograms = programs.filter {
+            $0.hasReservationDates
+            && $0.reservationDates.contains { dateService.isSameDay($0, date) }
+        }
+        
+        // 오늘 날짜로 예약된 프로그램의 ID
+        let reservationProgramIDs = Set(reservationPrograms.map(\.id))
+        
+        //TODO: DayOfWeek 타입 Weekday로 변경
+        // 오늘이 반복 요일과 일치하는 프로그램 중 reservationProgramIDs에 포함되지 않는 프로그램
+        let recurringPrograms = programs.filter {
+            $0.isRecurring
+            && reservationProgramIDs.contains($0.id) == false
+            && DayOfWeek.programReminderDays(from: $0.days).contains(dayOfWeek(from: weekday))
+        }
+        
+        return sortPrograms(reservationPrograms) + sortPrograms(recurringPrograms)
+    }
+
+    /* 프로그램을 아래 기준으로 정렬
+        1. 시작 시간이 빠른 순서로 정렬
+        2. 한 쪽만 시작 시간이 존재할 경우, 시간이 있는 프로그램을 우선 정렬
+        3. 둘의 시간이 같거나 둘 다 없다면 프로그램 등록이 빠른 순서로 정렬(createdAt이 빠른 순서)
+        4. 위 조건들에 해당하지 않을 경우 programName 가나다순 정렬
+     */
+    private static func sortPrograms(_ programs: [RegisteredProgram]) -> [RegisteredProgram] {
+        programs.sorted { lhs, rhs in
+            
+            switch (lhs.startMinuteOfDay, rhs.startMinuteOfDay) {
+            case let (lhsMinute?, rhsMinute?) where lhsMinute != rhsMinute:
+                return lhsMinute < rhsMinute
+            case (_?, nil):
+                return true
+            case (nil, _?):
+                return false
+            default:
+                if lhs.createdAt != rhs.createdAt {
+                    return lhs.createdAt < rhs.createdAt
+                }
+                return lhs.programName < rhs.programName
+            }
+        }
+    }
+
+    private static func makeTimedReservationText(_ programs: [RegisteredProgram]) -> String? {
+        let groupedPrograms = Dictionary(grouping: programs) { program in
+            program.startMinuteOfDay ?? 0
+        }
+        
+        let text = groupedPrograms.keys.sorted().map { minuteOfDay in
+            let names = groupedPrograms[minuteOfDay, default: []]
+                .map(\.programName)
+                .joined(separator: ", ")
+            
+            return "\(makeTimeText(minuteOfDay: minuteOfDay))에 \(names)"
+        }
+        
+        guard text.isEmpty == false else { return nil }
+        
+        return "\(text.joined(separator: ", "))가 예약되었습니다"
+    }
+
+    private static func makeUntimedReservationText(_ programs: [RegisteredProgram]) -> String? {
+        let names = programs
+            .map(\.programName)
+            .joined(separator: ", ")
+        
+        guard names.isEmpty == false else { return nil }
+        
+        return "오늘 \(names)가 예정되어 있습니다"
+    }
+
+    private static func makeTimeText(minuteOfDay: Int) -> String {
+        let hour = minuteOfDay / 60
+        let minute = minuteOfDay % 60
+        let meridiem = hour < 12 ? "오전" : "오후"
+        let hour12 = hour % 12 == 0 ? 12 : hour % 12
+        
+        guard minute != 0 else {
+            return "\(meridiem) \(hour12)시"
+        }
+        
+        return "\(meridiem) \(hour12)시 \(minute)분"
+    }
+
+    private static func dayOfWeek(from weekday: Weekday) -> DayOfWeek {
+        switch weekday {
+        case .monday: return .monday
+        case .tuesday: return .tuesday
+        case .wednesday: return .wednesday
+        case .thursday: return .thursday
+        case .friday: return .friday
+        case .saturday: return .saturday
+        case .sunday: return .sunday
+        }
     }
 }
