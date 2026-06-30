@@ -433,7 +433,7 @@ extension HomeReactor {
         let recurringPrograms = programs.filter {
             $0.isRecurring
             && reservationProgramIDs.contains($0.id) == false
-            && DayOfWeek.programReminderDays(from: $0.days).contains(dayOfWeek(from: weekday))
+            && DayOfWeek.programReminderDays(from: $0.days).contains(weekday)
         }
         
         return sortPrograms(reservationPrograms) + sortPrograms(recurringPrograms)
