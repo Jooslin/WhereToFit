@@ -274,13 +274,13 @@ extension HomeView {
         let item = NSCollectionLayoutItem(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
-                heightDimension: .absolute(height)
+                heightDimension: .estimated(height)
             ))
         
         let group = NSCollectionLayoutGroup.vertical(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
-                heightDimension: .absolute(height)),
+                heightDimension: .estimated(height)),
             subitems: [item]
         )
         

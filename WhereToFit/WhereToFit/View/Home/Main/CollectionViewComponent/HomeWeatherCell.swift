@@ -44,10 +44,11 @@ final class HomeWeatherCell: UICollectionViewCell {
         super.prepareForReuse()
         disposeBag = DisposeBag()
         
-        // 이미지 초기화
         weeklyDateView.arrangedSubviews.forEach {
             if let dayView = $0 as? OneDayView {
-                dayView.dateImageView.image = nil
+                dayView.dateImageView.image = nil // 이미지 초기화
+                dayView.dateBackgroundView.backgroundColor = .clear // 색상 초기화
+                dayView.dateLabel.isHidden = false // label isHidden 초기화
             }
         }
     }
@@ -64,8 +65,11 @@ extension HomeWeatherCell {
                 
                 if let imageName = item.programIconNameByDate[date.date] {
                     view.dateImageView.image = UIImage(named: imageName)
+                    view.dateLabel.isHidden = true
+                    view.dateBackgroundView.backgroundColor = .primary50
                 } else {
                     view.dateImageView.image = nil
+                    view.dateLabel.isHidden = false
                 }
             }
         }
@@ -132,7 +136,7 @@ extension HomeWeatherCell {
         
         reservationLabel.snp.makeConstraints {
             $0.top.equalTo(weatherStackView.snp.bottom).offset(36)
-            $0.centerX.equalToSuperview()
+            $0.horizontalEdges.equalToSuperview().inset(16)
         }
         
         buttonStackView.snp.makeConstraints {
@@ -179,6 +183,11 @@ extension HomeWeatherCell {
         let weekdayLabel = UILabel(config: .body12Regular).then {
             $0.textAlignment = .center
         }
+        let dateBackgroundView = UIView().then {
+            $0.layer.cornerRadius = 16
+            $0.clipsToBounds = true
+            $0.backgroundColor = .clear
+        }
         let dateImageView = RoundImageView(image: nil, type: .circle)
         let dateLabel = UILabel(config: .body14Regular).then {
             $0.textAlignment = .center
@@ -186,8 +195,8 @@ extension HomeWeatherCell {
         
         init() {
             super.init(frame: .zero)
+            addArrangedSubview(dateBackgroundView)
             addArrangedSubview(weekdayLabel)
-            addArrangedSubview(dateImageView)
 
             axis = .vertical
             spacing = 8
@@ -195,8 +204,8 @@ extension HomeWeatherCell {
             
             setLayout()
             
-            dateImageView.setContentHuggingPriority(.required, for: .vertical)
-            dateImageView.setContentCompressionResistancePriority(.required, for: .vertical)
+            dateBackgroundView.setContentHuggingPriority(.required, for: .vertical)
+            dateBackgroundView.setContentCompressionResistancePriority(.required, for: .vertical)
         }
         
         @available(*, unavailable)
@@ -205,10 +214,16 @@ extension HomeWeatherCell {
         }
         
         private func setLayout() {
+            dateBackgroundView.addSubview(dateImageView)
             dateImageView.addSubview(dateLabel)
             
-            dateImageView.snp.makeConstraints {
+            dateBackgroundView.snp.makeConstraints {
                 $0.width.height.equalTo(32)
+            }
+            
+            dateImageView.snp.makeConstraints {
+                $0.width.height.equalTo(24)
+                $0.center.equalToSuperview()
             }
             
             dateLabel.snp.makeConstraints {

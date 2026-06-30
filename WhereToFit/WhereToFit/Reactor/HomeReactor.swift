@@ -479,7 +479,7 @@ extension HomeReactor {
         
         guard text.isEmpty == false else { return nil }
         
-        return "\(text.joined(separator: ", "))가 예약되었습니다"
+        return "\(text.joined(separator: ", "))이(가) 예약되었습니다"
     }
 
     private func makeUntimedReservationText(_ programs: [RegisteredProgram]) -> String? {
@@ -489,7 +489,7 @@ extension HomeReactor {
         
         guard names.isEmpty == false else { return nil }
         
-        return "오늘 \(names)가 예정되어 있습니다"
+        return "오늘 \(names)이(가) 예정되어 있습니다"
     }
 
     private func makeTimeText(minuteOfDay: Int) -> String {

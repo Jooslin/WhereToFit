@@ -44,7 +44,6 @@ extension HomeCollectionView {
 }
 
 extension HomeCollectionView {
-    //TODO: schedule
     struct WeatherSectionItem: Hashable {
         let weeklyDate: [WeeklyDate] // 주간 요일, day
         let programIconNameByDate: [Date: String]
