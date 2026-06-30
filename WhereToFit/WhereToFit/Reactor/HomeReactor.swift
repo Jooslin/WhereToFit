@@ -43,6 +43,8 @@ final class HomeReactor: BaseReactor {
     private let dateService: DateService
     private let weatherRepository: WeatherRepositoryProtocol
     private let sportsRepository: SportsRepositoryProtocol
+    
+    private let fetchRegisteredProgramUseCase: FetchRegisteredProgramsUseCase
     private let fetchUserProfileUseCase: FetchUserProfileUseCase
     private let fetchSelectedUserLocationUseCase: FetchSelectedUserLocationUseCase
     private let recommendSportsUseCase: RecommendSportsUseCase
@@ -54,6 +56,7 @@ final class HomeReactor: BaseReactor {
         dateService: DateService,
         weatherRepository: WeatherRepositoryProtocol,
         sportsRepository: SportsRepositoryProtocol,
+        fetchRegisteredProgramUseCase: FetchRegisteredProgramsUseCase = FetchRegisteredProgramsUseCase(repository: CoreDataRegisteredProgramRepository()),
         fetchUserProfileUseCase: FetchUserProfileUseCase = FetchUserProfileUseCase(
             repository: CoreDataUserProfileRepository()
         ),
@@ -72,6 +75,7 @@ final class HomeReactor: BaseReactor {
         self.dateService = dateService
         self.weatherRepository = weatherRepository
         self.sportsRepository = sportsRepository
+        self.fetchRegisteredProgramUseCase = fetchRegisteredProgramUseCase
         self.fetchUserProfileUseCase = fetchUserProfileUseCase
         self.fetchSelectedUserLocationUseCase = fetchSelectedUserLocationUseCase
         self.recommendSportsUseCase = recommendSportsUseCase
@@ -94,11 +98,13 @@ final class HomeReactor: BaseReactor {
         }
     }
     
+    // observe하고 있는 프로퍼티에 변경이 있을 때 동작
     func transform(mutation: Observable<Mutation>) -> Observable<Mutation> {
         let profileMutation = userStore.userProfile
             .map { profile -> Mutation in
                 Mutation.setUserProfile(profile)
             }
+        
         let locationMutation = userStore.currentLocation
             .map { location -> Mutation in
                 .setCurrentLocation(location)
@@ -218,6 +224,11 @@ extension HomeReactor {
         let isNight = dateService.isNight()
         let latitude = location?.latitude ?? Self.defaultLocationLatitude
         let longitude = location?.longitude ?? Self.defaultLocationLongitude
+        
+        let weather = weatherRepository
+            .fetchWeather(latitude: latitude, longitude: longitude)
+        
+        let program = fetchRegisteredProgramUseCase.execute()
         
         return weatherRepository
             .fetchWeather(latitude: latitude, longitude: longitude)

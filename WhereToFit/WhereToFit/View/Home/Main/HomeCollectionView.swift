@@ -47,7 +47,7 @@ extension HomeCollectionView {
     //TODO: schedule
     struct WeatherSectionItem: Hashable {
         let weeklyDate: [WeeklyDate] // 주간 요일, day
-//        let schedule: [] - 운동 종류 모델 사용
+//        let schedule: [RegisteredProgram] // 해당 주에 등록된 프로그램
         let weather: Weather
         let isNight: Bool
         
@@ -55,6 +55,7 @@ extension HomeCollectionView {
             hasher.combine(weeklyDate)
             hasher.combine(weather)
             hasher.combine(isNight)
+//            hasher.combine(schedule)
         }
     }
     

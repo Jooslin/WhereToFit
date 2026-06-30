@@ -38,7 +38,11 @@ final class DateService {
             let weekday = calendar.component(.weekday, from: date)
             let weekdayText = calendar.isDate(date, inSameDayAs: today) ? "오늘" : Weekday(dateCompWeekday: weekday).title
 
-            return WeeklyDate(weekday: weekdayText, day: day)
+            return WeeklyDate(
+                weekday: Weekday(dateCompWeekday: weekday),
+                weekdayString: weekdayText,
+                day: day
+            )
         }
     }
 
@@ -67,7 +71,8 @@ final class DateService {
 
 //MARK: Entity
 struct WeeklyDate: Hashable {
-    let weekday: String
+    let weekday: Weekday
+    let weekdayString: String
     let day: Int
 }
 

@@ -57,7 +57,7 @@ extension HomeWeatherCell {
     func configure(_ item: HomeCollectionView.WeatherSectionItem) {
         weeklyDateView.arrangedSubviews.enumerated().forEach {
             if let view = $0.element as? OneDayView {
-                view.weekdayLabel.text = item.weeklyDate[$0.offset].weekday
+                view.weekdayLabel.text = item.weeklyDate[$0.offset].weekdayString
                 view.dateLabel.text = String(item.weeklyDate[$0.offset].day)
                 
                 //TODO: 이미지 변경 필요
@@ -179,7 +179,6 @@ extension HomeWeatherCell {
         let dateLabel = UILabel(config: .body14Regular).then {
             $0.textAlignment = .center
         }
-        
         
         init() {
             super.init(frame: .zero)
