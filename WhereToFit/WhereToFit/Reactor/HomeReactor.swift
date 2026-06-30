@@ -233,15 +233,17 @@ extension HomeReactor {
             .catchAndReturn([])
         
         return Single.zip(weather, programs)
-            .map { result in
+            .asObservable()
+            .withUnretained(self)
+            .map { `self`, result in
                 let (weather, programs) = result
                 let item = HomeCollectionView.WeatherSectionItem(
                     weeklyDate: weeklyDate,
-                    programIconNameByDate: Self.makeProgramImageNameByDate(
+                    programIconNameByDate: self.makeProgramImageNameByDate(
                         weeklyDate: weeklyDate,
                         programs: programs,
                     ),
-                    reservationText: Self.makeReservationText(
+                    reservationText: self.makeReservationText(
                         today: today,
                         programs: programs,
                         dateService: self.dateService
@@ -369,8 +371,7 @@ extension HomeReactor {
 
 //MARK: WeatherSectionItem 생성 Helper
 extension HomeReactor {
-    
-    private static func makeProgramImageNameByDate(
+    private func makeProgramImageNameByDate(
         weeklyDate: [WeeklyDate],
         programs: [RegisteredProgram],
     ) -> [Date: String] {
@@ -389,7 +390,7 @@ extension HomeReactor {
         }
     }
 
-    private static func makeReservationText(
+    private func makeReservationText(
         today: Date,
         programs: [RegisteredProgram],
         dateService: DateService
@@ -444,7 +445,7 @@ extension HomeReactor {
         3. 둘의 시간이 같거나 둘 다 없다면 프로그램 등록이 빠른 순서로 정렬(createdAt이 빠른 순서)
         4. 위 조건들에 해당하지 않을 경우 programName 가나다순 정렬
      */
-    private static func sortPrograms(_ programs: [RegisteredProgram]) -> [RegisteredProgram] {
+    private func sortPrograms(_ programs: [RegisteredProgram]) -> [RegisteredProgram] {
         programs.sorted { lhs, rhs in
             
             switch (lhs.startMinuteOfDay, rhs.startMinuteOfDay) {
@@ -463,7 +464,7 @@ extension HomeReactor {
         }
     }
 
-    private static func makeTimedReservationText(_ programs: [RegisteredProgram]) -> String? {
+    private func makeTimedReservationText(_ programs: [RegisteredProgram]) -> String? {
         let groupedPrograms = Dictionary(grouping: programs) { program in
             program.startMinuteOfDay ?? 0
         }
@@ -481,7 +482,7 @@ extension HomeReactor {
         return "\(text.joined(separator: ", "))가 예약되었습니다"
     }
 
-    private static func makeUntimedReservationText(_ programs: [RegisteredProgram]) -> String? {
+    private func makeUntimedReservationText(_ programs: [RegisteredProgram]) -> String? {
         let names = programs
             .map(\.programName)
             .joined(separator: ", ")
@@ -491,7 +492,7 @@ extension HomeReactor {
         return "오늘 \(names)가 예정되어 있습니다"
     }
 
-    private static func makeTimeText(minuteOfDay: Int) -> String {
+    private func makeTimeText(minuteOfDay: Int) -> String {
         let hour = minuteOfDay / 60
         let minute = minuteOfDay % 60
         let meridiem = hour < 12 ? "오전" : "오후"
