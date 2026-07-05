@@ -214,8 +214,8 @@ nonisolated enum FacilityCategory: String, CaseIterable, Hashable {
 
 
 // MARK: - 운영 요일
-nonisolated enum DayOfWeek: String, CaseIterable, Hashable {
-    case monday
+nonisolated enum Weekday: Int, Hashable, CaseIterable {
+    case monday = 0
     case tuesday
     case wednesday
     case thursday
@@ -223,15 +223,36 @@ nonisolated enum DayOfWeek: String, CaseIterable, Hashable {
     case saturday
     case sunday
 
+    init(dateCompWeekday: Int) {
+        switch dateCompWeekday {
+            case 1:
+                self = .sunday
+            case 2:
+                self = .monday
+            case 3:
+                self = .tuesday
+            case 4:
+                self = .wednesday
+            case 5:
+                self = .thursday
+            case 6:
+                self = .friday
+            case 7:
+                self = .saturday
+            default:
+                self = .monday
+            }
+    }
+
     var title: String {
         switch self {
-        case .monday: return "월"
-        case .tuesday: return "화"
-        case .wednesday: return "수"
-        case .thursday: return "목"
-        case .friday: return "금"
-        case .saturday: return "토"
-        case .sunday: return "일"
+        case .monday: "월"
+        case .tuesday: "화"
+        case .wednesday: "수"
+        case .thursday: "목"
+        case .friday: "금"
+        case .saturday: "토"
+        case .sunday: "일"
         }
     }
 }
@@ -304,7 +325,7 @@ nonisolated struct FacilityFilter: Equatable {
     var categories: Set<FacilityCategory>
     var minimumPrice: Int?
     var maximumPrice: Int?
-    var days: Set<DayOfWeek>
+    var days: Set<Weekday>
     var timeSlots: Set<TimeSlot>
 
     // 아무것도 선택하지 않은 기본 상태
@@ -331,7 +352,7 @@ nonisolated struct FitnessFacility: Equatable, Identifiable {
     let price: Int
     let priceDisplayText: String?
     let rawPriceText: String?
-    let availableDays: [DayOfWeek]
+    let availableDays: [Weekday]
     let availableTimeRange: TimeRange
     let imageURL: URL?
     var isFavorite: Bool // 찜 여부
@@ -362,7 +383,7 @@ nonisolated struct FitnessFacility: Equatable, Identifiable {
         price: Int,
         priceDisplayText: String? = nil,
         rawPriceText: String? = nil,
-        availableDays: [DayOfWeek],
+        availableDays: [Weekday],
         availableTimeRange: TimeRange,
         imageURL: URL?,
         isFavorite: Bool,

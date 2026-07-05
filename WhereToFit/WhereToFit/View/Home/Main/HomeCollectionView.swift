@@ -44,15 +44,19 @@ extension HomeCollectionView {
 }
 
 extension HomeCollectionView {
-    //TODO: schedule
     struct WeatherSectionItem: Hashable {
         let weeklyDate: [WeeklyDate] // 주간 요일, day
-//        let schedule: [] - 운동 종류 모델 사용
+        let programIconNameByDate: [Date: String]
+        let upcomingProgramDates: Set<Date>
+        let reservationText: String
         let weather: Weather
         let isNight: Bool
         
         func hash(into hasher: inout Hasher) {
             hasher.combine(weeklyDate)
+            hasher.combine(programIconNameByDate)
+            hasher.combine(upcomingProgramDates)
+            hasher.combine(reservationText)
             hasher.combine(weather)
             hasher.combine(isNight)
         }

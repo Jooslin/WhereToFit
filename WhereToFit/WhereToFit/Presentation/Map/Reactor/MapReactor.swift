@@ -17,7 +17,7 @@ final class MapReactor: BaseReactor {
         case toggleAIRecommendation
         case applyFilter(FacilityFilter)
         case toggleCategory(FacilityCategory?)
-        case toggleDay(DayOfWeek?)
+        case toggleDay(Weekday?)
         case toggleTimeSlot(TimeSlot?)
         case selectFacility(String?)
         case refreshFavorites
@@ -318,7 +318,7 @@ final class MapReactor: BaseReactor {
                     filter.days.insert(day)
                 }
 
-                if filter.days.count == DayOfWeek.allCases.count {
+                if filter.days.count == Weekday.allCases.count {
                     filter.days.removeAll()
                 }
             } else {

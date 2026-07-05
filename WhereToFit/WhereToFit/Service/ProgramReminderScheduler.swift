@@ -245,7 +245,7 @@ private extension ProgramReminderScheduler {
 
     func makeNotificationRequest(
         for target: ProgramReminderTarget,
-        day: DayOfWeek,
+        day: Weekday,
         offset: ProgramReminderOffset
     ) -> UNNotificationRequest {
         let schedule = reminderSchedule(
@@ -306,10 +306,10 @@ private extension ProgramReminderScheduler {
     }
 
     func reminderSchedule(
-        day: DayOfWeek,
+        day: Weekday,
         startTime: ProgramReminderTime,
         offsetMinutes: Int
-    ) -> (day: DayOfWeek, hour: Int, minute: Int) {
+    ) -> (day: Weekday, hour: Int, minute: Int) {
         let startTotalMinutes = startTime.hour * 60 + startTime.minute
         let reminderTotalMinutes = startTotalMinutes - offsetMinutes
 
@@ -383,7 +383,7 @@ private extension ProgramReminderScheduler {
 
     func notificationIdentifier(
         registeredProgramID: String,
-        day: DayOfWeek,
+        day: Weekday,
         offset: ProgramReminderOffset
     ) -> String {
         "\(Self.identifierPrefix)-\(registeredProgramID)-\(day.rawValue)-\(offset.rawValue)"
@@ -399,7 +399,7 @@ private extension ProgramReminderScheduler {
 
     func notificationIdentifiers(for target: ProgramReminderTarget) -> [String] {
         ProgramReminderOffset.allCases.flatMap { offset in
-            let dayIdentifiers = DayOfWeek.allCases.map { day in
+            let dayIdentifiers = Weekday.allCases.map { day in
                 notificationIdentifier(
                     registeredProgramID: target.registeredProgramID,
                     day: day,
@@ -436,18 +436,18 @@ private extension ProgramReminderScheduler {
         }
     }
 
-    func shouldScheduleReservationDate(_ date: Date, recurringDays: Set<DayOfWeek>) -> Bool {
+    func shouldScheduleReservationDate(_ date: Date, recurringDays: Set<Weekday>) -> Bool {
         guard recurringDays.isEmpty == false,
-              let reservationDay = dayOfWeek(for: date) else {
+              let reservationDay = weekday(for: date) else {
             return true
         }
 
         return recurringDays.contains(reservationDay) == false
     }
 
-    func dayOfWeek(for date: Date) -> DayOfWeek? {
+    func weekday(for date: Date) -> Weekday? {
         let weekday = gregorianCalendar().component(.weekday, from: date)
-        return DayOfWeek.allCases.first { $0.calendarWeekday == weekday }
+        return Weekday.allCases.first { $0.calendarWeekday == weekday }
     }
 
     func dateIdentifier(for date: Date) -> String {

@@ -244,7 +244,7 @@ private extension FavoriteDetailResolver {
             price: price(from: input.price),
             priceDisplayText: input.price,
             rawPriceText: input.price,
-            availableDays: sourceFacility?.availableDays ?? DayOfWeek.allCases,
+            availableDays: sourceFacility?.availableDays ?? Weekday.allCases,
             availableTimeRange: timeRange,
             imageURL: imageURL(from: input.imageURLString) ?? sourceFacility?.imageURL,
             isFavorite: true,

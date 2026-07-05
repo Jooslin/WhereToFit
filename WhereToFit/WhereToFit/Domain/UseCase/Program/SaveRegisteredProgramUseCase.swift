@@ -37,17 +37,17 @@ final class SaveRegisteredProgramUseCase {
     // UseCase는 저장 방식(CoreData 등)을 직접 알지 않고 Repository Protocol에만 의존
     private let repository: RegisteredProgramRepositoryProtocol
     private let reminderScheduler: ProgramReminderScheduler
-    // 예약 날짜를 하루 단위로 정규화할 때 사용하는 Calendar
-    private let calendar: Calendar
+    // 예약 날짜를 하루 단위로 정규화할 때 사용하는 DateService
+    private let dateService: DateService
 
     init(
         repository: RegisteredProgramRepositoryProtocol,
         reminderScheduler: ProgramReminderScheduler = .shared,
-        calendar: Calendar = .current
+        dateService: DateService
     ) {
         self.repository = repository
         self.reminderScheduler = reminderScheduler
-        self.calendar = calendar
+        self.dateService = dateService
     }
 
     // 입력값을 앱 저장 규칙에 맞게 RegisteredProgram으로 변환한 뒤 Repository에 저장합니다.
@@ -65,7 +65,7 @@ final class SaveRegisteredProgramUseCase {
             days: input.isRecurring ? input.days : [],
             hasReservationDates: input.hasReservationDates,
             // 예약 날짜가 꺼져 있으면 이전에 선택했던 날짜가 남지 않도록 비우기
-            reservationDates: input.hasReservationDates ? normalizedDates(input.reservationDates) : [],
+            reservationDates: input.hasReservationDates ? dateService.startOfDay(input.reservationDates) : [],
             startMinuteOfDay: input.startMinuteOfDay,
             endMinuteOfDay: input.endMinuteOfDay,
             reservationMethodRawValues: input.reservationMethodRawValues,
@@ -82,11 +82,5 @@ final class SaveRegisteredProgramUseCase {
 
                 reminderScheduler.scheduleStartReminderIfNeeded(for: reminderTarget) { _ in }
             })
-    }
-
-    // Date는 시/분/초를 포함하므로 같은 날짜라도 서로 다른 값일 수 있습니다.
-    // 저장 전 자정 기준으로 맞추고, 오래된 날짜부터 정렬합니다.
-    private func normalizedDates(_ dates: [Date]) -> [Date] {
-        dates.map { calendar.startOfDay(for: $0) }.sorted()
     }
 }

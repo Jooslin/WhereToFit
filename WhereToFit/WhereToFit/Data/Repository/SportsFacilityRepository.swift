@@ -511,27 +511,27 @@ extension SportsFacilityRepository {
         return .multipurpose
     }
 
-    nonisolated static func parseAvailableDays(closeDays: String?) -> [DayOfWeek] {
+    nonisolated static func parseAvailableDays(closeDays: String?) -> [Weekday] {
         guard let closeDays else {
-            return DayOfWeek.allCases
+            return Weekday.allCases
         }
 
-        let closedDays = DayOfWeek.allCases.filter { closeDays.contains(dayTitle($0)) }
-        let openDays = DayOfWeek.allCases.filter { closedDays.contains($0) == false }
-        return openDays.isEmpty ? DayOfWeek.allCases : openDays
+        let closedDays = Weekday.allCases.filter { closeDays.contains($0.title) }
+        let openDays = Weekday.allCases.filter { closedDays.contains($0) == false }
+        return openDays.isEmpty ? Weekday.allCases : openDays
     }
 
-    nonisolated static func parseProgramDays(_ days: [String]) -> [DayOfWeek] {
+    nonisolated static func parseProgramDays(_ days: [String]) -> [Weekday] {
         guard days.isEmpty == false else {
-            return DayOfWeek.allCases
+            return Weekday.allCases
         }
 
         let joinedDays = days.joined(separator: " ")
         if joinedDays.contains("매일") || joinedDays.contains("상시") {
-            return DayOfWeek.allCases
+            return Weekday.allCases
         }
 
-        var parsedDays: [DayOfWeek] = []
+        var parsedDays: [Weekday] = []
 
         if joinedDays.contains("평일") {
             parsedDays.append(contentsOf: [.monday, .tuesday, .wednesday, .thursday, .friday])
@@ -541,27 +541,15 @@ extension SportsFacilityRepository {
             parsedDays.append(contentsOf: [.saturday, .sunday])
         }
 
-        DayOfWeek.allCases
-            .filter { joinedDays.contains(dayTitle($0)) }
+        Weekday.allCases
+            .filter { joinedDays.contains($0.title) }
             .forEach { day in
                 if parsedDays.contains(day) == false {
                     parsedDays.append(day)
                 }
             }
 
-        return parsedDays.isEmpty ? DayOfWeek.allCases : parsedDays
-    }
-
-    nonisolated static func dayTitle(_ day: DayOfWeek) -> String {
-        switch day {
-        case .monday: return "월"
-        case .tuesday: return "화"
-        case .wednesday: return "수"
-        case .thursday: return "목"
-        case .friday: return "금"
-        case .saturday: return "토"
-        case .sunday: return "일"
-        }
+        return parsedDays.isEmpty ? Weekday.allCases : parsedDays
     }
 
     nonisolated static func parseTimeRange(openTime: String?, closeTime: String?) -> TimeRange {

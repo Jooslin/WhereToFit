@@ -343,8 +343,8 @@ final class MapView: UIView {
         return "\(firstCategory.title) 외 \(selectedCategories.count - 1)"
     }
 
-    private func dayTitle(for days: Set<DayOfWeek>) -> String {
-        let selectedDays = DayOfWeek.allCases.filter { days.contains($0) }
+    private func dayTitle(for days: Set<Weekday>) -> String {
+        let selectedDays = Weekday.allCases.filter { days.contains($0) }
         guard selectedDays.isEmpty == false else {
             return "요일"
         }

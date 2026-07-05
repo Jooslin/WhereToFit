@@ -58,7 +58,7 @@ struct ProgramReminderTarget: Hashable {
     let registeredProgramID: String
     let programName: String
     let facilityName: String?
-    let days: [DayOfWeek]
+    let days: [Weekday]
     let reservationDates: [Date]
     let startTime: ProgramReminderTime
 
@@ -66,7 +66,7 @@ struct ProgramReminderTarget: Hashable {
         registeredProgramID: String,
         programName: String,
         facilityName: String?,
-        days: [DayOfWeek],
+        days: [Weekday],
         reservationDates: [Date] = [],
         startTime: ProgramReminderTime?
     ) {
@@ -93,7 +93,7 @@ struct ProgramReminderTarget: Hashable {
             registeredProgramID: registeredProgramID,
             programName: program.className ?? program.sport ?? "등록한 프로그램",
             facilityName: program.facilityName,
-            days: DayOfWeek.programReminderDays(from: program.days),
+            days: Weekday.programReminderDays(from: program.days),
             reservationDates: [],
             startTime: ProgramReminderTime(text: program.startTime)
         )
@@ -105,7 +105,7 @@ struct ProgramReminderTarget: Hashable {
             programName: registeredProgram.programName,
             facilityName: registeredProgram.facilityName,
             days: registeredProgram.isRecurring
-                ? DayOfWeek.programReminderDays(from: registeredProgram.days)
+                ? Weekday.programReminderDays(from: registeredProgram.days)
                 : [],
             reservationDates: registeredProgram.hasReservationDates
                 ? registeredProgram.reservationDates
@@ -121,7 +121,7 @@ extension RegisteredProgram: RegisteredProgramReminderProviding {
     }
 }
 
-extension DayOfWeek {
+extension Weekday {
     var calendarWeekday: Int {
         switch self {
         case .sunday:
@@ -141,7 +141,7 @@ extension DayOfWeek {
         }
     }
 
-    var previousDay: DayOfWeek {
+    var previousDay: Weekday {
         switch self {
         case .monday:
             return .sunday
@@ -160,7 +160,7 @@ extension DayOfWeek {
         }
     }
 
-    static func programReminderDays(from rawDays: [String]) -> [DayOfWeek] {
+    static func programReminderDays(from rawDays: [String]) -> [Weekday] {
         let joinedDays = rawDays
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { $0.isEmpty == false }
@@ -172,7 +172,7 @@ extension DayOfWeek {
             return allCases
         }
 
-        var parsedDays: [DayOfWeek] = []
+        var parsedDays: [Weekday] = []
 
         if joinedDays.contains("평일") {
             parsedDays.append(contentsOf: [.monday, .tuesday, .wednesday, .thursday, .friday])
@@ -182,6 +182,7 @@ extension DayOfWeek {
             parsedDays.append(contentsOf: [.saturday, .sunday])
         }
 
+        // 누락 사항 중복체크
         allCases
             .filter { joinedDays.contains($0.title) }
             .forEach { day in
@@ -190,13 +191,14 @@ extension DayOfWeek {
                 }
             }
 
-        allCases
-            .filter { joinedDays.contains($0.rawValue) }
-            .forEach { day in
-                if parsedDays.contains(day) == false {
-                    parsedDays.append(day)
-                }
-            }
+        //TODO:  원본 데이터셋에 "monday"와 같은 형식으로 요일을 나타내지 않으므로 아래 부분 주석처리 - 확인 후 삭제 예정
+//        allCases
+//            .filter { joinedDays.contains($0.rawValue) }
+//            .forEach { day in
+//                if parsedDays.contains(day) == false {
+//                    parsedDays.append(day)
+//                }
+//            }
 
         return allCases.filter { parsedDays.contains($0) }
     }
