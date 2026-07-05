@@ -224,7 +224,24 @@ nonisolated enum Weekday: Int, Hashable, CaseIterable {
     case sunday
 
     init(dateCompWeekday: Int) {
-        self = Weekday(rawValue: (dateCompWeekday + 5) % 7)!
+        switch dateCompWeekday {
+            case 1:
+                self = .sunday
+            case 2:
+                self = .monday
+            case 3:
+                self = .tuesday
+            case 4:
+                self = .wednesday
+            case 5:
+                self = .thursday
+            case 6:
+                self = .friday
+            case 7:
+                self = .saturday
+            default:
+                self = .monday
+            }
     }
 
     var title: String {
