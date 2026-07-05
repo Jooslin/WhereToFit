@@ -61,6 +61,7 @@ extension HomeWeatherCell {
     func configure(_ item: HomeCollectionView.WeatherSectionItem) {
         weeklyDateView.arrangedSubviews.enumerated().forEach {
             if let view = $0.element as? OneDayView {
+                guard item.weeklyDate.indices.contains($0.offset) else { return }
                 let date = item.weeklyDate[$0.offset]
                 view.weekdayLabel.text = date.weekdayString
                 view.dateLabel.text = String(date.day)
