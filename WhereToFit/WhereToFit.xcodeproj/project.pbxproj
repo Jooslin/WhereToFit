@@ -28,7 +28,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Config.xcconfig,
-				Data/Service/HealthKitWorkoutService.swift,
+				Data/Service/System/HealthKitWorkoutService.swift,
 				Info.plist,
 			);
 			target = F9B36CFA2FBC13FB006BCED0 /* WhereToFit */;

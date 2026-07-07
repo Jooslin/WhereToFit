@@ -98,7 +98,7 @@ extension DateService {
     }
 }
 
-//MARK: Entity
+//MARK: Types
 struct WeeklyDate: Hashable {
     let date: Date
     let weekday: Weekday
