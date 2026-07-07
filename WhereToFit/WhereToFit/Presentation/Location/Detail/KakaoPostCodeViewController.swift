@@ -9,7 +9,7 @@ import UIKit
 import WebKit
 import SnapKit
 
-final class KakaoPostCodeViewController: BaseViewController<TempReactor> {
+final class KakaoPostCodeViewController: UIViewController {
     var webView: WKWebView?
     let indicator = UIActivityIndicatorView(style: .medium) // webView 로딩시 보여줄 뷰
     var onSelectAddress: ((String) -> Void)? // 사용자가 선택한 주소를 전달할 클로저
