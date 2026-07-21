@@ -10,11 +10,11 @@ import RxSwift
 
 // 기존 FetchHomeProgramRecommendationsUseCase
 final class FetchHomeRecommendationsUseCase {
-    private struct LocationContext {
-        let address: String
-        let latitude: Double
-        let longitude: Double
-    }
+//    private struct GeoCoordinate {
+//        let address: String
+//        let latitude: Double
+//        let longitude: Double
+//    }
     
     private struct ProgramCandidate {
         let program: Program
@@ -43,7 +43,12 @@ final class FetchHomeRecommendationsUseCase {
     }
     
     func execute(profile: UserProfile?, location: UserLocation?) -> Single<[HomeRecommendedProgram]> {
-        let context = Self.locationContext(from: location)
+        guard let latitude = location?.latitude,
+              let longitude = location?.longitude else {
+            return .just([])
+        }
+        
+        let coordinate = GeoCoordinate(latitude: latitude, longitude: longitude)
         
         return fetchCandidates(context: context, radiusMeters: Self.primaryRadiusMeters)
             .flatMap { [weak self] result -> Single<CandidateResult> in
@@ -89,16 +94,16 @@ private extension FetchHomeRecommendationsUseCase {
     static let nearbyProgramLimit = 8
     static let recommendedProgramLimit = 6
     
-    private static func locationContext(from location: UserLocation?) -> LocationContext {
-        LocationContext(
+    private static func locationContext(from location: UserLocation?) -> GeoCoordinate {
+        GeoCoordinate(
             address: location?.address ?? defaultLocationAddress,
             latitude: location?.latitude ?? defaultLocationLatitude,
             longitude: location?.longitude ?? defaultLocationLongitude
         )
     }
     
-    private func fetchCandidates(context: LocationContext, radiusMeters: Double) -> Single<CandidateResult> {
-        fetchNearbyFacilities(context: context, radiusMeters: radiusMeters)
+    private func fetchCandidates(coordinate: GeoCoordinate, radiusMeters: Double) -> Single<CandidateResult> {
+        fetchNearbyFacilities(context: coordinate, radiusMeters: radiusMeters)
             .flatMap { [sportsRepository] facilities -> Single<CandidateResult> in
                 guard facilities.isEmpty == false else {
                     return .just(CandidateResult(candidates: [], radiusMeters: radiusMeters))
@@ -128,7 +133,7 @@ private extension FetchHomeRecommendationsUseCase {
                             candidates: Self.programCandidates(
                                 from: pages.flatMap(\.items),
                                 facilitiesByID: facilitiesByID,
-                                context: context
+                                context: coordinate
                             ),
                             radiusMeters: radiusMeters
                         )
@@ -136,12 +141,8 @@ private extension FetchHomeRecommendationsUseCase {
             }
     }
     
-    private func fetchNearbyFacilities(location: UserLocation, radiusMeters: Double) -> Single<[Facility]> {
-        let bounds = Self.coordinateBounds(
-            latitude: context.latitude,
-            longitude: context.longitude,
-            radiusMeters: radiusMeters
-        )
+    private func fetchNearbyFacilities(coordinate: GeoCoordinate, radiusMeters: Double) -> Single<[Facility]> {
+        let bounds = coordinate.bounds(radiusMeters: radiusMeters)
         
         return sportsRepository.fetchFacilities(
             latitudeRange: bounds.latitude,
@@ -178,7 +179,7 @@ private extension FetchHomeRecommendationsUseCase {
     private static func programCandidates(
         from programs: [Program],
         facilitiesByID: [String: Facility],
-        context: LocationContext
+        context: GeoCoordinate
     ) -> [ProgramCandidate] {
         programs.compactMap { program in
             guard let facilityID = program.publicFacilityID,
