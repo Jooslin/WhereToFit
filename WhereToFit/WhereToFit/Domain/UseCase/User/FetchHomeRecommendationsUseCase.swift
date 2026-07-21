@@ -61,7 +61,6 @@ final class FetchHomeRecommendationsUseCase {
                 }
             }
     }
-
 }
 
 private extension FetchHomeRecommendationsUseCase {
@@ -76,18 +75,10 @@ private extension FetchHomeRecommendationsUseCase {
     static let nearbyProgramLimit = 8
     static let recommendedProgramLimit = 6
     
-    private static func locationContext(from location: UserLocation?) -> GeoCoordinate {
-        GeoCoordinate(
-            address: location?.address ?? defaultLocationAddress,
-            latitude: location?.latitude ?? defaultLocationLatitude,
-            longitude: location?.longitude ?? defaultLocationLongitude
-        )
-    }
-    
     private func fetchCandidates(coordinate: GeoCoordinate, radiusMeters: Double) -> Single<CandidateResult> {
         fetchNearbyFacilities(coordinate: coordinate, radiusMeters: radiusMeters)
             .flatMap { [sportsRepository] facilities -> Single<CandidateResult> in
-                guard facilities.isEmpty == false else {
+                guard !facilities.isEmpty else {
                     return .just(CandidateResult(candidates: [], radiusMeters: radiusMeters))
                 }
                 
