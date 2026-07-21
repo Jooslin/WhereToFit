@@ -18,7 +18,6 @@ final class FetchHomeRecommendationsUseCase {
     
     private struct CandidateResult {
         let candidates: [ProgramCandidate]
-        let radiusMeters: Double
     }
     
     private let sportsRepository: SportsRepositoryProtocol
@@ -55,8 +54,7 @@ final class FetchHomeRecommendationsUseCase {
                         from: result.candidates,
                         profile: profile,
                         categorySports: categorySports,
-                        personalizedSports: personalizedSports,
-                        radiusMeters: result.radiusMeters
+                        personalizedSports: personalizedSports
                     )
                 }
             }
@@ -79,7 +77,7 @@ private extension FetchHomeRecommendationsUseCase {
         fetchNearbyFacilities(coordinate: coordinate, radiusMeters: radiusMeters)
             .flatMap { [sportsRepository] facilities -> Single<CandidateResult> in
                 guard !facilities.isEmpty else {
-                    return .just(CandidateResult(candidates: [], radiusMeters: radiusMeters))
+                    return .just(CandidateResult(candidates: []))
                 }
                 
                 let facilitiesByID = Dictionary(
@@ -107,8 +105,7 @@ private extension FetchHomeRecommendationsUseCase {
                                 from: pages.flatMap(\.items),
                                 facilitiesByID: facilitiesByID,
                                 context: coordinate
-                            ),
-                            radiusMeters: radiusMeters
+                            )
                         )
                     }
             }
@@ -196,8 +193,7 @@ private extension FetchHomeRecommendationsUseCase {
         from candidates: [ProgramCandidate],
         profile: UserProfile,
         categorySports: [RecommendedSport],
-        personalizedSports: [RecommendedSport],
-        radiusMeters: Double
+        personalizedSports: [RecommendedSport]
     ) -> [HomeRecommendedProgram] {
         let matchRateContext = ProgramMatchRateCalculator.Context(
             profile: profile,
@@ -206,7 +202,7 @@ private extension FetchHomeRecommendationsUseCase {
         )
         
         return candidates
-            .compactMap { candidate -> (candidate: ProgramCandidate, finalScore: Int, matchRate: Int)? in
+            .compactMap { candidate -> (candidate: ProgramCandidate, finalScore: Double, matchRate: Int)? in
                 guard let programScore = ProgramMatchRateCalculator.programScore(
                     for: candidate.program,
                     context: matchRateContext
@@ -217,9 +213,9 @@ private extension FetchHomeRecommendationsUseCase {
                 return (
                     candidate,
                     finalSelectionScore(
-                        selectionScore: programScore.selectionScore,
-                        distance: candidate.distance,
-                        radiusMeters: radiusMeters
+                        sportScore: programScore.selectionSportScore,
+                        levelScore: programScore.levelScore,
+                        distance: candidate.distance
                     ),
                     programScore.matchRate
                 )
@@ -242,14 +238,27 @@ private extension FetchHomeRecommendationsUseCase {
     }
     
     static func finalSelectionScore(
-        selectionScore: Int,
-        distance: Double,
-        radiusMeters: Double
-    ) -> Int {
-        let clampedDistance = min(max(distance, 0), radiusMeters)
-        let distanceBonus = Int(((radiusMeters - clampedDistance) / radiusMeters * 10.0).rounded())
+        sportScore: Int,
+        levelScore: Int,
+        distance: Double
+    ) -> Double {
+        let distanceScore: Double
+        switch max(distance, 0) {
+        case ...3_000:
+            distanceScore = 100
+        case ...5_000:
+            distanceScore = 70
+        case ...10_000:
+            distanceScore = 40
+        case ...20_000:
+            distanceScore = 10
+        default:
+            distanceScore = 0
+        }
         
-        return selectionScore + distanceBonus
+        return Double(sportScore) * 0.35
+            + Double(levelScore) * 0.3
+            + distanceScore * 0.35
     }
 }
 

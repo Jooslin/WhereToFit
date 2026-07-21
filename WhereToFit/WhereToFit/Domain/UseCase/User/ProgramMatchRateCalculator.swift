@@ -15,6 +15,8 @@ enum ProgramMatchRateCalculator {
     }
 
     struct ProgramScore {
+        let selectionSportScore: Int
+        let levelScore: Int
         let selectionScore: Int
         let matchRate: Int
     }
@@ -26,7 +28,7 @@ enum ProgramMatchRateCalculator {
         guard let selectionSportScore = sportScore(
             for: program,
             from: context.categorySports
-        ) else {
+        ), isAgeEligible(program: program, profile: context.profile) else {
             return nil
         }
 
@@ -34,12 +36,13 @@ enum ProgramMatchRateCalculator {
             for: program,
             from: context.personalizedSports
         ) ?? selectionSportScore
-        let ageScore = ageConditionScore(program: program, profile: context.profile)
         let levelScore = levelConditionScore(program: program, profile: context.profile)
 
         return ProgramScore(
-            selectionScore: average([selectionSportScore, ageScore, levelScore]),
-            matchRate: average([personalizedSportScore, ageScore, levelScore])
+            selectionSportScore: selectionSportScore,
+            levelScore: levelScore,
+            selectionScore: average([selectionSportScore, levelScore]),
+            matchRate: average([personalizedSportScore, levelScore])
         )
     }
 
@@ -83,14 +86,14 @@ private extension ProgramMatchRateCalculator {
             .max()
     }
 
-    static func ageConditionScore(program: Program, profile: UserProfile) -> Int {
+    static func isAgeEligible(program: Program, profile: UserProfile) -> Bool {
         guard program.targetAges.isEmpty == false,
               program.targetAges.contains(.all) == false else {
-            return 100
+            return true
         }
 
         let targetAge = programTargetAge(for: profile.birthDate)
-        return program.targetAges.contains(targetAge) ? 100 : 45
+        return program.targetAges.contains(targetAge)
     }
 
     static func programTargetAge(for birthDate: Date) -> ProgramTargetAge {
