@@ -38,6 +38,10 @@ final class FetchHomeRecommendationsUseCase {
         self.recommendSportsUseCase = recommendSportsUseCase
     }
     
+    func executeProgramRecommendation(profile: UserProfile?, location: UserLocation?) -> Single<[HomeRecommendedProgram]> {
+        
+    }
+    
     func execute(profile: UserProfile?, location: UserLocation?) -> Single<[HomeRecommendedProgram]> {
         let context = Self.locationContext(from: location)
         
@@ -132,7 +136,7 @@ private extension FetchHomeRecommendationsUseCase {
             }
     }
     
-    private func fetchNearbyFacilities(context: LocationContext, radiusMeters: Double) -> Single<[Facility]> {
+    private func fetchNearbyFacilities(location: UserLocation, radiusMeters: Double) -> Single<[Facility]> {
         let bounds = Self.coordinateBounds(
             latitude: context.latitude,
             longitude: context.longitude,
@@ -311,7 +315,7 @@ private extension FetchHomeRecommendationsUseCase {
 }
 
 // 기존 RecommendSportsUseCase
-extension FetchHomeRecommendationUseCase {
+extension FetchHomeRecommendationsUseCase {
     private let repository: SportRecommendationRuleRepositoryProtocol
     private let calendar: Calendar
     

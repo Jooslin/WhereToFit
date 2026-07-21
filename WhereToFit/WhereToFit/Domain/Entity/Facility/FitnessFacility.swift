@@ -7,13 +7,6 @@
 
 import Foundation
 
-
-// MARK: - 시설의 위치 (위경도)
-nonisolated struct GeoCoordinate: Equatable, Sendable {
-    let latitude: Double // 위도
-    let longitude: Double // 경도
-}
-
 nonisolated struct FitnessFacilityDataSet: Equatable {
     let markerFacilities: [FitnessFacility] // 지도 아이콘 기준 시설 데이터
     let programFacilities: [FitnessFacility] // 하단 모달 데이터
