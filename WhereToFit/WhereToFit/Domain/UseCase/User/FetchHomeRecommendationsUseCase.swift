@@ -16,9 +16,9 @@ final class FetchHomeRecommendationsUseCase {
         let distance: Double
     }
     
-    private struct CandidateResult {
-        let candidates: [ProgramCandidate]
-    }
+//    private struct CandidateResult {
+//        let candidates: [ProgramCandidate]
+//    }
     
     private let sportsRepository: SportsRepositoryProtocol
     private let recommendSportsUseCase: RecommendSportsUseCase
@@ -73,7 +73,7 @@ private extension FetchHomeRecommendationsUseCase {
     static let nearbyProgramLimit = 8
     static let recommendedProgramLimit = 6
     
-    private func fetchCandidates(coordinate: GeoCoordinate, radiusMeters: Double) -> Single<CandidateResult> {
+    private func fetchCandidates(coordinate: GeoCoordinate, radiusMeters: Double) -> Single<[ProgramCandidate]> {
         fetchNearbyFacilities(coordinate: coordinate, radiusMeters: radiusMeters)
             .flatMap { [sportsRepository] facilities -> Single<CandidateResult> in
                 guard !facilities.isEmpty else {
@@ -111,10 +111,10 @@ private extension FetchHomeRecommendationsUseCase {
             }
     }
     
-    private func fetchCandidates(coordinate: GeoCoordinate) -> Single<CandidateResult> {
+    private func fetchCandidates(coordinate: GeoCoordinate) -> Single<[ProgramCandidate]> {
         // 처음 5km 반경 내에서 후보 추리기
         fetchCandidates(coordinate: coordinate, radiusMeters: Self.primaryRadiusMeters)
-            .flatMap { [weak self] result -> Single<CandidateResult> in
+            .flatMap { [weak self] result -> Single<[ProgramCandidate]> in
                 guard let self else { return .just(result) }
                 guard result.candidates.isEmpty else { return .just(result) }
                 
