@@ -16,10 +16,6 @@ final class FetchHomeRecommendationsUseCase {
         let distance: Double
     }
     
-//    private struct CandidateResult {
-//        let candidates: [ProgramCandidate]
-//    }
-    
     private let sportsRepository: SportsRepositoryProtocol
     private let recommendSportsUseCase: RecommendSportsUseCase
     
@@ -75,11 +71,12 @@ private extension FetchHomeRecommendationsUseCase {
     
     private func fetchCandidates(coordinate: GeoCoordinate, radiusMeters: Double) -> Single<[ProgramCandidate]> {
         fetchNearbyFacilities(coordinate: coordinate, radiusMeters: radiusMeters)
-            .flatMap { [sportsRepository] facilities -> Single<CandidateResult> in
+            .flatMap { [sportsRepository] facilities -> Single<[ProgramCandidate]> in
                 guard !facilities.isEmpty else {
-                    return .just(CandidateResult(candidates: []))
+                    return .just([])
                 }
                 
+                // 중복 시설 제거
                 let facilitiesByID = Dictionary(
                     facilities.compactMap { facility in
                         facility.id.map { ($0, facility) }
@@ -100,13 +97,11 @@ private extension FetchHomeRecommendationsUseCase {
                     }
                     .toArray()
                     .map { pages in
-                        CandidateResult(
-                            candidates: Self.programCandidates(
+                         Self.programCandidates(
                                 from: pages.flatMap(\.items),
                                 facilitiesByID: facilitiesByID,
-                                context: coordinate
+                                coordinate: coordinate
                             )
-                        )
                     }
             }
     }
@@ -116,7 +111,7 @@ private extension FetchHomeRecommendationsUseCase {
         fetchCandidates(coordinate: coordinate, radiusMeters: Self.primaryRadiusMeters)
             .flatMap { [weak self] result -> Single<[ProgramCandidate]> in
                 guard let self else { return .just(result) }
-                guard result.candidates.isEmpty else { return .just(result) }
+                guard result.isEmpty else { return .just(result) }
                 
                 // 후보가 없으면 반경을 넓혀서(20km) 다시 추림
                 return self.fetchCandidates(
@@ -150,7 +145,7 @@ private extension FetchHomeRecommendationsUseCase {
     private static func programCandidates(
         from programs: [Program],
         facilitiesByID: [String: Facility],
-        context: GeoCoordinate
+        coordinate: GeoCoordinate
     ) -> [ProgramCandidate] {
         programs.compactMap { program in
             guard let facilityID = program.publicFacilityID,
@@ -161,11 +156,7 @@ private extension FetchHomeRecommendationsUseCase {
             return ProgramCandidate(
                 program: program,
                 facility: facility,
-                distance: distance(
-                    fromLatitude: context.latitude,
-                    fromLongitude: context.longitude,
-                    to: facility
-                )
+                distance: coordinate.distance(to: facility.coordinate)
             )
         }
     }
