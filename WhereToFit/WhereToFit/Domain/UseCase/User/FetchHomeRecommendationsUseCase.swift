@@ -154,24 +154,10 @@ private extension FetchHomeRecommendationsUseCase {
         .map { page in
             page.items
                 .filter {
-                    Self.distance(
-                        fromLatitude: context.latitude,
-                        fromLongitude: context.longitude,
-                        to: $0
-                    ) <= radiusMeters
+                    coordinate.distance(to: $0.coordinate) <= radiusMeters
                 }
                 .sorted {
-                    Self.distance(
-                        fromLatitude: context.latitude,
-                        fromLongitude: context.longitude,
-                        to: $0
-                    )
-                    <
-                    Self.distance(
-                        fromLatitude: context.latitude,
-                        fromLongitude: context.longitude,
-                        to: $1
-                    )
+                    coordinate.distance(to: $0.coordinate) < coordinate.distance(to: $1.coordinate)
                 }
         }
     }
@@ -267,19 +253,19 @@ private extension FetchHomeRecommendationsUseCase {
             }
     }
     
-    static func coordinateBounds(
-        latitude: Double,
-        longitude: Double,
-        radiusMeters: Double
-    ) -> (latitude: ClosedRange<Double>, longitude: ClosedRange<Double>) {
-        let latitudeDelta = radiusMeters / 111_000.0
-        let longitudeDelta = radiusMeters / (111_000.0 * cos(latitude * .pi / 180))
-        
-        return (
-            (latitude - latitudeDelta)...(latitude + latitudeDelta),
-            (longitude - longitudeDelta)...(longitude + longitudeDelta)
-        )
-    }
+//    static func coordinateBounds(
+//        latitude: Double,
+//        longitude: Double,
+//        radiusMeters: Double
+//    ) -> (latitude: ClosedRange<Double>, longitude: ClosedRange<Double>) {
+//        let latitudeDelta = radiusMeters / 111_000.0
+//        let longitudeDelta = radiusMeters / (111_000.0 * cos(latitude * .pi / 180))
+//        
+//        return (
+//            (latitude - latitudeDelta)...(latitude + latitudeDelta),
+//            (longitude - longitudeDelta)...(longitude + longitudeDelta)
+//        )
+//    }
     
     static func finalSelectionScore(
         selectionScore: Int,
@@ -292,27 +278,27 @@ private extension FetchHomeRecommendationsUseCase {
         return selectionScore + distanceBonus
     }
     
-    static func distance(
-        fromLatitude: Double,
-        fromLongitude: Double,
-        to facility: Facility
-    ) -> Double {
-        guard let latitude = facility.latitude,
-              let longitude = facility.longitude else {
-            return Double.greatestFiniteMagnitude
-        }
-        
-        let earthRadius = 6_371_000.0
-        let startLatitude = fromLatitude * .pi / 180
-        let endLatitude = latitude * .pi / 180
-        let latitudeDelta = (latitude - fromLatitude) * .pi / 180
-        let longitudeDelta = (longitude - fromLongitude) * .pi / 180
-        let a = sin(latitudeDelta / 2) * sin(latitudeDelta / 2)
-            + cos(startLatitude) * cos(endLatitude)
-            * sin(longitudeDelta / 2) * sin(longitudeDelta / 2)
-        
-        return earthRadius * 2 * atan2(sqrt(a), sqrt(1 - a))
-    }
+//    static func distance(
+//        fromLatitude: Double,
+//        fromLongitude: Double,
+//        to facility: Facility
+//    ) -> Double {
+//        guard let latitude = facility.latitude,
+//              let longitude = facility.longitude else {
+//            return Double.greatestFiniteMagnitude
+//        }
+//        
+//        let earthRadius = 6_371_000.0
+//        let startLatitude = fromLatitude * .pi / 180
+//        let endLatitude = latitude * .pi / 180
+//        let latitudeDelta = (latitude - fromLatitude) * .pi / 180
+//        let longitudeDelta = (longitude - fromLongitude) * .pi / 180
+//        let a = sin(latitudeDelta / 2) * sin(latitudeDelta / 2)
+//            + cos(startLatitude) * cos(endLatitude)
+//            * sin(longitudeDelta / 2) * sin(longitudeDelta / 2)
+//        
+//        return earthRadius * 2 * atan2(sqrt(a), sqrt(1 - a))
+//    }
 }
 
 // 기존 RecommendSportsUseCase

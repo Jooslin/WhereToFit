@@ -92,3 +92,13 @@ private extension Facility {
         }
     }
 }
+
+extension Facility {
+    var coordinate: GeoCoordinate? {
+        guard let latitude, let longitude else {
+            return nil
+        }
+        
+        return GeoCoordinate(latitude: latitude, longitude: longitude)
+    }
+}

@@ -18,8 +18,24 @@ nonisolated struct CoordinateBounds {
 }
 
 extension GeoCoordinate {
-    func distance(to destination: GeoCoordinate) -> Double {
-        return 0
+    func distance(to destination: GeoCoordinate?) -> Double {
+        guard let destination else {
+            return Double.greatestFiniteMagnitude
+        }
+        
+        let earthRadius = 6_371_000.0
+        
+        let startLatitude = latitude * .pi / 180
+        let endLatitude = latitude * .pi / 180
+        
+        let latitudeDelta = (destination.latitude - latitude) * .pi / 180
+        let longitudeDelta = (destination.longitude - longitude) * .pi / 180
+        
+        let a = sin(latitudeDelta / 2) * sin(latitudeDelta / 2)
+            + cos(startLatitude) * cos(endLatitude)
+            * sin(longitudeDelta / 2) * sin(longitudeDelta / 2)
+        
+        return earthRadius * 2 * atan2(sqrt(a), sqrt(1 - a))
     }
     
     func bounds(radiusMeters: Double) -> CoordinateBounds {
