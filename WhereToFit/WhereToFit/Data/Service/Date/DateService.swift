@@ -10,6 +10,8 @@ final class DateService {
     private let calendar: Calendar
     private let nowProvider: () -> Date
 
+    private var now: Date { nowProvider() }
+    
     init(nowProvider: @escaping () -> Date = { Date.now }) {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Asia/Seoul")!
@@ -27,7 +29,7 @@ final class DateService {
 
     // Date.now를 기준으로 해당 날짜의 시작 시간(자정)을 반환
     func today() -> Date {
-        calendar.startOfDay(for: nowProvider())
+        calendar.startOfDay(for: now)
     }
 
     func weekday(from date: Date) -> Weekday {
@@ -95,6 +97,12 @@ extension DateService {
                 day: day
             )
         }
+    }
+}
+
+extension DateService {
+    func age(of birthday: Date) -> Int {
+        calendar.dateComponents([.year], from: birthday, to: now).year ?? 0
     }
 }
 

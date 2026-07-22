@@ -16,15 +16,18 @@ final class FetchHomeRecommendationsUseCase {
         let distance: Double
     }
     
+    private let dateService: DateService
     private let sportsRepository: SportsRepositoryProtocol
-    private let recommendSportsUseCase: RecommendSportsUseCase
+    private let recommendationRuleRepository: SportRecommendationRuleRepositoryProtocol
     
     init(
+        dateService: DateService,
         sportsRepository: SportsRepositoryProtocol,
-        recommendSportsUseCase: RecommendSportsUseCase
+        recommendationRuleRepository: SportRecommendationRuleRepositoryProtocol
     ) {
+        self.dateService = dateService
         self.sportsRepository = sportsRepository
-        self.recommendSportsUseCase = recommendSportsUseCase
+        self.recommendationRuleRepository = recommendationRuleRepository
     }
     
     func fetchRecommendedProgram(profile: UserProfile?, location: UserLocation?) -> Single<[HomeRecommendedProgram]> {
@@ -255,24 +258,13 @@ private extension FetchHomeRecommendationsUseCase {
 
 // 기존 RecommendSportsUseCase
 extension FetchHomeRecommendationsUseCase {
-    private let repository: SportRecommendationRuleRepositoryProtocol
-    private let calendar: Calendar
-    
-    init(
-        repository: SportRecommendationRuleRepositoryProtocol,
-        calendar: Calendar = .current
-    ) {
-        self.repository = repository
-        self.calendar = calendar
-    }
-    
     func execute(profile: UserProfile) -> Single<[RecommendedSport]> {
         executePersonalizedScores(profile: profile)
             .map(Self.visibleRecommendations)
     }
     
     func executePersonalizedScores(profile: UserProfile) -> Single<[RecommendedSport]> {
-        repository.fetchActiveRules()
+        recommendationRuleRepository.fetchActiveRules()
             .map { [calendar] rules in
                 Self.scoredSports(
                     profile: profile,
@@ -296,7 +288,7 @@ extension FetchHomeRecommendationsUseCase {
     }
 }
 
-private extension RecommendSportsUseCase {
+private extension FetchHomeRecommendationsUseCase {
     static let primaryThreshold = 70
     static let fallbackThreshold = 60
     static let minimumRecommendationCount = 3
@@ -388,8 +380,8 @@ private extension RecommendSportsUseCase {
         return max(0, 100 - maxRisk)
     }
     
-    static func ageGroup(for birthDate: Date, calendar: Calendar) -> String {
-        let age = calendar.dateComponents([.year], from: birthDate, to: Date()).year ?? 0
+    func ageGroup(for birthDate: Date) -> String {
+        let age = dateService.age(of: birthDate)
         
         switch age {
         case ..<7:
