@@ -264,12 +264,14 @@ extension FetchHomeRecommendationsUseCase {
     }
     
     func executePersonalizedScores(profile: UserProfile) -> Single<[RecommendedSport]> {
+        let ageGroup = ageGroup(for: profile.birthDate)
+        
         recommendationRuleRepository.fetchActiveRules()
             .map { [calendar] rules in
                 Self.scoredSports(
                     profile: profile,
                     rules: rules,
-                    calendar: calendar,
+                    ageGroup: ageGroup,
                     includesPersonalization: true
                 )
             }
@@ -298,7 +300,7 @@ private extension FetchHomeRecommendationsUseCase {
     static func scoredSports(
         profile: UserProfile,
         rules: [SportRecommendationRule],
-        calendar: Calendar,
+        ageGroup: String,
         includesPersonalization: Bool
     ) -> [RecommendedSport] {
         rules
@@ -309,7 +311,7 @@ private extension FetchHomeRecommendationsUseCase {
                     matchRate: matchRate(
                         profile: profile,
                         rule: rule,
-                        calendar: calendar,
+                        ageGroup: String,
                         includesPersonalization: includesPersonalization
                     )
                 )
@@ -335,10 +337,10 @@ private extension FetchHomeRecommendationsUseCase {
     static func matchRate(
         profile: UserProfile,
         rule: SportRecommendationRule,
-        calendar: Calendar,
+        ageGroup: String,
         includesPersonalization: Bool
     ) -> Int {
-        let ageScore = rule.ageWeights[ageGroup(for: profile.birthDate, calendar: calendar)] ?? 0
+        let ageScore = rule.ageWeights[ageGroup] ?? 0
         let experienceScore = profile.exerciseExperience
             .map { rule.experienceWeights[$0.rawValue] ?? 0 } ?? 0
         let goalScore = profile.exerciseGoal
