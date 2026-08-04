@@ -31,7 +31,8 @@ final class FetchHomeRecommendationsUseCase {
     }
     
     func fetchRecommendedProgram(profile: UserProfile?, location: UserLocation?) -> Single<[HomeRecommendedProgram]> {
-        guard let latitude = location?.latitude,
+        guard let profile,
+              let latitude = location?.latitude,
               let longitude = location?.longitude else {
             return .just([])
         }
@@ -39,18 +40,18 @@ final class FetchHomeRecommendationsUseCase {
         let coordinate = GeoCoordinate(latitude: latitude, longitude: longitude)
         
         return fetchCandidates(coordinate: coordinate)
-            .flatMap { [recommendSportsUseCase] result -> Single<[HomeRecommendedProgram]> in
-                guard let profile else {
-                    return .just(Self.nearbyPrograms(from: result.candidates))
+            .flatMap { [weak self] candidates -> Single<[HomeRecommendedProgram]> in
+                guard let self else {
+                    return .just(Self.nearbyPrograms(from: candidates))
                 }
                 
                 return Single.zip(
-                    recommendSportsUseCase.executeCategory(profile: profile),
-                    recommendSportsUseCase.executePersonalizedScores(profile: profile)
+                    self.executeBaseScores(profile: profile, isPersonalized: true),
+                    self.executeBaseScores(profile: profile, isPersonalized: false)
                 )
                 .map { categorySports, personalizedSports in
                     Self.recommendedPrograms(
-                        from: result.candidates,
+                        from: candidates,
                         profile: profile,
                         categorySports: categorySports,
                         personalizedSports: personalizedSports
@@ -263,31 +264,47 @@ extension FetchHomeRecommendationsUseCase {
             .map(Self.visibleRecommendations)
     }
     
-    func executePersonalizedScores(profile: UserProfile) -> Single<[RecommendedSport]> {
+    func executeBaseScores(profile: UserProfile, isPersonalized: Bool) -> Single<[RecommendedSport]> {
         let ageGroup = ageGroup(for: profile.birthDate)
         
-        recommendationRuleRepository.fetchActiveRules()
-            .map { [calendar] rules in
+        return recommendationRuleRepository.fetchActiveRules()
+            .map { rules in
                 Self.scoredSports(
                     profile: profile,
                     rules: rules,
                     ageGroup: ageGroup,
-                    includesPersonalization: true
+                    includesPersonalization: isPersonalized
                 )
             }
     }
-    
-    func executeCategory(profile: UserProfile) -> Single<[RecommendedSport]> {
-        repository.fetchActiveRules()
-            .map { [calendar] rules in
-                Self.scoredSports(
-                    profile: profile,
-                    rules: rules,
-                    calendar: calendar,
-                    includesPersonalization: false
-                )
-            }
-    }
+//
+//    func executePersonalizedScores(profile: UserProfile) -> Single<[RecommendedSport]> {
+//        let ageGroup = ageGroup(for: profile.birthDate)
+//        
+//        return recommendationRuleRepository.fetchActiveRules()
+//            .map { rules in
+//                Self.scoredSports(
+//                    profile: profile,
+//                    rules: rules,
+//                    ageGroup: ageGroup,
+//                    includesPersonalization: true
+//                )
+//            }
+//    }
+//    
+//    func executeCategory(profile: UserProfile) -> Single<[RecommendedSport]> {
+//        let ageGroup = ageGroup(for: profile.birthDate)
+//        
+//        return recommendationRuleRepository.fetchActiveRules()
+//            .map { rules in
+//                return Self.scoredSports(
+//                    profile: profile,
+//                    rules: rules,
+//                    ageGroup: ageGroup,
+//                    includesPersonalization: false
+//                )
+//            }
+//    }
 }
 
 private extension FetchHomeRecommendationsUseCase {
@@ -311,7 +328,7 @@ private extension FetchHomeRecommendationsUseCase {
                     matchRate: matchRate(
                         profile: profile,
                         rule: rule,
-                        ageGroup: String,
+                        ageGroup: ageGroup,
                         includesPersonalization: includesPersonalization
                     )
                 )
