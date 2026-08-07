@@ -66,7 +66,7 @@ private extension RecommendSportsUseCase {
         rules
             .map { rule in
                 RecommendedSport(
-                    sportName: rule.sportName,
+                    sportsName: rule.sportsName,
                     sportsCategory: rule.sportsCategory,
                     matchRate: matchRate(
                         profile: profile,
@@ -78,7 +78,7 @@ private extension RecommendSportsUseCase {
             }
             .sorted {
                 if $0.matchRate == $1.matchRate {
-                    return $0.sportName < $1.sportName
+                    return $0.sportsName < $1.sportsName
                 }
                 
                 return $0.matchRate > $1.matchRate

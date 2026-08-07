@@ -9,7 +9,7 @@ import Foundation
 
 nonisolated struct SportRecommendationRule: Equatable, Sendable {
     let id: Int
-    let sportName: String
+    let sportsName: String
     let sportsCategory: SportsCategory
     let ageWeights: [String: Int]
     let experienceWeights: [String: Int]
@@ -21,7 +21,7 @@ nonisolated struct SportRecommendationRule: Equatable, Sendable {
 }
 
 nonisolated struct RecommendedSport: Hashable, Sendable {
-    let sportName: String
+    let sportsName: String
     let sportsCategory: SportsCategory
     let matchRate: Int
 }

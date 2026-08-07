@@ -54,7 +54,7 @@ enum ProgramMatchRateCalculator {
         let normalizedCategoryTitle = normalizedSportName(category.title)
         
         if let exactScore = context.personalizedSports.first(where: {
-            normalizedSportName($0.sportName) == normalizedCategoryTitle
+            normalizedSportName($0.sportsName) == normalizedCategoryTitle
         })?.matchRate {
             return exactScore
         }
@@ -75,7 +75,7 @@ private extension ProgramMatchRateCalculator {
         
         if let normalizedProgramSport,
            let exactScore = sports.first(where: {
-               normalizedSportName($0.sportName) == normalizedProgramSport
+               normalizedSportName($0.sportsName) == normalizedProgramSport
            })?.matchRate {
             return exactScore
         }

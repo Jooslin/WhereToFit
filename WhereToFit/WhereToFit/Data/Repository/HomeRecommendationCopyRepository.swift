@@ -26,7 +26,7 @@ final class HomeRecommendationCopyRepository: HomeRecommendationCopyRepositoryPr
             exerciseExperience: profile.exerciseExperience?.rawValue ?? "초보",
             recommendedSports: recommendedSports.map {
                 RecommendedSportDTO(
-                    sportName: $0.sportName,
+                    sportName: $0.sportsName,
                     sportsCategory: $0.sportsCategory.rawValue,
                     matchRate: $0.matchRate
                 )

@@ -36,7 +36,7 @@ nonisolated struct SportRecommendationRuleDTO: Decodable, Sendable {
 extension SportRecommendationRule {
     init(dto: SportRecommendationRuleDTO) {
         self.id = dto.id
-        self.sportName = dto.sportName
+        self.sportsName = dto.sportName
         self.sportsCategory = SportsCategory(rawValue: dto.sportsCategory) ?? .other
         self.ageWeights = dto.ageWeights
         self.experienceWeights = dto.experienceWeights

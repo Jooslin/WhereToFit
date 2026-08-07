@@ -41,41 +41,50 @@ final class FetchHomeRecommendationsUseCase {
         let ageGroup = ageGroup(for: profile.birthDate)
         
         return fetchCandidates(coordinate: coordinate) // 위치 기반 프로그램 가져오기
-            .flatMap { [recommendationRuleRepository] candidates -> Single<[HomeRecommendedProgram]> in
-//                guard let self else {
-//                    return .just(Self.nearbyPrograms(from: candidates))
-//                }
+            .flatMap { [recommendationRuleRepository] candidates -> Single<[HomeRecommendedProgram]> in                
+                // 추천 후보 프로그램 종목명 모음
+                let candidateSportsNames = Set(candidates.compactMap { candidate in
+                    candidate.program.sport?.replacingOccurrences(of: " ", with: "")
+                })
                 
                 // 추천 규칙(rule)에 기반한 점수 구하기
-                recommendationRuleRepository.fetchActiveRules()
+                return recommendationRuleRepository.fetchActiveRules()
                     .map { rules in
-                        let rulesBySportName = Dictionary(
-                            uniqueKeysWithValues: rules.map { rule in
-                                let key = rule.sportName.replacingOccurrences(of: " ", with: "")
-                                return (key, rule)
-                            })
-                        
                         // 추천 프로그램 후보에 해당하는 종목 rule만 필터링
-                        let relevantRules = rulesBySportName.filter { rule in
-                            candidates.contains(where: { candidate in
-                                candidate.program.sport == rule.key
-                            })
-                            
+                        let relevantRules = rules.filter { rule in
+                            let sportsName = rule.sportsName.replacingOccurrences(of: " ", with: "")
+                            return candidateSportsNames.contains(sportsName)
                         }
                         
+                        let ruleScoresWithoutBodyParts = try relevantRules.reduce(into: [String: Int]()) { result, rule in
+                            let sportsName = rule.sportsName.replacingOccurrences(of: " ", with: "")
+                            
+                            result[sportsName] = try ProgramMatchRateCalculator.ruleScore(
+                                profile: profile,
+                                rule: rule,
+                                ageGroup: ageGroup,
+                                includesBodyPart: false
+                            )
+                        }
+                        
+                        let ruleScoresWithBodyParts = try relevantRules.reduce(into: [String: Int]()) { result, rule in
+                            let sportsName = rule.sportsName.replacingOccurrences(of: " ", with: "")
+                            
+                            result[sportsName] = try ProgramMatchRateCalculator.ruleScore(
+                                profile: profile,
+                                rule: rule,
+                                ageGroup: ageGroup,
+                                includesBodyPart: true
+                            )
+                        }
+                        
+                        return Self.recommendedPrograms(
+                            from: candidates,
+                            profile: profile,
+                            categorySports: ruleScoresWithoutBodyParts,
+                            personalizedSports: ruleScoresWithBodyParts
+                        )
                     }
-                return Single.zip(
-                    self.executeRuleScores(profile: profile, isPersonalized: true),
-                    self.executeRuleScores(profile: profile, isPersonalized: false)
-                )
-                .map { categorySports, personalizedSports in
-                    Self.recommendedPrograms(
-                        from: candidates,
-                        profile: profile,
-                        categorySports: categorySports,
-                        personalizedSports: personalizedSports
-                    )
-                }
             }
     }
 }
@@ -343,7 +352,7 @@ private extension FetchHomeRecommendationsUseCase {
         rules
             .map { rule in
                 RecommendedSport(
-                    sportName: rule.sportName,
+                    sportsName: rule.sportsName,
                     sportsCategory: rule.sportsCategory,
                     matchRate: matchRate(
                         profile: profile,
@@ -355,7 +364,7 @@ private extension FetchHomeRecommendationsUseCase {
             }
             .sorted {
                 if $0.matchRate == $1.matchRate {
-                    return $0.sportName < $1.sportName
+                    return $0.sportsName < $1.sportsName
                 }
                 
                 return $0.matchRate > $1.matchRate
