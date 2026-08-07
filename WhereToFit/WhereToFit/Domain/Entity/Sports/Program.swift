@@ -95,6 +95,21 @@ enum ProgramTargetAge: Equatable {
             self = .all
         }
     }
+    
+    init(age: Int) {
+        switch age {
+        case ..<7:
+            self = .infant
+        case 7..<13:
+            self = .child
+        case 13..<20:
+            self = .youth
+        case 20..<60:
+            self = .adult
+        default:
+            self = .senior
+        }
+    }
 }
 
 nonisolated
