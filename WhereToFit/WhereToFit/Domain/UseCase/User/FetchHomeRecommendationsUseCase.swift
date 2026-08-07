@@ -38,16 +38,35 @@ final class FetchHomeRecommendationsUseCase {
         }
         
         let coordinate = GeoCoordinate(latitude: latitude, longitude: longitude)
+        let ageGroup = ageGroup(for: profile.birthDate)
         
-        return fetchCandidates(coordinate: coordinate)
-            .flatMap { [weak self] candidates -> Single<[HomeRecommendedProgram]> in
-                guard let self else {
-                    return .just(Self.nearbyPrograms(from: candidates))
-                }
+        return fetchCandidates(coordinate: coordinate) // 위치 기반 프로그램 가져오기
+            .flatMap { [recommendationRuleRepository] candidates -> Single<[HomeRecommendedProgram]> in
+//                guard let self else {
+//                    return .just(Self.nearbyPrograms(from: candidates))
+//                }
                 
+                // 추천 규칙(rule)에 기반한 점수 구하기
+                recommendationRuleRepository.fetchActiveRules()
+                    .map { rules in
+                        let rulesBySportName = Dictionary(
+                            uniqueKeysWithValues: rules.map { rule in
+                                let key = rule.sportName.replacingOccurrences(of: " ", with: "")
+                                return (key, rule)
+                            })
+                        
+                        // 추천 프로그램 후보에 해당하는 종목 rule만 필터링
+                        let relevantRules = rulesBySportName.filter { rule in
+                            candidates.contains(where: { candidate in
+                                candidate.program.sport == rule.key
+                            })
+                            
+                        }
+                        
+                    }
                 return Single.zip(
-                    self.executeBaseScores(profile: profile, isPersonalized: true),
-                    self.executeBaseScores(profile: profile, isPersonalized: false)
+                    self.executeRuleScores(profile: profile, isPersonalized: true),
+                    self.executeRuleScores(profile: profile, isPersonalized: false)
                 )
                 .map { categorySports, personalizedSports in
                     Self.recommendedPrograms(
@@ -165,6 +184,7 @@ private extension FetchHomeRecommendationsUseCase {
         }
     }
     
+    // 주변 프로그램 반환 (고려 조건: 거리)
     private static func nearbyPrograms(from candidates: [ProgramCandidate]) -> [HomeRecommendedProgram] {
         candidates
             .sorted {
@@ -264,7 +284,7 @@ extension FetchHomeRecommendationsUseCase {
             .map(Self.visibleRecommendations)
     }
     
-    func executeBaseScores(profile: UserProfile, isPersonalized: Bool) -> Single<[RecommendedSport]> {
+    func executeRuleScores(profile: UserProfile, isPersonalized: Bool) -> Single<[RecommendedSport]> {
         let ageGroup = ageGroup(for: profile.birthDate)
         
         return recommendationRuleRepository.fetchActiveRules()
