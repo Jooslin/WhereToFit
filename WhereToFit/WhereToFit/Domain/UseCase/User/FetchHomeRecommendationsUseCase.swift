@@ -56,7 +56,7 @@ final class FetchHomeRecommendationsUseCase {
                             return candidateSportsNames.contains(sportsName)
                         }
                         
-                        let ruleScoresWithoutBodyParts = try relevantRules.reduce(into: [String: Int]()) { result, rule in
+                        let programRecommendationRuleScores = try relevantRules.reduce(into: [String: Int]()) { result, rule in
                             let sportsName = rule.sportsName.replacingOccurrences(of: " ", with: "")
                             
                             result[sportsName] = try ProgramMatchRateCalculator.ruleScore(
@@ -67,7 +67,7 @@ final class FetchHomeRecommendationsUseCase {
                             )
                         }
                         
-                        let ruleScoresWithBodyParts = try relevantRules.reduce(into: [String: Int]()) { result, rule in
+                        let sportsRecommendationRuleScores = try relevantRules.reduce(into: [String: Int]()) { result, rule in
                             let sportsName = rule.sportsName.replacingOccurrences(of: " ", with: "")
                             
                             result[sportsName] = try ProgramMatchRateCalculator.ruleScore(
@@ -212,6 +212,21 @@ private extension FetchHomeRecommendationsUseCase {
                 )
             }
     }
+    
+//    private static func recommendedPrograms(
+//        from candidates: [ProgramCandidate],
+//        profile: UserProfile,
+//        ruleScoresWithBodyPart: [String: Int],
+//        ruleScoresWithoutBodyPart: [String: Int]
+//    ) -> [HomeRecommendedProgram] {
+//        candidates.compactMap { candidate in
+//            guard let sportsName = candidate.program.sport?.replacingOccurrences(of: " ", with: ""),
+//                  let ruleScoreWithBodyPart = ruleScoresWithBodyPart[sportsName],
+//                  let ruleScoresWithoutBodyPart = ruleScoresWithoutBodyPart[sportsName] else {
+//                return nil
+//            }
+//        }
+//    }
     
     private static func recommendedPrograms(
         from candidates: [ProgramCandidate],

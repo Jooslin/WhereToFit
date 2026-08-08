@@ -160,11 +160,18 @@ private extension ProgramMatchRateCalculator {
 }
 
 extension ProgramMatchRateCalculator {
-    func mathRate() -> Int {
-        // ruleScore 가중치 50% 선호 카테고리 15% 거리 35% -- AI 종목 추천
-        // ruleScore 65% 거리 35% -- 프로그램 추천
-        // 온보딩 없을 경우 거리 100%
-        return 0
+    // 프로그램 매칭률 계산 - ruleScore 기반, 선호 스포츠 카테고리 해당 시 가점 +5
+    func programMathRate(
+        ruleScore: Int,
+        sportsCategory: SportsCategory,
+        preferred: [SportsCategory]) -> Int {
+            guard !preferred.isEmpty else {
+                return ruleScore
+            }
+            
+            let preferrenceScore = preferred.contains(sportsCategory) ? 5 : 0
+            
+        return ruleScore + preferrenceScore
     }
     
     static func ruleScore(
@@ -193,11 +200,7 @@ extension ProgramMatchRateCalculator {
             throw RuleScoreError.missingGoalWeight(goal.rawValue)
         }
         
-        var scores = [
-            ageScore,
-            experienceScore,
-            goalScore
-        ]
+        var scores = [ageScore, experienceScore, goalScore]
         
         if includesBodyPart {
             let risks = try profile.discomfortBodyParts.map { bodyPart in
