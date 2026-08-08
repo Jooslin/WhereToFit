@@ -41,7 +41,7 @@ final class FetchHomeRecommendationsUseCase {
         let ageGroup = ageGroup(for: profile.birthDate)
         
         return fetchCandidates(coordinate: coordinate) // 위치 기반 프로그램 가져오기
-            .flatMap { [recommendationRuleRepository] candidates -> Single<[HomeRecommendedProgram]> in                
+            .flatMap { [recommendationRuleRepository] candidates -> Single<[HomeRecommendedProgram]> in
                 // 추천 후보 프로그램 종목명 모음
                 let candidateSportsNames = Set(candidates.compactMap { candidate in
                     candidate.program.sport?.replacingOccurrences(of: " ", with: "")
@@ -292,22 +292,8 @@ extension FetchHomeRecommendationsUseCase {
         executePersonalizedScores(profile: profile)
             .map(Self.visibleRecommendations)
     }
-    
-    func executeRuleScores(profile: UserProfile, isPersonalized: Bool) -> Single<[RecommendedSport]> {
-        let ageGroup = ageGroup(for: profile.birthDate)
-        
-        return recommendationRuleRepository.fetchActiveRules()
-            .map { rules in
-                Self.scoredSports(
-                    profile: profile,
-                    rules: rules,
-                    ageGroup: ageGroup,
-                    includesPersonalization: isPersonalized
-                )
-            }
-    }
-//
-//    func executePersonalizedScores(profile: UserProfile) -> Single<[RecommendedSport]> {
+//    
+//    func executeRuleScores(profile: UserProfile, isPersonalized: Bool) -> Single<[RecommendedSport]> {
 //        let ageGroup = ageGroup(for: profile.birthDate)
 //        
 //        return recommendationRuleRepository.fetchActiveRules()
@@ -316,21 +302,7 @@ extension FetchHomeRecommendationsUseCase {
 //                    profile: profile,
 //                    rules: rules,
 //                    ageGroup: ageGroup,
-//                    includesPersonalization: true
-//                )
-//            }
-//    }
-//    
-//    func executeCategory(profile: UserProfile) -> Single<[RecommendedSport]> {
-//        let ageGroup = ageGroup(for: profile.birthDate)
-//        
-//        return recommendationRuleRepository.fetchActiveRules()
-//            .map { rules in
-//                return Self.scoredSports(
-//                    profile: profile,
-//                    rules: rules,
-//                    ageGroup: ageGroup,
-//                    includesPersonalization: false
+//                    includesPersonalization: isPersonalized
 //                )
 //            }
 //    }
@@ -343,33 +315,33 @@ private extension FetchHomeRecommendationsUseCase {
     static let maximumVisibleRecommendationCount = 8
     static let preferredCategoryBonus = 5
     
-    static func scoredSports(
-        profile: UserProfile,
-        rules: [SportRecommendationRule],
-        ageGroup: String,
-        includesPersonalization: Bool
-    ) -> [RecommendedSport] {
-        rules
-            .map { rule in
-                RecommendedSport(
-                    sportsName: rule.sportsName,
-                    sportsCategory: rule.sportsCategory,
-                    matchRate: matchRate(
-                        profile: profile,
-                        rule: rule,
-                        ageGroup: ageGroup,
-                        includesPersonalization: includesPersonalization
-                    )
-                )
-            }
-            .sorted {
-                if $0.matchRate == $1.matchRate {
-                    return $0.sportsName < $1.sportsName
-                }
-                
-                return $0.matchRate > $1.matchRate
-            }
-    }
+//    static func scoredSports(
+//        profile: UserProfile,
+//        rules: [SportRecommendationRule],
+//        ageGroup: String,
+//        includesPersonalization: Bool
+//    ) -> [RecommendedSport] {
+//        rules
+//            .map { rule in
+//                RecommendedSport(
+//                    sportsName: rule.sportsName,
+//                    sportsCategory: rule.sportsCategory,
+//                    matchRate: matchRate(
+//                        profile: profile,
+//                        rule: rule,
+//                        ageGroup: ageGroup,
+//                        includesPersonalization: includesPersonalization
+//                    )
+//                )
+//            }
+//            .sorted {
+//                if $0.matchRate == $1.matchRate {
+//                    return $0.sportsName < $1.sportsName
+//                }
+//                
+//                return $0.matchRate > $1.matchRate
+//            }
+//    }
     
     static func visibleRecommendations(from scoredSports: [RecommendedSport]) -> [RecommendedSport] {
         var recommendations = scoredSports.filter { $0.matchRate >= primaryThreshold }
@@ -450,23 +422,6 @@ private extension FetchHomeRecommendationsUseCase {
             return "60대 이상"
         }
     }
-    
-    static func goalKey(for goal: ExerciseGoal) -> String {
-        switch goal {
-        case .strengthImprovement:
-            return "근력향상"
-        case .diet:
-            return "다이어트"
-        case .fitnessImprovement:
-            return "체력향상"
-        case .postureCorrection:
-            return "자세교정"
-        case .healthCare:
-            return "건강관리"
-        case .stressRelief:
-            return "스트레스 해소"
-        }
-    }
 }
 
 // 기존 GenerateHomeRecommendationCopyUseCase
@@ -491,45 +446,6 @@ extension FetchHomeRecommendationsUseCase {
             recommendedSports: recommendedSports,
             ageGroup: Self.ageGroup(for: profile.birthDate, calendar: calendar)
         )
-    }
-}
-
-private extension GenerateHomeRecommendationCopyUseCase {
-    static func ageGroup(for birthDate: Date, calendar: Calendar) -> String {
-        let age = calendar.dateComponents([.year], from: birthDate, to: Date()).year ?? 0
-        
-        switch age {
-        case ..<7:
-            return "아이"
-        case 7..<13:
-            return "어린이"
-        case 13..<20:
-            return "청소년"
-        case 20..<30:
-            return "20대"
-        case 30..<40:
-            return "30대"
-        case 40..<50:
-            return "40대"
-        case 50..<60:
-            return "50대"
-        default:
-            return "60대 이상"
-        }
-    }
-}
-
-// 기존 PreloadSportsRecommendationRulesUseCase
-extension FetchHomeRecommendationsUseCase {
-    private let repository: SportRecommendationRuleRepositoryProtocol
-    
-    init(repository: SportRecommendationRuleRepositoryProtocol) {
-        self.repository = repository
-    }
-    
-    func execute() -> Single<Void> {
-        repository.fetchActiveRules()
-            .map { _ in () }
     }
 }
 
