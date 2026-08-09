@@ -20,7 +20,7 @@ nonisolated struct SportRecommendationRule: Equatable, Sendable {
     let formulaVersion: Int
 }
 
-nonisolated struct RecommendedSport: Hashable, Sendable {
+nonisolated struct RecommendedSports: Hashable, Sendable {
     let sportsName: String
     let sportsCategory: SportsCategory
     let matchRate: Int

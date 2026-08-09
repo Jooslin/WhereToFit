@@ -11,7 +11,7 @@ import RxSwift
 protocol HomeRecommendationCopyRepositoryProtocol {
     func generateCopy(
         profile: UserProfile,
-        recommendedSports: [RecommendedSport],
+        recommendedSports: [RecommendedSports],
         ageGroup: String
     ) -> Single<HomeRecommendationCopy>
 }

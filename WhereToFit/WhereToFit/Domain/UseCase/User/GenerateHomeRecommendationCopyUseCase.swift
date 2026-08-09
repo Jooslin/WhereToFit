@@ -22,7 +22,7 @@ final class GenerateHomeRecommendationCopyUseCase {
     
     func execute(
         profile: UserProfile,
-        recommendedSports: [RecommendedSport]
+        recommendedSports: [RecommendedSports]
     ) -> Single<HomeRecommendationCopy> {
         repository.generateCopy(
             profile: profile,

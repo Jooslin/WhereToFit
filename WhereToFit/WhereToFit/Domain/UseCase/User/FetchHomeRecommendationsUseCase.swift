@@ -7,6 +7,7 @@
 
 import Foundation
 import RxSwift
+import OSLog
 
 // 기존 FetchHomeProgramRecommendationsUseCase
 final class FetchHomeRecommendationsUseCase {
@@ -28,6 +29,49 @@ final class FetchHomeRecommendationsUseCase {
         self.dateService = dateService
         self.sportsRepository = sportsRepository
         self.recommendationRuleRepository = recommendationRuleRepository
+    }
+    
+    func fetchSportsRecommendation(profile: UserProfile?) -> Single<[RecommendedSports]> {
+        guard let profile else { return .just([])}
+        
+        let ageGroup = ageGroup(for: profile.birthDate)
+        
+        return recommendationRuleRepository.fetchActiveRules()
+            .map { rules in
+                rules.map { rule in
+                    do {
+                        let ruleScore = try ProgramMatchRateCalculator.ruleScore(
+                            profile: profile,
+                            rule: rule,
+                            ageGroup: ageGroup,
+                            includesBodyPart: false
+                        )
+                        
+                        let matchRate = ProgramMatchRateCalculator.matchRate(
+                            ruleScore: ruleScore,
+                            sportsCategory: rule.sportsCategory,
+                            preferred: profile.preferredSportsCategories
+                        )
+                        
+                        return RecommendedSports(
+                            sportsName: rule.sportsName,
+                            sportsCategory: rule.sportsCategory,
+                            matchRate: matchRate
+                        )
+                    } catch {
+                        // 에러 로그
+                    }
+                }
+                .sorted {
+                    // 매칭률이 높은 순 정렬
+                    if $0.matchRate == $1.matchRate {
+                        // 동일할 시 이름 순 정렬
+                        return $0.sportsName < $1.sportsName
+                    }
+                    
+                    return $0.matchRate > $1.matchRate
+                }
+            }
     }
     
     func fetchRecommendedProgram(profile: UserProfile?, location: UserLocation?) -> Single<[HomeRecommendedProgram]> {
@@ -231,8 +275,8 @@ private extension FetchHomeRecommendationsUseCase {
     private static func recommendedPrograms(
         from candidates: [ProgramCandidate],
         profile: UserProfile,
-        categorySports: [RecommendedSport],
-        personalizedSports: [RecommendedSport]
+        categorySports: [RecommendedSports],
+        personalizedSports: [RecommendedSports]
     ) -> [HomeRecommendedProgram] {
         let matchRateContext = ProgramMatchRateCalculator.Context(
             profile: profile,
@@ -303,7 +347,7 @@ private extension FetchHomeRecommendationsUseCase {
 
 // 기존 RecommendSportsUseCase
 extension FetchHomeRecommendationsUseCase {
-    func execute(profile: UserProfile) -> Single<[RecommendedSport]> {
+    func execute(profile: UserProfile) -> Single<[RecommendedSports]> {
         executePersonalizedScores(profile: profile)
             .map(Self.visibleRecommendations)
     }
@@ -358,7 +402,7 @@ private extension FetchHomeRecommendationsUseCase {
 //            }
 //    }
     
-    static func visibleRecommendations(from scoredSports: [RecommendedSport]) -> [RecommendedSport] {
+    static func visibleRecommendations(from scoredSports: [RecommendedSports]) -> [RecommendedSports] {
         var recommendations = scoredSports.filter { $0.matchRate >= primaryThreshold }
         if recommendations.count < minimumRecommendationCount {
             recommendations = scoredSports.filter { $0.matchRate >= fallbackThreshold }
@@ -454,7 +498,7 @@ extension FetchHomeRecommendationsUseCase {
     
     func execute(
         profile: UserProfile,
-        recommendedSports: [RecommendedSport]
+        recommendedSports: [RecommendedSports]
     ) -> Single<HomeRecommendationCopy> {
         repository.generateCopy(
             profile: profile,

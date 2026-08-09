@@ -17,7 +17,7 @@ final class HomeRecommendationCopyRepository: HomeRecommendationCopyRepositoryPr
     
     func generateCopy(
         profile: UserProfile,
-        recommendedSports: [RecommendedSport],
+        recommendedSports: [RecommendedSports],
         ageGroup: String
     ) -> Single<HomeRecommendationCopy> {
         let request = HomeRecommendationCopyRequestDTO(

@@ -35,7 +35,7 @@ extension HomeCollectionView {
     nonisolated
     enum Item: Hashable {
         case weather(WeatherSectionItem)
-        case recommend(RecommendedSport)
+        case recommend(RecommendedSports)
         case recommendReason(String)
         case onboarding
         case program(ProgramSectionItem)

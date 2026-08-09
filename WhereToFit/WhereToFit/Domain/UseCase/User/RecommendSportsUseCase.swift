@@ -20,12 +20,12 @@ final class RecommendSportsUseCase {
         self.calendar = calendar
     }
     
-    func execute(profile: UserProfile) -> Single<[RecommendedSport]> {
+    func execute(profile: UserProfile) -> Single<[RecommendedSports]> {
         executePersonalizedScores(profile: profile)
             .map(Self.visibleRecommendations)
     }
     
-    func executePersonalizedScores(profile: UserProfile) -> Single<[RecommendedSport]> {
+    func executePersonalizedScores(profile: UserProfile) -> Single<[RecommendedSports]> {
         repository.fetchActiveRules()
             .map { [calendar] rules in
                 Self.scoredSports(
@@ -37,7 +37,7 @@ final class RecommendSportsUseCase {
             }
     }
     
-    func executeCategory(profile: UserProfile) -> Single<[RecommendedSport]> {
+    func executeCategory(profile: UserProfile) -> Single<[RecommendedSports]> {
         repository.fetchActiveRules()
             .map { [calendar] rules in
                 Self.scoredSports(
@@ -62,10 +62,10 @@ private extension RecommendSportsUseCase {
         rules: [SportRecommendationRule],
         calendar: Calendar,
         includesPersonalization: Bool
-    ) -> [RecommendedSport] {
+    ) -> [RecommendedSports] {
         rules
             .map { rule in
-                RecommendedSport(
+                RecommendedSports(
                     sportsName: rule.sportsName,
                     sportsCategory: rule.sportsCategory,
                     matchRate: matchRate(
@@ -85,7 +85,7 @@ private extension RecommendSportsUseCase {
             }
     }
     
-    static func visibleRecommendations(from scoredSports: [RecommendedSport]) -> [RecommendedSport] {
+    static func visibleRecommendations(from scoredSports: [RecommendedSports]) -> [RecommendedSports] {
         var recommendations = scoredSports.filter { $0.matchRate >= primaryThreshold }
         if recommendations.count < minimumRecommendationCount {
             recommendations = scoredSports.filter { $0.matchRate >= fallbackThreshold }

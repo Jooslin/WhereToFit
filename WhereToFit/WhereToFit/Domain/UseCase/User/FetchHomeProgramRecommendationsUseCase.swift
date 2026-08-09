@@ -215,8 +215,8 @@ private extension FetchHomeProgramRecommendationsUseCase {
     private static func recommendedPrograms(
         from candidates: [ProgramCandidate],
         profile: UserProfile,
-        categorySports: [RecommendedSport],
-        personalizedSports: [RecommendedSport],
+        categorySports: [RecommendedSports],
+        personalizedSports: [RecommendedSports],
         radiusMeters: Double
     ) -> [HomeRecommendedProgram] {
         let matchRateContext = ProgramMatchRateCalculator.Context(

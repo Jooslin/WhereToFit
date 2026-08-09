@@ -10,8 +10,8 @@ import Foundation
 enum ProgramMatchRateCalculator {
     struct Context {
         let profile: UserProfile
-        let categorySports: [RecommendedSport]
-        let personalizedSports: [RecommendedSport]
+        let categorySports: [RecommendedSports]
+        let personalizedSports: [RecommendedSports]
     }
     
     struct ProgramScore {
@@ -69,7 +69,7 @@ enum ProgramMatchRateCalculator {
 private extension ProgramMatchRateCalculator {
     static func sportScore(
         for program: Program,
-        from sports: [RecommendedSport]
+        from sports: [RecommendedSports]
     ) -> Int? {
         let normalizedProgramSport = normalizedSportName(program.sport)
         
@@ -161,7 +161,7 @@ private extension ProgramMatchRateCalculator {
 
 extension ProgramMatchRateCalculator {
     // 프로그램 매칭률 계산 - ruleScore 기반, 선호 스포츠 카테고리 해당 시 가점 +5
-    func programMathRate(
+    static func matchRate(
         ruleScore: Int,
         sportsCategory: SportsCategory,
         preferred: [SportsCategory]) -> Int {
@@ -170,8 +170,8 @@ extension ProgramMatchRateCalculator {
             }
             
             let preferrenceScore = preferred.contains(sportsCategory) ? 5 : 0
-            
-        return ruleScore + preferrenceScore
+  
+        return min(100, ruleScore + preferrenceScore)
     }
     
     static func ruleScore(
