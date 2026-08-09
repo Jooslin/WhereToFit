@@ -10,5 +10,6 @@ import Foundation
 struct HomeRecommendedProgram: Hashable {
     let program: Program
     let facility: Facility
-    let matchRate: Int?
+    let matchRate: Int
+    let distance: Double
 }
