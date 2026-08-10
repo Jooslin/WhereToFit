@@ -37,8 +37,8 @@ final class FetchHomeRecommendationsUseCase {
         let ageGroup = ageGroup(for: profile.birthDate)
         
         return recommendationRuleRepository.fetchActiveRules()
-            .map { rules in
-                rules.map { rule in
+            .map { rules -> [RecommendedSports] in
+                let recommendations = rules.map { rule in
                     do {
                         let ruleScore = try ProgramMatchRateCalculator.ruleScore(
                             profile: profile,
@@ -61,15 +61,18 @@ final class FetchHomeRecommendationsUseCase {
                     } catch {
                         // 에러 로그
                     }
-                }
-                .sorted {
-                    // 매칭률이 높은 순 정렬
-                    if $0.matchRate == $1.matchRate {
-                        // 동일할 시 이름 순 정렬
-                        return $0.sportsName < $1.sportsName
+                    
+                    let sorted = recommendations.sorted {
+                        // 매칭률이 높은 순 정렬
+                        if $0.matchRate == $1.matchRate {
+                            // 동일할 시 이름 순 정렬
+                            return $0.sportsName < $1.sportsName
+                        }
+                        
+                        return $0.matchRate > $1.matchRate
                     }
                     
-                    return $0.matchRate > $1.matchRate
+                    return Array(sorted.prefix(8))
                 }
             }
     }
@@ -93,7 +96,7 @@ final class FetchHomeRecommendationsUseCase {
                 
                 // 추천 규칙(rule)에 기반한 점수 구하기
                 return recommendationRuleRepository.fetchActiveRules()
-                    .map { rules in
+                    .map { rules -> [HomeRecommendedProgram] in
                         // 추천 프로그램 후보에 해당하는 종목 rule만 필터링
                         let relevantRules = rules.filter { rule in
                             let sportsName = rule.sportsName.replacingOccurrences(of: " ", with: "")
@@ -142,64 +145,6 @@ final class FetchHomeRecommendationsUseCase {
                     }
             }
     }
-    
-    //        func fetchRecommendedProgram(profile: UserProfile?, location: UserLocation?) -> Single<[HomeRecommendedProgram]> {
-    //            guard let profile,
-    //                  let latitude = location?.latitude,
-    //                  let longitude = location?.longitude else {
-    //                return .just([])
-    //            }
-    //
-    //            let coordinate = GeoCoordinate(latitude: latitude, longitude: longitude)
-    //            let ageGroup = ageGroup(for: profile.birthDate)
-    //
-    //            return fetchCandidates(coordinate: coordinate) // 위치 기반 프로그램 가져오기
-    //                .flatMap { [recommendationRuleRepository] candidates -> Single<[HomeRecommendedProgram]> in
-    //                    // 추천 후보 프로그램 종목명 모음
-    //                    let candidateSportsNames = Set(candidates.compactMap { candidate in
-    //                        candidate.program.sport?.replacingOccurrences(of: " ", with: "")
-    //                    })
-    //
-    //                    // 추천 규칙(rule)에 기반한 점수 구하기
-    //                    return recommendationRuleRepository.fetchActiveRules()
-    //                        .map { rules in
-    //                            // 추천 프로그램 후보에 해당하는 종목 rule만 필터링
-    //                            let relevantRules = rules.filter { rule in
-    //                                let sportsName = rule.sportsName.replacingOccurrences(of: " ", with: "")
-    //                                return candidateSportsNames.contains(sportsName)
-    //                            }
-    //
-    //                            let programRecommendationRuleScores = try relevantRules.reduce(into: [String: Int]()) { result, rule in
-    //                                let sportsName = rule.sportsName.replacingOccurrences(of: " ", with: "")
-    //
-    //                                result[sportsName] = try ProgramMatchRateCalculator.ruleScore(
-    //                                    profile: profile,
-    //                                    rule: rule,
-    //                                    ageGroup: ageGroup,
-    //                                    includesBodyPart: false
-    //                                )
-    //                            }
-    //
-    //                            let sportsRecommendationRuleScores = try relevantRules.reduce(into: [String: Int]()) { result, rule in
-    //                                let sportsName = rule.sportsName.replacingOccurrences(of: " ", with: "")
-    //
-    //                                result[sportsName] = try ProgramMatchRateCalculator.ruleScore(
-    //                                    profile: profile,
-    //                                    rule: rule,
-    //                                    ageGroup: ageGroup,
-    //                                    includesBodyPart: true
-    //                                )
-    //                            }
-    //
-    //                            return Self.recommendedPrograms(
-    //                                from: candidates,
-    //                                profile: profile,
-    //                                categorySports: ruleScoresWithoutBodyParts,
-    //                                personalizedSports: ruleScoresWithBodyParts
-    //                            )
-    //                        }
-    //                }
-    //        }
 }
 
 private extension FetchHomeRecommendationsUseCase {
