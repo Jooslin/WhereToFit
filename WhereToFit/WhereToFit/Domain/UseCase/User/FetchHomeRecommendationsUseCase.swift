@@ -267,18 +267,10 @@ private extension FetchHomeRecommendationsUseCase {
                     program: $0.program,
                     facility: $0.facility,
                     matchRate: 0,
-                    distance: 0
+                    distance: $0.distance
                 )
             }
     }
-}
-// 기존 RecommendSportsUseCase
-extension FetchHomeRecommendationsUseCase {
-    func execute(profile: UserProfile) -> Single<[RecommendedSports]> {
-        executePersonalizedScores(profile: profile)
-            .map(Self.visibleRecommendations)
-    }
-    
 }
 
 private extension FetchHomeRecommendationsUseCase {
@@ -287,15 +279,6 @@ private extension FetchHomeRecommendationsUseCase {
     static let minimumRecommendationCount = 3
     static let maximumVisibleRecommendationCount = 8
     static let preferredCategoryBonus = 5
-    
-    static func visibleRecommendations(from scoredSports: [RecommendedSports]) -> [RecommendedSports] {
-        var recommendations = scoredSports.filter { $0.matchRate >= primaryThreshold }
-        if recommendations.count < minimumRecommendationCount {
-            recommendations = scoredSports.filter { $0.matchRate >= fallbackThreshold }
-        }
-        
-        return Array(recommendations.prefix(maximumVisibleRecommendationCount))
-    }
     
     func ageGroup(for birthDate: Date) -> String {
         let age = dateService.age(of: birthDate)
