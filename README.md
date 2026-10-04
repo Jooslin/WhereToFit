@@ -1,6 +1,8 @@
+
 # 운동갈지도 · WhereToFit
 
 > 오늘 어떤 운동을, 어디서 할 수 있을까?
+<img width=40% alt="Group 427318901" src="https://github.com/user-attachments/assets/6f601d77-3294-4ca7-8e42-07d3b1b4fe03" />
 
 **운동갈지도**는 나의 운동 목적과 경험, 관심 종목에 맞는 운동과 주변 공공체육시설을 찾고, 운동 일정과 기록까지 관리하는 iOS 앱입니다.
 
@@ -65,12 +67,14 @@ WhereToFit/WhereToFit/
 ## 주요 기능
 
 ### 나를 알아가는 온보딩
+<p align=center><img width=80% alt="Group 427318901 (1)" src="https://github.com/user-attachments/assets/1a1909c3-4e41-4c7b-96a1-4a941122524d" /></p>
 
 - 운동 경험, 관심 운동, 불편한 신체 부위, 운동 목적, 공공체육시설 이용 여부 등을 입력합니다.
 - 저장한 프로필을 운동 추천과 프로그램 매칭에 활용합니다.
 - 마이페이지에서 프로필과 운동 추천 결과를 확인할 수 있습니다.
 
 ### 오늘의 운동과 프로그램 추천
+<p align=center><img width=60% alt="Group 427318902" src="https://github.com/user-attachments/assets/c7225615-b6d7-4a56-852d-0fffab53c37a" /></p>
 
 - 개인 프로필을 바탕으로 운동 종목과 주변 프로그램을 추천합니다.
 - 매칭률과 추천 이유를 함께 보여줘 선택을 돕습니다.
@@ -78,6 +82,7 @@ WhereToFit/WhereToFit/
 - 운동할 위치를 추가하고 선택해 주변 프로그램을 탐색합니다.
 
 ### 주변 공공체육시설 탐색과 예약 연결
+<p align=center><img width=80% alt="Group 427318902 (1)" src="https://github.com/user-attachments/assets/9890329a-ec9c-48ed-bebc-41bdfac372bf" /></p>
 
 - 지도와 목록에서 주변 시설 및 프로그램을 탐색합니다.
 - 운동 종목과 가격 등 조건으로 원하는 대상을 좁혀봅니다.
@@ -90,11 +95,13 @@ WhereToFit/WhereToFit/
 - 이용할 프로그램의 기간, 요일, 시간을 등록하고 관리합니다.
 - 홈에서 오늘과 이후의 등록 일정을 확인합니다.
 - 프로그램 시작 전 알림을 설정하고 알림 내역을 확인합니다.
+
 - 관심 시설과 프로그램을 찜하고 마이페이지에서 다시 찾아봅니다.
 
 앱에 프로그램 일정을 등록하는 기능은 외부 시설의 예약 확정과 별개입니다.
 
 ### 운동 기록과 리포트
+<p align=center><img width=60% alt="Group 427318902 (2)" src="https://github.com/user-attachments/assets/673ebf10-23e9-4268-8e26-a4a914d00cdc" /></p>
 
 - 캘린더에 운동, 몸무게, 컨디션을 기록합니다.
 - 날짜별 기록을 확인하며 운동 습관을 돌아봅니다.
