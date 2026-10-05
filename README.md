@@ -91,6 +91,7 @@ WhereToFit/WhereToFit/
 - 예약 버튼으로 외부 예약·안내 페이지에 연결합니다. 실제 예약은 해당 서비스에서 진행합니다.
 
 ### 운동 일정과 관심 목록 관리
+<p align=center><img width=80% alt="Group 5" src="https://github.com/user-attachments/assets/a5a3c11f-03cf-41c3-aea0-55e05765278d" /></p>
 
 - 이용할 프로그램의 기간, 요일, 시간을 등록하고 관리합니다.
 - 홈에서 오늘과 이후의 등록 일정을 확인합니다.
